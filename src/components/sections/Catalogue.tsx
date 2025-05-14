@@ -1,10 +1,6 @@
-'use client';
-
 import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
+import { ChevronDown, ChevronUp } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import Link from 'next/link';
-import { ChevronDown, ChevronUp, CheckCircle } from 'lucide-react';
 
 // Define package and add-on interfaces for TypeScript
 interface Package {
@@ -207,22 +203,25 @@ const addOns: AddOn[] = [
   },
 ];
 
-const Catalogue: React.FC = () => {
-  // State to track open/closed state for packages and add-ons
-  const [packagesOpen, setPackagesOpen] = useState(false);
-  const [addOnsOpen, setAddOnsOpen] = useState(false);
+const Catalogue = () => {
+  // State to track open/closed state of each card
+  const [openCards, setOpenCards] = useState({});
 
-  // Toggle functions for each section
-  const togglePackages = () => setPackagesOpen((prev) => !prev);
-  const toggleAddOns = () => setAddOnsOpen((prev) => !prev);
+  // Toggle card open/closed state
+  const toggleCard = (cardId) => {
+    setOpenCards((prev) => ({
+      ...prev,
+      [cardId]: !prev[cardId],
+    }));
+  };
 
-  // Animation variants for staggered reveal
+  // Animation variants
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
       transition: {
-        staggerChildren: 0.2,
+        staggerChildren: 0.1,
       },
     },
   };
@@ -232,7 +231,7 @@ const Catalogue: React.FC = () => {
     visible: {
       opacity: 1,
       y: 0,
-      transition: { duration: 0.5, ease: 'easeOut' },
+      transition: { duration: 0.4, ease: 'easeOut' },
     },
   };
 
@@ -242,29 +241,20 @@ const Catalogue: React.FC = () => {
     expanded: { height: 'auto', opacity: 1, transition: { duration: 0.3, ease: 'easeOut' } },
   };
 
-  // Animation for checkmarks
-  const checkmarkVariants = {
-    hidden: { scale: 0, opacity: 0 },
-    visible: { scale: 1, opacity: 1, transition: { duration: 0.2, type: 'spring', stiffness: 200 } },
-  };
-
   return (
-    <section className="py-16 bg-[#fff6ea] relative overflow-hidden">
-      <div className="container mx-auto px-4">
+    <div className="min-h-screen bg-[#fff6ea]">
+      <div className="max-w-7xl mx-auto px-4 py-16 sm:px-6 lg:px-8">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.8 }}
-          className="text-center mb-12"
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="text-center mb-16"
         >
-          <h2 className="text-4xl md:text-5xl font-extrabold text-[#ff5831] mb-2 relative">
-            Our Website Packages
-            <span className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-16 h-1 bg-[#00d66b]"></span>
-          </h2>
-          <p className="text-lg text-gray-700 max-w-2xl mx-auto">
-            Choose a package tailored to your needs, from simple portfolios to complex web applications. All packages include lead capture via our contact form.
+          <h1 className="text-4xl font-bold text-[#ff5831] mb-6">Website Packages</h1>
+          <p className="text-gray-700 max-w-3xl mx-auto text-lg">
+            Choose a package tailored to your needs, from simple portfolios to complex web applications.
+            All packages include responsive design and lead capture.
           </p>
         </motion.div>
 
@@ -272,217 +262,173 @@ const Catalogue: React.FC = () => {
         <motion.div
           variants={containerVariants}
           initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-          className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16"
+          animate="visible"
+          className="grid gap-8 md:grid-cols-2 lg:grid-cols-3 mb-20"
         >
-          {packages.map((pkg, index) => (
-            <motion.div
-              key={pkg.name}
-              variants={cardVariants}
-              className="bg-white rounded-xl shadow-lg p-6 border border-[#ffd60a]/50 hover:shadow-xl hover:border-[#ffd60a] transition-all duration-300 flex flex-col"
-            >
-              {/* Card Header (Always Visible) */}
-              <button
-                onClick={togglePackages}
-                className="flex justify-between items-center w-full text-left focus:outline-none focus:ring-2 focus:ring-[#ffd60a] rounded-lg"
-                aria-expanded={packagesOpen}
-                aria-controls={`package-details-${index}`}
+          {packages.map((pkg, index) => {
+            const cardId = `package-${index}`;
+            const isOpen = !!openCards[cardId];
+
+            return (
+              <motion.div
+                key={pkg.name}
+                variants={cardVariants}
+                className="bg-white rounded-2xl shadow-lg overflow-hidden border-t-4 border-[#ffd60a] transition-all duration-300 hover:shadow-xl"
               >
-                <div>
-                  <h3 className="text-2xl font-extrabold text-[#00d66b] mb-2">{pkg.name}</h3>
-                  <p className="text-[#ad00ff] text-lg font-semibold mb-2 bg-clip-text bg-gradient-to-r from-[#ad00ff] to-[#ff5831]">
-                    {pkg.price}
-                  </p>
-                  <p className="text-gray-600 text-sm">{pkg.usdPrice}</p>
-                </div>
-                <motion.div
-                  animate={{ rotate: packagesOpen ? 180 : 0 }}
-                  transition={{ duration: 0.3 }}
-                  className="hover:bg-[#ffd60a]/20 rounded-full p-1"
-                >
-                  {packagesOpen ? (
-                    <ChevronUp className="w-6 h-6 text-[#ffd60a]" />
-                  ) : (
-                    <ChevronDown className="w-6 h-6 text-[#ffd60a]" />
-                  )}
-                </motion.div>
-              </button>
-
-              {/* Collapsible Content */}
-              <AnimatePresence>
-                {packagesOpen && (
-                  <motion.div
-                    variants={accordionVariants}
-                    initial="collapsed"
-                    animate="expanded"
-                    exit="collapsed"
-                    id={`package-details-${index}`}
-                    className="mt-4 flex-1"
+                <div className="p-6">
+                  {/* Card Header */}
+                  <div className="mb-4">
+                    <h3 className="text-2xl font-bold text-[#ff5831] mb-2">{pkg.name}</h3>
+                    <p className="text-[#ad00ff] text-xl font-semibold">{pkg.price}</p>
+                    <p className="text-gray-500 text-sm">{pkg.usdPrice}</p>
+                  </div>
+                  
+                  <p className="text-gray-700 text-sm font-medium mb-4">{pkg.idealFor}</p>
+                  <p className="text-gray-600 text-sm mb-6">{pkg.description}</p>
+                  
+                  {/* Timeline */}
+                  <div className="flex items-center justify-between mb-6">
+                    <span className="text-gray-500 text-sm">Timeline</span>
+                    <span className="bg-[#ff5831]/10 text-[#ff5831] text-sm py-1 px-3 rounded-full font-medium">{pkg.timeline}</span>
+                  </div>
+                  
+                  {/* Toggle Button */}
+                  <button
+                    onClick={() => toggleCard(cardId)}
+                    className="flex items-center justify-center w-full py-3 px-4 bg-[#ffd60a]/10 text-[#ffd60a] rounded-lg font-medium hover:bg-[#ffd60a]/20 transition-colors duration-200"
                   >
-                    <p className="text-gray-700 text-sm mb-4 font-medium">{pkg.idealFor}</p>
-                    <p className="text-gray-600 text-sm mb-6">{pkg.description}</p>
-
-                    {/* Features */}
-                    <h4 className="text-sm font-bold text-[#ff5831] mb-2">Design</h4>
-                    <ul className="space-y-2 mb-4">
-                      {pkg.features.design.map((feature, i) => (
-                        <motion.li
-                          key={i}
-                          variants={checkmarkVariants}
-                          initial="hidden"
-                          animate="visible"
-                          className="flex items-start text-sm text-gray-700"
-                        >
-                          <CheckCircle className="w-4 h-4 text-[#ffd60a] mr-2 mt-1" />
-                          {feature}
-                        </motion.li>
-                      ))}
-                    </ul>
-                    <h4 className="text-sm font-bold text-[#ff5831] mb-2">Functionality</h4>
-                    <ul className="space-y-2 mb-4">
-                      {pkg.features.functionality.map((feature, i) => (
-                        <motion.li
-                          key={i}
-                          variants={checkmarkVariants}
-                          initial="hidden"
-                          animate="visible"
-                          className="flex items-start text-sm text-gray-700"
-                        >
-                          <CheckCircle className="w-4 h-4 text-[#ffd60a] mr-2 mt-1" />
-                          {feature}
-                        </motion.li>
-                      ))}
-                    </ul>
-                    <h4 className="text-sm font-bold text-[#ff5831] mb-2">SEO & Performance</h4>
-                    <ul className="space-y-2 mb-4">
-                      {pkg.features.seo.map((feature, i) => (
-                        <motion.li
-                          key={i}
-                          variants={checkmarkVariants}
-                          initial="hidden"
-                          animate="visible"
-                          className="flex items-start text-sm text-gray-700"
-                        >
-                          <CheckCircle className="w-4 h-4 text-[#ffd60a] mr-2 mt-1" />
-                          {feature}
-                        </motion.li>
-                      ))}
-                    </ul>
-                    <h4 className="text-sm font-bold text-[#ff5831] mb-2">Support & Hosting</h4>
-                    <ul className="space-y-2 mb-6">
-                      {pkg.features.support.map((feature, i) => (
-                        <motion.li
-                          key={i}
-                          variants={checkmarkVariants}
-                          initial="hidden"
-                          animate="visible"
-                          className="flex items-start text-sm text-gray-700"
-                        >
-                          <CheckCircle className="w-4 h-4 text-[#ffd60a] mr-2 mt-1" />
-                          {feature}
-                        </motion.li>
-                      ))}
-                    </ul>
-
-                    <p className="text-xs text-gray-500 mb-4 text-center">Timeline: {pkg.timeline}</p>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-
-              {/* CTA Button (Always Visible) */}
-              <Link href="#contact">
-                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                  <Button className="w-full bg-gradient-to-r from-[#00d66b] to-[#ffd60a] text-white py-3 rounded-lg hover:from-[#00ba5e] hover:to-[#ff5831] transition-all duration-300 shadow-md">
+                    {isOpen ? 'Hide Details' : 'View Details'}
+                    {isOpen ? (
+                      <ChevronUp className="w-5 h-5 ml-2" />
+                    ) : (
+                      <ChevronDown className="w-5 h-5 ml-2" />
+                    )}
+                  </button>
+                  
+                  {/* Expandable Content */}
+                  <AnimatePresence>
+                    {isOpen && (
+                      <motion.div
+                        variants={accordionVariants}
+                        initial="collapsed"
+                        animate="expanded"
+                        exit="collapsed"
+                        className="mt-6"
+                      >
+                        {/* Features */}
+                        <div className="space-y-6">
+                          <div>
+                            <h4 className="text-sm font-bold text-[#00d66b] mb-3 flex items-center">
+                              <span className="w-1 h-4 bg-[#00d66b] mr-2 rounded-full"></span>
+                              Design
+                            </h4>
+                            <ul className="space-y-2">
+                              {pkg.features.design.map((feature, i) => (
+                                <li key={i} className="flex items-start text-sm leading-relaxed text-gray-700">
+                                  <span className="text-[#00d66b] mr-2 text-lg">•</span> {feature}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                          
+                          <div>
+                            <h4 className="text-sm font-bold text-[#ff5831] mb-3 flex items-center">
+                              <span className="w-1 h-4 bg-[#ff5831] mr-2 rounded-full"></span>
+                              Functionality
+                            </h4>
+                            <ul className="space-y-2">
+                              {pkg.features.functionality.map((feature, i) => (
+                                <li key={i} className="flex items-start text-sm leading-relaxed text-gray-700">
+                                  <span className="text-[#ff5831] mr-2 text-lg">•</span> {feature}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                          
+                          <div>
+                            <h4 className="text-sm font-bold text-[#ffd60a] mb-3 flex items-center">
+                              <span className="w-1 h-4 bg-[#ffd60a] mr-2 rounded-full"></span>
+                              SEO & Performance
+                            </h4>
+                            <ul className="space-y-2">
+                              {pkg.features.seo.map((feature, i) => (
+                                <li key={i} className="flex items-start text-sm leading-relaxed text-gray-700">
+                                  <span className="text-[#ffd60a] mr-2 text-lg">•</span> {feature}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                          
+                          <div>
+                            <h4 className="text-sm font-bold text-[#ad00ff] mb-3 flex items-center">
+                              <span className="w-1 h-4 bg-[#ad00ff] mr-2 rounded-full"></span>
+                              Support & Hosting
+                            </h4>
+                            <ul className="space-y-2">
+                              {pkg.features.support.map((feature, i) => (
+                                <li key={i} className="flex items-start text-sm leading-relaxed text-gray-700">
+                                  <span className="text-[#ad00ff] mr-2 text-lg">•</span> {feature}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+                
+                {/* CTA Button */}
+                <div className="px-6 pb-6">
+                  <a 
+                    href="#contact" 
+                    className="block w-full py-3 px-6 bg-[#00d66b] text-white text-center font-semibold rounded-lg transition-colors duration-300 hover:bg-[#00ba5e]"
+                  >
                     Get Started
-                  </Button>
-                </motion.div>
-              </Link>
-            </motion.div>
-          ))}
+                  </a>
+                </div>
+              </motion.div>
+            );
+          })}
         </motion.div>
 
         {/* Add-Ons Section */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.3 }}
           className="text-center mb-12"
         >
-          <h2 className="text-3xl md:text-4xl font-extrabold text-[#ff5831] mb-2 relative">
-            Optional Add-Ons
-            <span className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-16 h-1 bg-[#00d66b]"></span>
-          </h2>
-          <p className="text-lg text-gray-700 max-w-2xl mx-auto">
-            Enhance your website with our tailored add-ons to boost functionality, visibility, and branding.
+          <h2 className="text-3xl font-bold text-[#ad00ff] mb-4">Optional Add-Ons</h2>
+          <p className="text-gray-700 max-w-2xl mx-auto">
+            Enhance your website with tailored add-ons to boost functionality, visibility, and branding.
           </p>
         </motion.div>
 
         <motion.div
           variants={containerVariants}
           initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-          className="grid md:grid-cols-2 lg:grid-cols-3 gap-8"
+          animate="visible"
+          className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mb-16"
         >
           {addOns.map((addOn, index) => (
             <motion.div
               key={addOn.name}
               variants={cardVariants}
-              className="bg-white rounded-xl p-6 border border-[#ffd60a]/50 hover:shadow-xl hover:border-[#ffd60a] transition-all duration-300"
+              className="bg-white rounded-xl p-5 border-l-4 border-[#ffd60a] shadow hover:shadow-md transition-shadow duration-300"
             >
-              {/* Card Header (Always Visible) */}
-              <button
-                onClick={toggleAddOns}
-                className="flex justify-between items-center w-full text-left focus:outline-none focus:ring-2 focus:ring-[#ffd60a] rounded-lg"
-                aria-expanded={addOnsOpen}
-                aria-controls={`addon-details-${index}`}
+              <div className="mb-3">
+                <h3 className="text-lg font-semibold text-[#ff5831]">{addOn.name}</h3>
+                <p className="text-[#00d66b] font-medium">{addOn.price}</p>
+                <p className="text-gray-500 text-xs">{addOn.usdPrice}</p>
+              </div>
+              <p className="text-gray-600 text-sm mb-4">{addOn.description}</p>
+              <a 
+                href="#contact" 
+                className="block w-full py-2 px-4 bg-[#ad00ff]/10 text-[#ad00ff] text-center font-medium rounded-lg transition-colors duration-300 hover:bg-[#ad00ff]/20"
               >
-                <div>
-                  <h3 className="text-xl font-extrabold text-[#00d66b] mb-2">{addOn.name}</h3>
-                  <p className="text-[#ad00ff] text-lg font-semibold mb-2 bg-clip-text bg-gradient-to-r from-[#ad00ff] to-[#ff5831]">
-                    {addOn.price}
-                  </p>
-                  <p className="text-gray-600 text-sm">{addOn.usdPrice}</p>
-                </div>
-                <motion.div
-                  animate={{ rotate: addOnsOpen ? 180 : 0 }}
-                  transition={{ duration: 0.3 }}
-                  className="hover:bg-[#ffd60a]/20 rounded-full p-1"
-                >
-                  {addOnsOpen ? (
-                    <ChevronUp className="w-6 h-6 text-[#ffd60a]" />
-                  ) : (
-                    <ChevronDown className="w-6 h-6 text-[#ffd60a]" />
-                  )}
-                </motion.div>
-              </button>
-
-              {/* Collapsible Content */}
-              <AnimatePresence>
-                {addOnsOpen && (
-                  <motion.div
-                    variants={accordionVariants}
-                    initial="collapsed"
-                    animate="expanded"
-                    exit="collapsed"
-                    id={`addon-details-${index}`}
-                    className="mt-4"
-                  >
-                    <p className="text-gray-700 text-sm mb-6">{addOn.description}</p>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-
-              {/* CTA Button (Always Visible) */}
-              <Link href="#contact">
-                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                  <Button className="w-full bg-gradient-to-r from-[#ad00ff] to-[#ff5831] text-white py-3 rounded-lg hover:from-[#9900e6] hover:to-[#ffd60a] transition-all duration-300 shadow-md">
-                    Add to Package
-                  </Button>
-                </motion.div>
-              </Link>
+                Add to Package
+              </a>
             </motion.div>
           ))}
         </motion.div>
@@ -490,25 +436,23 @@ const Catalogue: React.FC = () => {
         {/* Final CTA */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.8 }}
-          className="text-center mt-12"
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.6 }}
+          className="text-center bg-white p-10 rounded-2xl shadow-lg border-t-4 border-[#ff5831] max-w-3xl mx-auto"
         >
-          <h3 className="text-2xl font-extrabold text-[#ff5831] mb-4">Ready to Build Your Website?</h3>
+          <h3 className="text-2xl font-bold text-[#ff5831] mb-4">Ready to Build Your Website?</h3>
           <p className="text-gray-700 mb-6">
             Contact us today for a custom quote or to discuss your project needs.
           </p>
-          <Link href="#contact">
-            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-              <Button className="bg-gradient-to-r from-[#00d66b] to-[#ffd60a] text-white px-8 py-4 rounded-lg hover:from-[#00ba5e] hover:to-[#ff5831] transition-all duration-300 shadow-lg">
-                Get a Quote
-              </Button>
-            </motion.div>
-          </Link>
+          <a 
+            href="#contact" 
+            className="inline-block py-4 px-8 bg-[#00d66b] text-white font-semibold rounded-lg transition-colors duration-300 hover:bg-[#00ba5e]"
+          >
+            Get a Free Quote
+          </a>
         </motion.div>
       </div>
-    </section>
+    </div>
   );
 };
 
