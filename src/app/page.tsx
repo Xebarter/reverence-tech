@@ -1,36 +1,32 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import Hero from '@/components/sections/Hero';
 import Services from '@/components/sections/Services';
 import About from '@/components/sections/About';
+import Catalogue from '@/components/sections/Catalogue';
 // import Portfolio from '@/components/sections/Portfolio';
 import Contact from '@/components/sections/Contact';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function Home() {
-  const [isMounted, setIsMounted] = useState(false);
-
   useEffect(() => {
-    setIsMounted(true);
-
     const handleAnchorClick = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
       const closestAnchor = target.closest('a');
 
-      if (closestAnchor?.href && closestAnchor.href.includes('#')) {
-        const id = closestAnchor.href.split('#')[1];
-        if (id) {
+      if (closestAnchor?.hash) {
+        const id = closestAnchor.hash.slice(1); // remove '#'
+        const element = document.getElementById(id);
+
+        if (element) {
           e.preventDefault();
-          const element = document.getElementById(id);
-          if (element) {
-            window.scrollTo({
-              top: element.offsetTop - 80,
-              behavior: 'smooth',
-            });
-          }
+          window.scrollTo({
+            top: element.offsetTop - 80,
+            behavior: 'smooth',
+          });
         }
       }
     };
@@ -38,21 +34,6 @@ export default function Home() {
     document.addEventListener('click', handleAnchorClick);
     return () => document.removeEventListener('click', handleAnchorClick);
   }, []);
-
-  if (!isMounted) {
-    return (
-      <div className="min-h-screen flex flex-col">
-        <Header />
-        <main className="flex-grow">
-          <Hero />
-          <Services /> {/* Includes links to all detail pages via slugs */}
-          <About />
-          <Contact />
-        </main>
-        <Footer />
-      </div>
-    );
-  }
 
   return (
     <AnimatePresence>
@@ -66,7 +47,8 @@ export default function Home() {
         <Header />
         <main className="flex-grow">
           <Hero />
-          <Services /> {/* Each card links to /service-details/:slug */}
+          <Catalogue />
+          <Services />
           <About />
           <Contact />
         </main>
