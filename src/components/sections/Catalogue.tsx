@@ -1,10 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
+import { ChevronDown, ChevronUp } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import Link from 'next/link';
-import { ChevronDown, ChevronUp, CheckCircle } from 'lucide-react';
 
 // Define package and add-on interfaces for TypeScript
 interface Package {
@@ -49,7 +47,10 @@ const packages: Package[] = [
         'Social media integration (Facebook, Twitter, Instagram, LinkedIn)',
         'Google Analytics for visitor tracking',
       ],
-      seo: ['Basic SEO (meta tags, sitemap, alt text optimization)', 'Fast-loading design (optimized images, caching)'],
+      seo: [
+        'Basic SEO (meta tags, sitemap, alt text optimization)',
+        'Fast-loading design (optimized images, caching)',
+      ],
       support: [
         'Free domain (1 year, .com/.ug)',
         'Basic hosting setup (1 year, ~UGX 200,000 value)',
@@ -67,14 +68,22 @@ const packages: Package[] = [
       'Scale your business with a robust website featuring eCommerce or booking capabilities, styled with dynamic animations. Includes advanced SEO to boost visibility.',
     timeline: '5–8 weeks',
     features: {
-      design: ['Up to 15 custom pages', 'Premium WordPress theme with animations', 'Accessibility compliance (WCAG 2.1 basics)'],
+      design: [
+        'Up to 15 custom pages',
+        'Premium WordPress theme with animations',
+        'Accessibility compliance (WCAG 2.1 basics)',
+      ],
       functionality: [
         'Contact form with email notifications',
         'CMS (WordPress) with user training',
         'Basic eCommerce (WooCommerce, up to 20 products) or booking system',
         'WhatsApp or live chat integration',
       ],
-      seo: ['Advanced SEO (keyword research, 5 optimized pages, schema markup)', 'Google Analytics and Search Console setup', 'PWA support for app-like mobile experience'],
+      seo: [
+        'Advanced SEO (keyword research, 5 optimized pages, schema markup)',
+        'Google Analytics and Search Console setup',
+        'PWA support for app-like mobile experience',
+      ],
       support: [
         'Free domain (1 year)',
         'Premium hosting setup (1 year, ~UGX 400,000 value)',
@@ -87,12 +96,17 @@ const packages: Package[] = [
     name: 'Store',
     price: 'UGX 8M – 18M',
     usdPrice: '~USD 2,160–4,865',
-    idealFor: 'Businesses selling products or services online (retail, restaurants)',
+    idealFor:
+      'Businesses selling products or services online (retail, restaurants)',
     description:
       'Launch a full-featured online store with secure payments and inventory management, designed to convert with bold buttons and highlights. SEO drives traffic.',
     timeline: '8–12 weeks',
     features: {
-      design: ['Up to 25 pages (Home, Shop, About, Contact, Blog, Policies)', 'Custom WooCommerce or Shopify design', 'Product page animations'],
+      design: [
+        'Up to 25 pages (Home, Shop, About, Contact, Blog, Policies)',
+        'Custom WooCommerce or Shopify design',
+        'Product page animations',
+      ],
       functionality: [
         'Full eCommerce setup (unlimited products, cart, checkout)',
         'Secure payment gateways (Mobile Money, Visa, PayPal)',
@@ -100,7 +114,11 @@ const packages: Package[] = [
         'Inventory and order management',
         'Customer accounts and order tracking',
       ],
-      seo: ['Comprehensive SEO (10 optimized pages, technical SEO, local SEO)', 'Marketing tools (discounts, coupons, email capture)', 'Google Analytics, heatmaps for user behavior'],
+      seo: [
+        'Comprehensive SEO (10 optimized pages, technical SEO, local SEO)',
+        'Marketing tools (discounts, coupons, email capture)',
+        'Google Analytics, heatmaps for user behavior',
+      ],
       support: [
         'Free domain (1 year)',
         'High-performance hosting (1 year, ~UGX 700,000 value)',
@@ -113,19 +131,28 @@ const packages: Package[] = [
     name: 'Enterprise',
     price: 'UGX 10M – 25M',
     usdPrice: '~USD 2,700–6,755',
-    idealFor: 'Large businesses, NGOs, institutions, or government agencies',
+    idealFor:
+      'Large businesses, NGOs, institutions, or government agencies',
     description:
       'A premium, high-performance website with advanced features like multi-language support and API integrations, styled with bold CTAs and accents.',
     timeline: '12–20 weeks',
     features: {
-      design: ['30+ custom pages or dynamic structure', 'Bespoke WordPress theme with micro-interactions', 'Multi-language support (e.g., English, Luganda)'],
+      design: [
+        '30+ custom pages or dynamic structure',
+        'Bespoke WordPress theme with micro-interactions',
+        'Multi-language support (e.g., English, Luganda)',
+      ],
       functionality: [
         'Advanced CMS with custom admin panel',
         'Contact form with email notifications',
         'Membership or user login system',
         'API integrations (e.g., payment, SMS, ERP)',
       ],
-      seo: ['Enterprise SEO (15 optimized pages, technical audits, link-building strategy)', 'Conversion rate optimization (CRO) with A/B testing', 'Analytics suite (Google Analytics, Tag Manager, heatmaps)'],
+      seo: [
+        'Enterprise SEO (15 optimized pages, technical audits, link-building strategy)',
+        'Conversion rate optimization (CRO) with A/B testing',
+        'Analytics suite (Google Analytics, Tag Manager, heatmaps)',
+      ],
       support: [
         'Free domain (1 year)',
         'Dedicated hosting (1 year, ~UGX 1,200,000 value)',
@@ -138,12 +165,16 @@ const packages: Package[] = [
     name: 'Custom',
     price: 'UGX 20M – 60M+',
     usdPrice: '~USD 5,405–16,215+',
-    idealFor: 'Marketplaces, booking platforms, SaaS, or unique systems',
+    idealFor:
+      'Marketplaces, booking platforms, SaaS, or unique systems',
     description:
       'A fully tailored web application built for scalability, with real-time features and custom APIs, designed in your vibrant style for innovative projects.',
     timeline: '16–30 weeks',
     features: {
-      design: ['Custom UI/UX design with vibrant backgrounds', 'Interactive prototypes and animations'],
+      design: [
+        'Custom UI/UX design with vibrant backgrounds',
+        'Interactive prototypes and animations',
+      ],
       functionality: [
         'Fully custom backend (Node.js, Laravel, or similar)',
         'User authentication and role-based access',
@@ -151,7 +182,11 @@ const packages: Package[] = [
         'Real-time features (chat, notifications, live updates)',
         'Custom API development',
       ],
-      seo: ['SEO tailored to app goals (e.g., marketplace visibility)', 'Scalable cloud hosting (AWS, Google Cloud)', 'Performance optimization (CDN, caching)'],
+      seo: [
+        'SEO tailored to app goals (e.g., marketplace visibility)',
+        'Scalable cloud hosting (AWS, Google Cloud)',
+        'Performance optimization (CDN, caching)',
+      ],
       support: [
         'Free domain (1 year)',
         'Enterprise-grade hosting (1 year, ~UGX 2,000,000 value)',
@@ -207,22 +242,40 @@ const addOns: AddOn[] = [
   },
 ];
 
-const Catalogue: React.FC = () => {
-  // State to track open/closed state for packages and add-ons
-  const [packagesOpen, setPackagesOpen] = useState(false);
-  const [addOnsOpen, setAddOnsOpen] = useState(false);
+const Catalogue = () => {
+  // Adding id to make the component accessible for scrolling
+  // State to track open/closed state of each card
+  const [openCards, setOpenCards] = useState<{ [key: string]: boolean }>({});
+  // State to track if all add-ons are visible
+  const [addOnsVisible, setAddOnsVisible] = useState(false);
+  // State to track if packages section is visible
+  const [packagesVisible, setPackagesVisible] = useState(false);
 
-  // Toggle functions for each section
-  const togglePackages = () => setPackagesOpen((prev) => !prev);
-  const toggleAddOns = () => setAddOnsOpen((prev) => !prev);
+  // Toggle card open/closed state
+  const toggleCard = (cardId: string) => {
+    setOpenCards((prev) => ({
+      ...prev,
+      [cardId]: !prev[cardId],
+    }));
+  };
 
-  // Animation variants for staggered reveal
+  // Toggle add-ons visibility
+  const toggleAddOns = () => {
+    setAddOnsVisible(!addOnsVisible);
+  };
+
+  // Toggle packages visibility
+  const togglePackages = () => {
+    setPackagesVisible(!packagesVisible);
+  };
+
+  // Animation variants
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
       transition: {
-        staggerChildren: 0.2,
+        staggerChildren: 0.1,
       },
     },
   };
@@ -232,283 +285,316 @@ const Catalogue: React.FC = () => {
     visible: {
       opacity: 1,
       y: 0,
-      transition: { duration: 0.5, ease: 'easeOut' },
+      transition: { duration: 0.4, ease: 'easeOut' },
     },
   };
 
   // Animation for accordion content
   const accordionVariants = {
-    collapsed: { height: 0, opacity: 0, overflow: 'hidden' },
-    expanded: { height: 'auto', opacity: 1, transition: { duration: 0.3, ease: 'easeOut' } },
-  };
-
-  // Animation for checkmarks
-  const checkmarkVariants = {
-    hidden: { scale: 0, opacity: 0 },
-    visible: { scale: 1, opacity: 1, transition: { duration: 0.2, type: 'spring', stiffness: 200 } },
+    collapsed: {
+      height: 0,
+      opacity: 0,
+      overflow: 'hidden',
+    },
+    expanded: {
+      height: 'auto',
+      opacity: 1,
+      transition: { duration: 0.3, ease: 'easeOut' },
+    },
   };
 
   return (
-    <section className="py-16 bg-[#fff6ea] relative overflow-hidden">
-      <div className="container mx-auto px-4">
+    <div id="catalogue" className="min-h-screen bg-[#fff6ea]">
+      <div className="max-w-7xl mx-auto px-4 py-16 sm:px-6 lg:px-8">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.8 }}
-          className="text-center mb-12"
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="text-center mb-16"
         >
-          <h2 className="text-4xl md:text-5xl font-extrabold text-[#ff5831] mb-2 relative">
-            Our Website Packages
-            <span className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-16 h-1 bg-[#00d66b]"></span>
-          </h2>
-          <p className="text-lg text-gray-700 max-w-2xl mx-auto">
-            Choose a package tailored to your needs, from simple portfolios to complex web applications. All packages include lead capture via our contact form.
+          <h1 className="text-4xl font-bold text-[#ff5831] mb-6">
+            Our Catalogue
+          </h1>
+          <p className="text-gray-700 max-w-3xl mx-auto text-lg mb-8">
+            Choose a package tailored to your needs, from simple portfolios to
+            complex web applications. All packages include responsive design and
+            lead capture.
           </p>
+          
+          {/* Main toggle button for packages */}
+          <button 
+            onClick={togglePackages}
+            className="mx-auto flex items-center justify-center py-3 px-6 bg-[#ff5831] text-white rounded-lg font-medium hover:bg-[#e04a29] transition-colors duration-200"
+          >
+            {packagesVisible ? 'Hide All Packages' : 'View All Packages'}
+            {packagesVisible ? (
+              <ChevronUp className="w-5 h-5 ml-2" />
+            ) : (
+              <ChevronDown className="w-5 h-5 ml-2" />
+            )}
+          </button>
         </motion.div>
 
         {/* Packages Grid */}
-        <motion.div
-          variants={containerVariants}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-          className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16"
-        >
-          {packages.map((pkg, index) => (
+        <AnimatePresence>
+          {packagesVisible && (
             <motion.div
-              key={pkg.name}
-              variants={cardVariants}
-              className="bg-white rounded-xl shadow-lg p-6 border border-[#ffd60a]/50 hover:shadow-xl hover:border-[#ffd60a] transition-all duration-300 flex flex-col"
+              variants={containerVariants}
+              initial="hidden"
+              animate="visible"
+              exit="hidden"
+              className="grid gap-8 md:grid-cols-2 lg:grid-cols-3 mb-20"
             >
-              {/* Card Header (Always Visible) */}
-              <button
-                onClick={togglePackages}
-                className="flex justify-between items-center w-full text-left focus:outline-none focus:ring-2 focus:ring-[#ffd60a] rounded-lg"
-                aria-expanded={packagesOpen}
-                aria-controls={`package-details-${index}`}
-              >
-                <div>
-                  <h3 className="text-2xl font-extrabold text-[#00d66b] mb-2">{pkg.name}</h3>
-                  <p className="text-[#ad00ff] text-lg font-semibold mb-2 bg-clip-text bg-gradient-to-r from-[#ad00ff] to-[#ff5831]">
-                    {pkg.price}
-                  </p>
-                  <p className="text-gray-600 text-sm">{pkg.usdPrice}</p>
-                </div>
-                <motion.div
-                  animate={{ rotate: packagesOpen ? 180 : 0 }}
-                  transition={{ duration: 0.3 }}
-                  className="hover:bg-[#ffd60a]/20 rounded-full p-1"
-                >
-                  {packagesOpen ? (
-                    <ChevronUp className="w-6 h-6 text-[#ffd60a]" />
-                  ) : (
-                    <ChevronDown className="w-6 h-6 text-[#ffd60a]" />
-                  )}
-                </motion.div>
-              </button>
+              {packages.map((pkg, index) => {
+                const cardId = `package-${index}`;
+                const isOpen = !!openCards[cardId];
 
-              {/* Collapsible Content */}
-              <AnimatePresence>
-                {packagesOpen && (
+                return (
                   <motion.div
-                    variants={accordionVariants}
-                    initial="collapsed"
-                    animate="expanded"
-                    exit="collapsed"
-                    id={`package-details-${index}`}
-                    className="mt-4 flex-1"
+                    key={pkg.name}
+                    variants={cardVariants}
+                    className="bg-white rounded-2xl shadow-lg overflow-hidden transition-all duration-300 hover:shadow-xl"
                   >
-                    <p className="text-gray-700 text-sm mb-4 font-medium">{pkg.idealFor}</p>
-                    <p className="text-gray-600 text-sm mb-6">{pkg.description}</p>
+                    <div className="p-6">
+                      {/* Card Header */}
+                      <div className="mb-4">
+                        <h3 className="text-2xl font-bold text-[#ff5831] mb-2">
+                          {pkg.name}
+                        </h3>
+                        <p className="text-[#ad00ff] text-xl font-semibold">
+                          {pkg.price}
+                        </p>
+                        <p className="text-gray-500 text-sm">{pkg.usdPrice}</p>
+                      </div>
 
-                    {/* Features */}
-                    <h4 className="text-sm font-bold text-[#ff5831] mb-2">Design</h4>
-                    <ul className="space-y-2 mb-4">
-                      {pkg.features.design.map((feature, i) => (
-                        <motion.li
-                          key={i}
-                          variants={checkmarkVariants}
-                          initial="hidden"
-                          animate="visible"
-                          className="flex items-start text-sm text-gray-700"
-                        >
-                          <CheckCircle className="w-4 h-4 text-[#ffd60a] mr-2 mt-1" />
-                          {feature}
-                        </motion.li>
-                      ))}
-                    </ul>
-                    <h4 className="text-sm font-bold text-[#ff5831] mb-2">Functionality</h4>
-                    <ul className="space-y-2 mb-4">
-                      {pkg.features.functionality.map((feature, i) => (
-                        <motion.li
-                          key={i}
-                          variants={checkmarkVariants}
-                          initial="hidden"
-                          animate="visible"
-                          className="flex items-start text-sm text-gray-700"
-                        >
-                          <CheckCircle className="w-4 h-4 text-[#ffd60a] mr-2 mt-1" />
-                          {feature}
-                        </motion.li>
-                      ))}
-                    </ul>
-                    <h4 className="text-sm font-bold text-[#ff5831] mb-2">SEO & Performance</h4>
-                    <ul className="space-y-2 mb-4">
-                      {pkg.features.seo.map((feature, i) => (
-                        <motion.li
-                          key={i}
-                          variants={checkmarkVariants}
-                          initial="hidden"
-                          animate="visible"
-                          className="flex items-start text-sm text-gray-700"
-                        >
-                          <CheckCircle className="w-4 h-4 text-[#ffd60a] mr-2 mt-1" />
-                          {feature}
-                        </motion.li>
-                      ))}
-                    </ul>
-                    <h4 className="text-sm font-bold text-[#ff5831] mb-2">Support & Hosting</h4>
-                    <ul className="space-y-2 mb-6">
-                      {pkg.features.support.map((feature, i) => (
-                        <motion.li
-                          key={i}
-                          variants={checkmarkVariants}
-                          initial="hidden"
-                          animate="visible"
-                          className="flex items-start text-sm text-gray-700"
-                        >
-                          <CheckCircle className="w-4 h-4 text-[#ffd60a] mr-2 mt-1" />
-                          {feature}
-                        </motion.li>
-                      ))}
-                    </ul>
+                      <p className="text-gray-700 text-sm font-medium mb-4">
+                        {pkg.idealFor}
+                      </p>
+                      <p className="text-gray-600 text-sm mb-6">
+                        {pkg.description}
+                      </p>
 
-                    <p className="text-xs text-gray-500 mb-4 text-center">Timeline: {pkg.timeline}</p>
+                      {/* Timeline */}
+                      <div className="flex items-center justify-between mb-6">
+                        <span className="text-gray-500 text-sm">Timeline</span>
+                        <span className="bg-[#ff5831]/10 text-[#ff5831] text-sm py-1 px-3 rounded-full font-medium">
+                          {pkg.timeline}
+                        </span>
+                      </div>
+
+                      {/* Toggle Button */}
+                      <button
+                        onClick={() => toggleCard(cardId)}
+                        className="flex items-center justify-center w-full py-3 px-4 bg-[#ffd60a]/10 text-[#ffd60a] rounded-lg font-medium hover:bg-[#ffd60a]/20 transition-colors duration-200"
+                      >
+                        {isOpen ? 'Hide Details' : 'View Details'}
+                        {isOpen ? (
+                          <ChevronUp className="w-5 h-5 ml-2" />
+                        ) : (
+                          <ChevronDown className="w-5 h-5 ml-2" />
+                        )}
+                      </button>
+
+                      {/* Expandable Content */}
+                      <AnimatePresence>
+                        {isOpen && (
+                          <motion.div
+                            variants={accordionVariants}
+                            initial="collapsed"
+                            animate="expanded"
+                            exit="collapsed"
+                            className="mt-6"
+                          >
+                            {/* Features */}
+                            <div className="space-y-6">
+                              <div>
+                                <h4 className="text-sm font-bold text-[#00d66b] mb-3 flex items-center">
+                                  <span className="w-1 h-4 bg-[#00d66b] mr-2 rounded-full"></span>
+                                  Design
+                                </h4>
+                                <ul className="space-y-2">
+                                  {pkg.features.design.map((feature, i) => (
+                                    <li
+                                      key={i}
+                                      className="flex items-start text-sm leading-relaxed text-gray-700"
+                                    >
+                                      <span className="text-[#00d66b] mr-2 text-lg">
+                                        •
+                                      </span>{' '}
+                                      {feature}
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+
+                              <div>
+                                <h4 className="text-sm font-bold text-[#ff5831] mb-3 flex items-center">
+                                  <span className="w-1 h-4 bg-[#ff5831] mr-2 rounded-full"></span>
+                                  Functionality
+                                </h4>
+                                <ul className="space-y-2">
+                                  {pkg.features.functionality.map((feature, i) => (
+                                    <li
+                                      key={i}
+                                      className="flex items-start text-sm leading-relaxed text-gray-700"
+                                    >
+                                      <span className="text-[#ff5831] mr-2 text-lg">
+                                        •
+                                      </span>{' '}
+                                      {feature}
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+
+                              <div>
+                                <h4 className="text-sm font-bold text-[#ffd60a] mb-3 flex items-center">
+                                  <span className="w-1 h-4 bg-[#ffd60a] mr-2 rounded-full"></span>
+                                  SEO & Performance
+                                </h4>
+                                <ul className="space-y-2">
+                                  {pkg.features.seo.map((feature, i) => (
+                                    <li
+                                      key={i}
+                                      className="flex items-start text-sm leading-relaxed text-gray-700"
+                                    >
+                                      <span className="text-[#ffd60a] mr-2 text-lg">
+                                        •
+                                      </span>{' '}
+                                      {feature}
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+
+                              <div>
+                                <h4 className="text-sm font-bold text-[#ad00ff] mb-3 flex items-center">
+                                  <span className="w-1 h-4 bg-[#ad00ff] mr-2 rounded-full"></span>
+                                  Support & Hosting
+                                </h4>
+                                <ul className="space-y-2">
+                                  {pkg.features.support.map((feature, i) => (
+                                    <li
+                                      key={i}
+                                      className="flex items-start text-sm leading-relaxed text-gray-700"
+                                    >
+                                      <span className="text-[#ad00ff] mr-2 text-lg">
+                                        •
+                                      </span>{' '}
+                                      {feature}
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+
+                    {/* CTA Button */}
+                    <div className="px-6 pb-6">
+                      <a
+                        href="#contact"
+                        className="block w-full py-3 px-6 bg-[#00d66b] text-white text-center font-semibold rounded-lg transition-colors duration-300 hover:bg-[#00ba5e]"
+                      >
+                        Get Started
+                      </a>
+                    </div>
                   </motion.div>
-                )}
-              </AnimatePresence>
-
-              {/* CTA Button (Always Visible) */}
-              <Link href="#contact">
-                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                  <Button className="w-full bg-gradient-to-r from-[#00d66b] to-[#ffd60a] text-white py-3 rounded-lg hover:from-[#00ba5e] hover:to-[#ff5831] transition-all duration-300 shadow-md">
-                    Get Started
-                  </Button>
-                </motion.div>
-              </Link>
+                );
+              })}
             </motion.div>
-          ))}
-        </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Add-Ons Section */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.8 }}
-          className="text-center mb-12"
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.3 }}
+          className="text-center mb-8"
         >
-          <h2 className="text-3xl md:text-4xl font-extrabold text-[#ff5831] mb-2 relative">
+          <h2 className="text-3xl font-bold text-[#ad00ff] mb-4">
             Optional Add-Ons
-            <span className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-16 h-1 bg-[#00d66b]"></span>
           </h2>
-          <p className="text-lg text-gray-700 max-w-2xl mx-auto">
-            Enhance your website with our tailored add-ons to boost functionality, visibility, and branding.
+          <p className="text-gray-700 max-w-2xl mx-auto mb-6">
+            Enhance your website with tailored add-ons to boost functionality,
+            visibility, and branding.
           </p>
+          
+          {/* Toggle button for add-ons */}
+          <button 
+            onClick={toggleAddOns}
+            className="mx-auto flex items-center justify-center py-3 px-6 bg-[#ad00ff] text-white rounded-lg font-medium hover:bg-[#9b00e8] transition-colors duration-200"
+          >
+            {addOnsVisible ? 'Hide Add-Ons' : 'View Add-Ons'}
+            {addOnsVisible ? (
+              <ChevronUp className="w-5 h-5 ml-2" />
+            ) : (
+              <ChevronDown className="w-5 h-5 ml-2" />
+            )}
+          </button>
         </motion.div>
 
-        <motion.div
-          variants={containerVariants}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-          className="grid md:grid-cols-2 lg:grid-cols-3 gap-8"
-        >
-          {addOns.map((addOn, index) => (
+        <AnimatePresence>
+          {addOnsVisible && (
             <motion.div
-              key={addOn.name}
-              variants={cardVariants}
-              className="bg-white rounded-xl p-6 border border-[#ffd60a]/50 hover:shadow-xl hover:border-[#ffd60a] transition-all duration-300"
+              variants={containerVariants}
+              initial="hidden"
+              animate="visible"
+              exit="hidden"
+              className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mb-16"
             >
-              {/* Card Header (Always Visible) */}
-              <button
-                onClick={toggleAddOns}
-                className="flex justify-between items-center w-full text-left focus:outline-none focus:ring-2 focus:ring-[#ffd60a] rounded-lg"
-                aria-expanded={addOnsOpen}
-                aria-controls={`addon-details-${index}`}
-              >
-                <div>
-                  <h3 className="text-xl font-extrabold text-[#00d66b] mb-2">{addOn.name}</h3>
-                  <p className="text-[#ad00ff] text-lg font-semibold mb-2 bg-clip-text bg-gradient-to-r from-[#ad00ff] to-[#ff5831]">
-                    {addOn.price}
-                  </p>
-                  <p className="text-gray-600 text-sm">{addOn.usdPrice}</p>
-                </div>
+              {addOns.map((addOn, index) => (
                 <motion.div
-                  animate={{ rotate: addOnsOpen ? 180 : 0 }}
-                  transition={{ duration: 0.3 }}
-                  className="hover:bg-[#ffd60a]/20 rounded-full p-1"
+                  key={addOn.name}
+                  variants={cardVariants}
+                  className="bg-white rounded-xl p-5 shadow hover:shadow-md transition-shadow duration-300"
                 >
-                  {addOnsOpen ? (
-                    <ChevronUp className="w-6 h-6 text-[#ffd60a]" />
-                  ) : (
-                    <ChevronDown className="w-6 h-6 text-[#ffd60a]" />
-                  )}
-                </motion.div>
-              </button>
-
-              {/* Collapsible Content */}
-              <AnimatePresence>
-                {addOnsOpen && (
-                  <motion.div
-                    variants={accordionVariants}
-                    initial="collapsed"
-                    animate="expanded"
-                    exit="collapsed"
-                    id={`addon-details-${index}`}
-                    className="mt-4"
+                  <div className="mb-3">
+                    <h3 className="text-lg font-semibold text-[#ff5831]">
+                      {addOn.name}
+                    </h3>
+                    <p className="text-[#00d66b] font-medium">{addOn.price}</p>
+                    <p className="text-gray-500 text-xs">{addOn.usdPrice}</p>
+                  </div>
+                  <p className="text-gray-600 text-sm mb-4">{addOn.description}</p>
+                  <a
+                    href="#contact"
+                    className="block w-full py-2 px-4 bg-[#ad00ff]/10 text-[#ad00ff] text-center font-medium rounded-lg transition-colors duration-300 hover:bg-[#ad00ff]/20"
                   >
-                    <p className="text-gray-700 text-sm mb-6">{addOn.description}</p>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-
-              {/* CTA Button (Always Visible) */}
-              <Link href="#contact">
-                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                  <Button className="w-full bg-gradient-to-r from-[#ad00ff] to-[#ff5831] text-white py-3 rounded-lg hover:from-[#9900e6] hover:to-[#ffd60a] transition-all duration-300 shadow-md">
                     Add to Package
-                  </Button>
+                  </a>
                 </motion.div>
-              </Link>
+              ))}
             </motion.div>
-          ))}
-        </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Final CTA */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.8 }}
-          className="text-center mt-12"
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.6 }}
+          className="text-center bg-white p-10 rounded-2xl shadow-lg max-w-3xl mx-auto"
         >
-          <h3 className="text-2xl font-extrabold text-[#ff5831] mb-4">Ready to Build Your Website?</h3>
+          <h3 className="text-2xl font-bold text-[#ff5831] mb-4">
+            Ready to Build Your Website?
+          </h3>
           <p className="text-gray-700 mb-6">
             Contact us today for a custom quote or to discuss your project needs.
           </p>
-          <Link href="#contact">
-            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-              <Button className="bg-gradient-to-r from-[#00d66b] to-[#ffd60a] text-white px-8 py-4 rounded-lg hover:from-[#00ba5e] hover:to-[#ff5831] transition-all duration-300 shadow-lg">
-                Get a Quote
-              </Button>
-            </motion.div>
-          </Link>
+          <a
+            href="#contact"
+            className="inline-block py-4 px-8 bg-[#00d66b] text-white font-semibold rounded-lg transition-colors duration-300 hover:bg-[#00ba5e]"
+          >
+            Get a Free Quote
+          </a>
         </motion.div>
       </div>
-    </section>
+    </div>
   );
 };
 

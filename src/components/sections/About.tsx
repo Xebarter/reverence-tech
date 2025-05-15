@@ -192,8 +192,8 @@ const About = () => {
                 transition={{ duration: 0.3 }}
               />
               <img
-                src="https://static.vecteezy.com/system/resources/previews/024/140/509/non_2x/abstract-futuristic-geometry-line-background-modern-shiny-blue-rounded-lines-technology-background-template-technology-background-for-cover-banner-brochure-business-free-vector.jpg"
-                alt="Team collaboration"
+                src="/5.png"
+                alt="Reverence Technology"
                 className="w-full h-auto object-cover rounded-xl"
               />
             </motion.div>

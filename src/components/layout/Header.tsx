@@ -1,23 +1,17 @@
-'use client'
+'use client';
 
-import React, { useState } from 'react'
-import Link from 'next/link'
-import Image from 'next/image'
-import { Menu, X } from 'lucide-react'
-import { motion, AnimatePresence } from 'framer-motion'
+import React, { useState } from 'react';
+import Link from 'next/link';
+import Image from 'next/image';
+import { Menu, X } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const Header = () => {
-  const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  const toggleMenu = () => {
-    setIsMenuOpen(!isMenuOpen)
-  }
+  const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
 
-  const navLinks = [
-    { href: '/', label: 'Home' },
-    { href: '#services', label: 'Services' },
-    { href: '#about', label: 'About' }
-  ]
+  // Removing the scrollToCatalogue function since we'll use anchor links
 
   return (
     <motion.header
@@ -27,7 +21,7 @@ const Header = () => {
       transition={{ duration: 0.3 }}
     >
       <div className="container mx-auto px-6 py-4 flex justify-between items-center">
-        {/* Logo and Branding */}
+        {/* Logo */}
         <Link href="/" className="flex items-center space-x-3 group">
           <Image
             src="/logo.svg"
@@ -44,15 +38,18 @@ const Header = () => {
 
         {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center space-x-8">
-          {navLinks.map(({ href, label }, idx) => (
-            <Link
-              key={idx}
-              href={href}
-              className="text-sm font-medium text-gray-800 hover:text-[#00d66b] transition-colors"
-            >
-              {label}
-            </Link>
-          ))}
+          <Link href="/" className="text-sm font-medium text-gray-800 hover:text-[#00d66b] transition-colors">
+            Home
+          </Link>
+          <Link href="#services" className="text-sm font-medium text-gray-800 hover:text-[#00d66b] transition-colors">
+            Services
+          </Link>
+          <Link href="#catalogue" className="text-sm font-medium text-gray-800 hover:text-[#00d66b] transition-colors">
+            Catalogue
+          </Link>
+          <Link href="#about" className="text-sm font-medium text-gray-800 hover:text-[#00d66b] transition-colors">
+            About
+          </Link>
           <Link href="#contact">
             <span className="inline-block px-4 py-2 text-sm font-medium text-white bg-[#ff5831] rounded-md hover:bg-[#ad00ff] transition-colors">
               Get in Touch
@@ -84,16 +81,22 @@ const Header = () => {
             transition={{ duration: 0.2 }}
           >
             <div className="container mx-auto px-6 py-4 flex flex-col space-y-4">
-              {navLinks.map(({ href, label }, idx) => (
-                <Link
-                  key={idx}
-                  href={href}
-                  onClick={toggleMenu}
-                  className="text-sm font-medium text-gray-800 hover:text-[#00d66b] transition-colors"
-                >
-                  {label}
-                </Link>
-              ))}
+              <Link href="/" onClick={toggleMenu} className="text-sm font-medium text-gray-800 hover:text-[#00d66b] transition-colors">
+                Home
+              </Link>
+              <Link href="#services" onClick={toggleMenu} className="text-sm font-medium text-gray-800 hover:text-[#00d66b] transition-colors">
+                Services
+              </Link>
+              <Link 
+                href="#catalogue" 
+                onClick={toggleMenu} 
+                className="text-sm font-medium text-gray-800 hover:text-[#00d66b] transition-colors"
+              >
+                Catalogue
+              </Link>
+              <Link href="#about" onClick={toggleMenu} className="text-sm font-medium text-gray-800 hover:text-[#00d66b] transition-colors">
+                About
+              </Link>
               <Link href="#contact" onClick={toggleMenu}>
                 <span className="inline-block w-full text-center px-4 py-2 text-sm font-medium text-white bg-[#ff5831] rounded-md hover:bg-[#ad00ff] transition-colors">
                   Get in Touch
@@ -104,7 +107,7 @@ const Header = () => {
         )}
       </AnimatePresence>
     </motion.header>
-  )
-}
+  );
+};
 
-export default Header
+export default Header;

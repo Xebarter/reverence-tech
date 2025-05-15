@@ -155,7 +155,7 @@ const Services = () => {
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
           >
-            Other Services
+            Our Services
           </motion.h2>
           <motion.p
             className="text-base sm:text-xl text-[#444] max-w-3xl mx-auto"
@@ -163,7 +163,7 @@ const Services = () => {
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
           >
-            Apart from engaging websites, provide end-to-end technology solutions that help businesses
+            We provide end-to-end technology solutions that help businesses
             transform and thrive in the digital age.
           </motion.p>
         </motion.div>
