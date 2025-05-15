@@ -192,7 +192,7 @@ const About = () => {
                 transition={{ duration: 0.3 }}
               />
               <img
-                src="/5.png"
+                src="/6.png"
                 alt="Reverence Technology"
                 className="w-full h-auto object-cover rounded-xl"
               />
