@@ -1,5 +1,6 @@
+'use client';
+
 import React, { useState } from 'react';
-import { ChevronDown, ChevronUp } from 'lucide-react';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -269,13 +270,11 @@ const Catalogue = () => {
   };
 
   // Animation variants
-  // Animation variants
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
       transition: {
-        staggerChildren: 0.1,
         staggerChildren: 0.1,
       },
     },
@@ -286,7 +285,6 @@ const Catalogue = () => {
     visible: {
       opacity: 1,
       y: 0,
-      transition: { duration: 0.4, ease: 'easeOut' },
       transition: { duration: 0.4, ease: 'easeOut' },
     },
   };
@@ -314,12 +312,9 @@ const Catalogue = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
           className="text-center mb-16"
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="text-center mb-16"
         >
           <h1 className="text-4xl font-bold text-[#ff5831] mb-6">
-            Our Catalogue
+            Website Packages
           </h1>
           <p className="text-gray-700 max-w-3xl mx-auto text-lg mb-8">
             Choose a package tailored to your needs, from simple portfolios to
@@ -599,7 +594,6 @@ const Catalogue = () => {
           </a>
         </motion.div>
       </div>
-    </div>
     </div>
   );
 };
