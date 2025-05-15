@@ -1,6 +1,5 @@
-'use client';
-
 import React, { useState } from 'react';
+import { ChevronDown, ChevronUp } from 'lucide-react';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -270,11 +269,13 @@ const Catalogue = () => {
   };
 
   // Animation variants
+  // Animation variants
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
       transition: {
+        staggerChildren: 0.1,
         staggerChildren: 0.1,
       },
     },
@@ -285,6 +286,7 @@ const Catalogue = () => {
     visible: {
       opacity: 1,
       y: 0,
+      transition: { duration: 0.4, ease: 'easeOut' },
       transition: { duration: 0.4, ease: 'easeOut' },
     },
   };
@@ -309,6 +311,9 @@ const Catalogue = () => {
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="text-center mb-16"
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
           className="text-center mb-16"
@@ -594,6 +599,7 @@ const Catalogue = () => {
           </a>
         </motion.div>
       </div>
+    </div>
     </div>
   );
 };

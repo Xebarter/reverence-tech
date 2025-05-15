@@ -88,7 +88,13 @@ const ServiceCard = ({
 
 const Services = () => {
   const services = [
-    
+    {
+      title: 'Website Development',
+      description:
+        'Custom website design and development with responsive layouts, optimized for search engines and conversion.',
+      icon: Globe,
+      iconColor: 'bg-[#ff5831]',
+    },
     {
       title: 'Mobile App Development',
       description:
