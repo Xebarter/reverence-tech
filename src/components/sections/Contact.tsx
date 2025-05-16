@@ -1,25 +1,49 @@
 'use client';
 
-import type React from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Mail, Phone, MapPin, Facebook, Twitter, Instagram, Linkedin, ArrowUp } from 'lucide-react';
+import {
+  Mail,
+  Phone,
+  MapPin,
+  Facebook,
+  Twitter,
+  Instagram,
+  Linkedin,
+  ArrowUp,
+} from 'lucide-react';
 import { motion } from 'framer-motion';
 
-const ContactInfo = ({ icon: Icon, title, details, index }: { icon: React.ElementType; title: string; details: string; index: number }) => (
+const ContactInfo = ({
+  icon: Icon,
+  title,
+  details,
+  index,
+}: {
+  icon: React.ElementType;
+  title: string;
+  details: string;
+  index: number;
+}) => (
   <motion.div
     className="flex items-start mb-6 group"
     initial={{ opacity: 0, y: 10 }}
     whileInView={{ opacity: 1, y: 0 }}
     viewport={{ once: true }}
-    transition={{ duration: 0.5, delay: index * 0.15, type: "spring", stiffness: 70 }}
+    transition={{
+      duration: 0.5,
+  delay: index * 0.15,
+      type: 'spring',
+      stiffness: 70,
+    }}
   >
     <motion.div
       className="h-12 w-12 rounded-lg flex items-center justify-center mr-4 flex-shrink-0 shadow-lg bg-[#00d66b]"
       whileHover={{
         scale: 1.1,
-        boxShadow: "0 0 15px rgba(0, 214, 107, 0.5)",
+        boxShadow: '0 0 15px rgba(0, 214, 107, 0.5)',
       }}
       transition={{ duration: 0.3 }}
     >
@@ -32,7 +56,13 @@ const ContactInfo = ({ icon: Icon, title, details, index }: { icon: React.Elemen
   </motion.div>
 );
 
-const SocialButton = ({ icon: Icon, label }: { icon: React.ElementType; label: string }) => (
+const SocialButton = ({
+  icon: Icon,
+  label,
+}: {
+  icon: React.ElementType;
+  label: string;
+}) => (
   <motion.button
     className="h-10 w-10 rounded-full bg-[#ad00ff]/10 flex items-center justify-center border border-[#ad00ff] shadow-md hover:shadow-lg transition-all"
     aria-label={label}
@@ -45,6 +75,50 @@ const SocialButton = ({ icon: Icon, label }: { icon: React.ElementType; label: s
 );
 
 const Contact = () => {
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    subject: '',
+    message: '',
+  });
+
+  const [status, setStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle');
+  const [errorMessage, setErrorMessage] = useState('');
+
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    setFormData({ ...formData, [e.target.id]: e.target.value });
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setStatus('sending');
+    setErrorMessage('');
+
+    try {
+      const res = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        setStatus('sent');
+        setFormData({ name: '', email: '', subject: '', message: '' });
+        setTimeout(() => setStatus('idle'), 3000); // Reset status after 3 seconds
+      } else {
+        setStatus('error');
+        setErrorMessage(data.message || 'Failed to send message. Please try again.');
+      }
+    } catch {
+      setStatus('error');
+      setErrorMessage('An unexpected error occurred. Please try again later.');
+    }
+  };
+
   return (
     <section id="contact" className="py-16 bg-[#fff6ea] relative overflow-hidden">
       <div className="container mx-auto px-4 relative z-10">
@@ -59,7 +133,8 @@ const Contact = () => {
             Contact Us
           </h2>
           <p className="text-lg text-gray-700 max-w-2xl mx-auto">
-            Have questions or ready to start your next project? Reach out to our team, and we’ll respond within 24 hours.
+            Have questions or ready to start your next project? Reach out to our team,
+            and we’ll respond within 24 hours.
           </p>
         </motion.div>
 
@@ -72,15 +147,33 @@ const Contact = () => {
         >
           {/* Left Column: Contact Info */}
           <div className="p-8">
-            <h3 className="text-xl font-semibold mb-6 text-[#ad00ff]">Contact Information</h3>
+            <h3 className="text-xl font-semibold mb-6 text-[#ad00ff]">
+              Contact Information
+            </h3>
             <p className="mb-8 text-gray-700 text-sm">
-              Fill out the form, and our team will get back to you promptly. We’re here to assist with all your inquiries.
+              Fill out the form, and our team will get back to you promptly. We’re here
+              to assist with all your inquiries.
             </p>
 
             <div className="space-y-6">
-              <ContactInfo icon={Phone} title="Phone" details="+256 783 676 313" index={0} />
-              <ContactInfo icon={Mail} title="Email" details="sebenock047@gmail.com" index={1} />
-              <ContactInfo icon={MapPin} title="Office" details="Mutungo Zone 1" index={2} />
+              <ContactInfo
+                icon={Phone}
+                title="Phone"
+                details="+256 783 676 313"
+                index={0}
+              />
+              <ContactInfo
+                icon={Mail}
+                title="Email"
+                details="sebenock02777@gmail.com"
+                index={1}
+              />
+              <ContactInfo
+                icon={MapPin}
+                title="Office"
+                details="Mutungo Zone 1"
+                index={2}
+              />
             </div>
 
             <div className="mt-12">
@@ -96,49 +189,86 @@ const Contact = () => {
 
           {/* Right Column: Form */}
           <div className="p-8">
-            <form className="space-y-6">
+            <form className="space-y-6" onSubmit={handleSubmit}>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <Label htmlFor="name" className="text-gray-700 text-sm">Your Name</Label>
+                  <Label htmlFor="name" className="text-gray-700 text-sm">
+                    Your Name
+                  </Label>
                   <Input
                     id="name"
+                    value={formData.name}
+                    onChange={handleChange}
                     placeholder="John Doe"
                     className="bg-[#fff6ea] border border-[#ffd60a]/50 text-gray-800 placeholder:text-gray-500 focus:ring-2 focus:ring-[#ffd60a] focus:border-[#ffd60a] h-10 rounded-lg"
+                    required
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="email" className="text-gray-700 text-sm">Your Email</Label>
+                  <Label htmlFor="email" className="text-gray-700 text-sm">
+                    Your Email
+                  </Label>
                   <Input
                     id="email"
                     type="email"
+                    value={formData.email}
+                    onChange={handleChange}
                     placeholder="john@example.com"
                     className="bg-[#fff6ea] border border-[#ffd60a]/50 text-gray-800 placeholder:text-gray-500 focus:ring-2 focus:ring-[#ffd60a] focus:border-[#ffd60a] h-10 rounded-lg"
+                    required
                   />
                 </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="subject" className="text-gray-700 text-sm">Subject</Label>
+                <Label htmlFor="subject" className="text-gray-700 text-sm">
+                  Subject
+                </Label>
                 <Input
                   id="subject"
+                  value={formData.subject}
+                  onChange={handleChange}
                   placeholder="How can we help you?"
                   className="bg-[#fff6ea] border border-[#ffd60a]/50 text-gray-800 placeholder:text-gray-500 focus:ring-2 focus:ring-[#ffd60a] focus:border-[#ffd60a] h-10 rounded-lg"
+                  required
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="message" className="text-gray-700 text-sm">Message</Label>
+                <Label htmlFor="message" className="text-gray-700 text-sm">
+                  Message
+                </Label>
                 <textarea
                   id="message"
+                  value={formData.message}
+                  onChange={handleChange}
                   rows={5}
                   className="min-h-[120px] w-full rounded-lg border border-[#ffd60a]/50 bg-[#fff6ea] px-3 py-2 text-gray-800 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-[#ffd60a] focus:border-[#ffd60a]"
                   placeholder="Tell us about your project or inquiry..."
+                  required
                 />
               </div>
-              <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} transition={{ duration: 0.3 }}>
+              {status === 'error' && (
+                <p className="text-red-600 text-sm">{errorMessage}</p>
+              )}
+              {status === 'sent' && (
+                <p className="text-[#00d66b] text-sm">
+                  Message sent successfully! We'll get back to you soon.
+                </p>
+              )}
+              <motion.div
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                transition={{ duration: 0.3 }}
+              >
                 <Button
                   type="submit"
                   className="w-full h-12 text-base bg-[#00d66b] text-white shadow-lg hover:bg-[#00ba5e] transition-all duration-300 rounded-lg group relative overflow-hidden"
+                  disabled={status === 'sending'}
                 >
-                  Send Message
+                  {status === 'sending'
+                    ? 'Sending...'
+                    : status === 'sent'
+                    ? 'Message Sent!'
+                    : 'Send Message'}
                   <ArrowUp className="ml-2 w-4 h-4" />
                 </Button>
               </motion.div>
