@@ -52,7 +52,7 @@ const Header = () => {
           </Link>
           <Link href="#contact">
             <span className="inline-block px-4 py-2 text-sm font-medium text-white bg-[#ff5831] rounded-md hover:bg-[#ad00ff] transition-colors">
-              Get in Touch
+              Message Us
             </span>
           </Link>
         </nav>
@@ -99,7 +99,7 @@ const Header = () => {
               </Link>
               <Link href="#contact" onClick={toggleMenu}>
                 <span className="inline-block w-full text-center px-4 py-2 text-sm font-medium text-white bg-[#ff5831] rounded-md hover:bg-[#ad00ff] transition-colors">
-                  Get in Touch
+                  Message Us
                 </span>
               </Link>
             </div>
