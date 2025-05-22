@@ -2,11 +2,12 @@ import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
 import { Toaster } from '@/components/ui/sonner';
+import ClientSessionProvider from './ClientSessionProvider'; // Import the new component
 
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://www.reverencetech.com'), // optional, update if applicable
+  metadataBase: new URL('https://www.reverencetech.com'),
   title: {
     default: 'Reverence Technology - Digital Solutions Provider',
     template: '%s | Reverence Technology',
@@ -28,8 +29,10 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
-        {children}
-        <Toaster />
+        <ClientSessionProvider>
+          {children}
+          <Toaster />
+        </ClientSessionProvider>
       </body>
     </html>
   );
