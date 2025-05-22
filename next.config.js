@@ -2,18 +2,15 @@
 const nextConfig = {
   distDir: 'out',
   reactStrictMode: true,
+  output: 'standalone', // Recommended for optimized deployments (e.g., Vercel)
+
   eslint: {
-    // we use biome for linting
+    // Biome is used instead of ESLint
     ignoreDuringBuilds: true,
   },
+
   images: {
     unoptimized: true,
-    domains: [
-      "source.unsplash.com",
-      "images.unsplash.com",
-      "ext.same-assets.com",
-      "ugc.same-assets.com",
-    ],
     remotePatterns: [
       {
         protocol: "https",
@@ -37,8 +34,9 @@ const nextConfig = {
       },
     ],
   },
+
   typescript: {
-    ignoreBuildErrors: true,
+    ignoreBuildErrors: false,
   },
 };
 
