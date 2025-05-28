@@ -124,7 +124,7 @@ const Hero = () => {
             className="relative text-white px-8 py-4 text-base font-semibold rounded-lg shadow-md hover:shadow-lg transition-all duration-300"
             style={{ backgroundColor: '#ad00ff' }}
           >
-            Get In Touch
+            Start Your Project
           </Button>
         </motion.div>
       </motion.div>
