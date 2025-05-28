@@ -1,8 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  distDir: 'out',
   reactStrictMode: true,
-  output: 'standalone', // Recommended for optimized deployments (e.g., Vercel)
+  output: 'standalone', // Still good for optimized deployments
 
   eslint: {
     // Biome is used instead of ESLint
