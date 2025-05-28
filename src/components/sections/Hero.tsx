@@ -99,19 +99,20 @@ const Hero = () => {
         className="relative z-10 max-w-5xl mx-auto"
       >
         <motion.h1
-          variants={textVariants}
-          className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight leading-tight text-[#2d3748]"
-        >
-          <span className="text-[#ff5831]">Innovating</span>{' '}
-          for a Better <span className="text-[#00d66b]">Future</span>
-        </motion.h1>
+  variants={textVariants}
+  className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight leading-tight text-[#2d3748]"
+>
+  <span className="text-[#ff5831]">Get a Website</span>{' '}
+  that <span className="text-[#00d66b]">Drives Results</span>
+</motion.h1>
 
-        <motion.p
-          variants={textVariants}
-          className="text-lg md:text-xl mt-6 max-w-2xl mx-auto text-[#4a5568]"
-        >
-          We deliver sophisticated and effective solutions through thoughtful design and cutting-edge technology.
-        </motion.p>
+<motion.p
+  variants={textVariants}
+  className="text-lg md:text-xl mt-6 max-w-2xl mx-auto text-[#4a5568]"
+>
+  We design and build high-converting websites and apps that grow your business. Fast, affordable, and custom-built to impress.
+</motion.p>
+
 
         <motion.div
           variants={textVariants}
