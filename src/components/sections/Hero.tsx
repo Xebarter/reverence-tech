@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
+import emailjs from '@emailjs/browser'; // Import EmailJS
 
 const Hero = () => {
   const [showModal, setShowModal] = useState(false);
@@ -10,7 +11,7 @@ const Hero = () => {
     phone: '',
     company: '',
     budget: '',
-    description: ''
+    description: '',
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
@@ -46,24 +47,37 @@ const Hero = () => {
         phone: '',
         company: '',
         budget: '',
-        description: ''
+        description: '',
       });
     }
   };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
-    setTimeout(() => {
+
+    try {
+      // Send form data using EmailJS
+      await emailjs.send(
+        'service_r715yet', // Replace with your EmailJS Service ID
+        'template_dzuk3kd', // Replace with your EmailJS Template ID
+        formData, // Pass the form data directly
+        'rFJHUz0d1a97DJjTT' // Replace with your EmailJS User ID
+      );
+
       setIsSubmitting(false);
       setSubmitSuccess(true);
-      console.log('Form submitted:', formData);
-    }, 1000);
+      console.log('Form submitted successfully:', formData);
+    } catch (error) {
+      setIsSubmitting(false);
+      console.error('Failed to submit form:', error);
+      alert('There was an error submitting the form. Please try again later.');
+    }
   };
 
   return (
@@ -126,7 +140,9 @@ const Hero = () => {
             className="bg-[#fff6ea] rounded-xl shadow-xl w-full max-w-md relative border border-[#ffd60a]"
           >
             {/* Solid bar header */}
-            <div className="h-2 w-full bg-[#ff5831]" />
+            <
+
+div className="h-2 w-full bg-[#ff5831]" />
 
             <div className="p-6">
               {!submitSuccess ? (
@@ -275,5 +291,8 @@ const Hero = () => {
     </section>
   );
 };
+
+// Initialize EmailJS with your User ID (run this once, e.g., in a useEffect or outside the component)
+emailjs.init('YOUR_USER_ID'); // Replace with your EmailJS User ID
 
 export default Hero;

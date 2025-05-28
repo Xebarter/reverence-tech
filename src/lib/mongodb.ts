@@ -1,3 +1,4 @@
+// lib/mongodb.ts
 import { MongoClient, MongoClientOptions } from 'mongodb';
 
 // Ensure MONGODB_URI is defined
@@ -17,11 +18,10 @@ declare global {
 const options: MongoClientOptions = {
   connectTimeoutMS: 10000,
   serverSelectionTimeoutMS: 10000,
-  maxPoolSize: 5, // Reduced for serverless environments
+  maxPoolSize: 5, // Optimized for Vercel serverless
 };
 
 if (process.env.NODE_ENV === 'development') {
-  // Reuse client in development to handle hot reloads
   if (!global._mongoClientPromise) {
     client = new MongoClient(uri, options);
     global._mongoClientPromise = client.connect().catch((err) => {
@@ -31,7 +31,6 @@ if (process.env.NODE_ENV === 'development') {
   }
   clientPromise = global._mongoClientPromise;
 } else {
-  // In production (Vercel), create or reuse client
   if (!clientPromise) {
     client = new MongoClient(uri, options);
     clientPromise = client.connect().catch((err) => {
@@ -47,12 +46,11 @@ export async function getMongoClient(): Promise<MongoClient> {
   }
   try {
     const connectedClient = await clientPromise;
-    // Verify connection with a ping
-    await connectedClient.db().command({ ping: 1 });
+    await connectedClient.db().command({ ping: 1 }); // Verify connection
     return connectedClient;
   } catch (error) {
     console.error('Error getting MongoDB client:', error);
-    clientPromise = null; // Reset to force reconnection
+    clientPromise = null;
     global._mongoClientPromise = undefined;
     throw error;
   }
