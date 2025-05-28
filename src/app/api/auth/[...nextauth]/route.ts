@@ -1,11 +1,11 @@
-import NextAuth, { NextAuthConfig } from 'next-auth';
+import NextAuth from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import bcrypt from 'bcrypt';
 import { getMongoClient } from '@/lib/mongodb';
 import { MongoClient } from 'mongodb';
 
 // Define NextAuth configuration
-const authOptions: NextAuthConfig = {
+const authOptions = {
   providers: [
     CredentialsProvider({
       name: 'Credentials',
