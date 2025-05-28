@@ -52,12 +52,12 @@ const Hero = () => {
     }
   };
 
-  const handleInputChange = (e) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSubmitting(true);
 
@@ -140,9 +140,7 @@ const Hero = () => {
             className="bg-[#fff6ea] rounded-xl shadow-xl w-full max-w-md relative border border-[#ffd60a]"
           >
             {/* Solid bar header */}
-            <
-
-div className="h-2 w-full bg-[#ff5831]" />
+            <div className="h-2 w-full bg-[#ff5831]" />
 
             <div className="p-6">
               {!submitSuccess ? (
@@ -235,7 +233,7 @@ div className="h-2 w-full bg-[#ff5831]" />
                       <textarea
                         id="description"
                         name="description"
-                        rows="3"
+                        rows={3}
                         required
                         value={formData.description}
                         onChange={handleInputChange}
