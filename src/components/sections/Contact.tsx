@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -15,6 +15,8 @@ import {
   ArrowUp,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
+import emailjs from '@emailjs/browser';
+import { toast } from 'sonner';
 
 const ContactInfo = ({
   icon: Icon,
@@ -34,7 +36,7 @@ const ContactInfo = ({
     viewport={{ once: true }}
     transition={{
       duration: 0.5,
-  delay: index * 0.15,
+      delay: index * 0.15,
       type: 'spring',
       stiffness: 70,
     }}
@@ -83,7 +85,18 @@ const Contact = () => {
   });
 
   const [status, setStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle');
-  const [errorMessage, setErrorMessage] = useState('');
+
+  // EmailJS configuration
+  const emailjsConfig = {
+    serviceId: 'service_gonxe1h', // Replace with your EmailJS Service ID
+    templateId: 'template_utmsy9p', // Replace with your Contact Template ID
+    publicKey: 'oYnSIhJP3tQ7bDho3', // Replace with your EmailJS Public Key
+  };
+
+  // Initialize EmailJS
+  useEffect(() => {
+    emailjs.init(emailjsConfig.publicKey);
+  }, []);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -91,31 +104,44 @@ const Contact = () => {
     setFormData({ ...formData, [e.target.id]: e.target.value });
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setStatus('sending');
-    setErrorMessage('');
+
+    // Generate timestamp in EAT
+    const currentTime = new Date().toLocaleString('en-US', {
+      timeZone: 'Africa/Nairobi',
+      dateStyle: 'medium',
+      timeStyle: 'short',
+    });
+
+    // Prepare form data with timestamp
+    const submissionData = {
+      ...formData,
+      time: currentTime,
+    };
 
     try {
-      const res = await fetch('/api/contact', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+      await emailjs.send(
+        emailjsConfig.serviceId,
+        emailjsConfig.templateId,
+        submissionData
+      );
+
+      setStatus('sent');
+      setFormData({ name: '', email: '', subject: '', message: '' });
+      toast.success('Message sent successfully! We’ll get back to you soon.', {
+        position: 'top-right',
+        duration: 3000,
       });
-
-      const data = await res.json();
-
-      if (res.ok) {
-        setStatus('sent');
-        setFormData({ name: '', email: '', subject: '', message: '' });
-        setTimeout(() => setStatus('idle'), 3000); // Reset status after 3 seconds
-      } else {
-        setStatus('error');
-        setErrorMessage(data.message || 'Failed to send message. Please try again.');
-      }
-    } catch {
+      setTimeout(() => setStatus('idle'), 3000);
+    } catch (error) {
       setStatus('error');
-      setErrorMessage('An unexpected error occurred. Please try again later.');
+      toast.error('Failed to send message. Please try again later.', {
+        position: 'top-right',
+        duration: 3000,
+      });
+      console.error('EmailJS error:', error);
     }
   };
 
@@ -200,7 +226,7 @@ const Contact = () => {
                     value={formData.name}
                     onChange={handleChange}
                     placeholder="John Doe"
-                    className="bg-[#fff6ea] border border-[#ffd60a]/50 text-gray-800 placeholder:text-gray-500 focus:ring-2 focus:ring-[#ffd60a] focus:border-[#ffd60a] h-10 rounded-lg"
+                    className="bg-[#fff6ea] border border-[#ffd60a]/50 text-gray-800 placeholder:text-gray-500 text-sm focus:ring-gray-300 focus:border-gray-300 h-10 rounded-md"
                     required
                   />
                 </div>
@@ -214,7 +240,7 @@ const Contact = () => {
                     value={formData.email}
                     onChange={handleChange}
                     placeholder="john@example.com"
-                    className="bg-[#fff6ea] border border-[#ffd60a]/50 text-gray-800 placeholder:text-gray-500 focus:ring-2 focus:ring-[#ffd60a] focus:border-[#ffd60a] h-10 rounded-lg"
+                    className="bg-[#fff6ea] border border-[#ffd60a]/50 text-gray-800 placeholder:text-gray-500 text-sm focus:ring-gray-300 focus:border-gray-300 h-10 rounded-md"
                     required
                   />
                 </div>
@@ -228,7 +254,7 @@ const Contact = () => {
                   value={formData.subject}
                   onChange={handleChange}
                   placeholder="How can we help you?"
-                  className="bg-[#fff6ea] border border-[#ffd60a]/50 text-gray-800 placeholder:text-gray-500 focus:ring-2 focus:ring-[#ffd60a] focus:border-[#ffd60a] h-10 rounded-lg"
+                  className="bg-[#fff6ea] border border-[#ffd60a]/50 text-gray-800 placeholder:text-gray-500 text-sm focus:ring-gray-300 focus:border-gray-300 h-10 rounded-md"
                   required
                 />
               </div>
@@ -241,13 +267,13 @@ const Contact = () => {
                   value={formData.message}
                   onChange={handleChange}
                   rows={5}
-                  className="min-h-[120px] w-full rounded-lg border border-[#ffd60a]/50 bg-[#fff6ea] px-3 py-2 text-gray-800 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-[#ffd60a] focus:border-[#ffd60a]"
+                  className="min-h-[120px] w-full rounded-md border border-[#ffd60a]/50 bg-[#fff6ea] px-3 py-2 text-gray-800 placeholder:text-gray-500 text-sm focus:outline-none focus:ring-gray-300 focus:border-gray-300"
                   placeholder="Tell us about your project or inquiry..."
                   required
                 />
               </div>
               {status === 'error' && (
-                <p className="text-red-600 text-sm">{errorMessage}</p>
+                <p className="text-red-600 text-sm">Failed to send message. Please try again.</p>
               )}
               {status === 'sent' && (
                 <p className="text-[#00d66b] text-sm">
@@ -261,7 +287,7 @@ const Contact = () => {
               >
                 <Button
                   type="submit"
-                  className="w-full h-12 text-base bg-[#00d66b] text-white shadow-lg hover:bg-[#00ba5e] transition-all duration-300 rounded-lg group relative overflow-hidden"
+                  className="w-full h-12 text-base bg-[#00d66b] text-white shadow-lg hover:bg-[#00ba5e] transition-all duration-300 rounded-md group relative overflow-hidden"
                   disabled={status === 'sending'}
                 >
                   {status === 'sending'
@@ -286,7 +312,7 @@ const Contact = () => {
         >
           <button
             onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-            className="flex items-center space-x-2 bg-[#ad00ff] hover:bg-[#9900e6] text-white px-5 py-2 rounded-lg shadow-md hover:shadow-lg transition-all"
+            className="flex items-center space-x-2 bg-[#ad00ff] hover:bg-[#9900e6] text-white px-5 py-2 rounded-md shadow-md hover:shadow-lg transition-all"
           >
             <ArrowUp className="h-4 w-4" />
             <span className="font-medium text-sm">Back to Top</span>
