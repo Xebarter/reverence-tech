@@ -3,8 +3,9 @@
 import React, { useState } from 'react';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import axios from 'axios';
 
-// Define package and add-on interfaces for TypeScript
+// Define interfaces for TypeScript
 interface Package {
   name: string;
   price: string;
@@ -96,8 +97,7 @@ const packages: Package[] = [
     name: 'Store',
     price: 'UGX 8M – 18M',
     usdPrice: '~USD 2,160–4,865',
-    idealFor:
-      'Businesses selling products or services online (retail, restaurants)',
+    idealFor: 'Businesses selling products or services online (retail, restaurants)',
     description:
       'Launch a full-featured online store with secure payments and inventory management, designed to convert with bold buttons and highlights. SEO drives traffic.',
     timeline: '8–12 weeks',
@@ -131,8 +131,7 @@ const packages: Package[] = [
     name: 'Enterprise',
     price: 'UGX 10M – 25M',
     usdPrice: '~USD 2,700–6,755',
-    idealFor:
-      'Large businesses, NGOs, institutions, or government agencies',
+    idealFor: 'Large businesses, NGOs, institutions, or government agencies',
     description:
       'A premium, high-performance website with advanced features like multi-language support and API integrations, styled with bold CTAs and accents.',
     timeline: '12–20 weeks',
@@ -165,8 +164,7 @@ const packages: Package[] = [
     name: 'Custom',
     price: 'UGX 20M – 60M+',
     usdPrice: '~USD 5,405–16,215+',
-    idealFor:
-      'Marketplaces, booking platforms, SaaS, or unique systems',
+    idealFor: 'Marketplaces, booking platforms, SaaS, or unique systems',
     description:
       'A fully tailored web application built for scalability, with real-time features and custom APIs, designed in your vibrant style for innovative projects.',
     timeline: '16–30 weeks',
@@ -243,30 +241,100 @@ const addOns: AddOn[] = [
 ];
 
 const Catalogue = () => {
-  // Adding id to make the component accessible for scrolling
-  // State to track open/closed state of each card
   const [openCards, setOpenCards] = useState<{ [key: string]: boolean }>({});
-  // State to track if all add-ons are visible
   const [addOnsVisible, setAddOnsVisible] = useState(false);
-  // State to track if packages section is visible
   const [packagesVisible, setPackagesVisible] = useState(false);
+  const [selectedItem, setSelectedItem] = useState<Package | AddOn | null>(null);
+  const [paymentDetails, setPaymentDetails] = useState({
+    email: '',
+    phone: '',
+    amount: '',
+  });
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [iframeUrl, setIframeUrl] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  // Toggle card open/closed state
   const toggleCard = (cardId: string) => {
-    setOpenCards((prev) => ({
-      ...prev,
-      [cardId]: !prev[cardId],
-    }));
+    setOpenCards((prev) => ({ ...prev, [cardId]: !prev[cardId] }));
   };
 
-  // Toggle add-ons visibility
-  const toggleAddOns = () => {
-    setAddOnsVisible(!addOnsVisible);
+  const toggleAddOns = () => setAddOnsVisible(!addOnsVisible);
+  const togglePackages = () => setPackagesVisible(!packagesVisible);
+
+  // Parse price to extract numeric values
+  const parsePrice = (price: string): number => {
+    const match = price.match(/[\d.]+/);
+    if (!match) return 0;
+    const value = parseFloat(match[0]) * (price.includes('M') ? 1000000 : 1000);
+    return value;
   };
 
-  // Toggle packages visibility
-  const togglePackages = () => {
-    setPackagesVisible(!packagesVisible);
+  // Get price options for ranges
+  const getPriceOptions = (price: string): number[] => {
+    if (!price.includes('–')) return [parsePrice(price)];
+    const [min, max] = price.split('–').map((p) => parsePrice(p.trim()));
+    return [min, max];
+  };
+
+  // Validate email
+  const isValidEmail = (email: string): boolean => {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  };
+
+  // Validate phone (Uganda format: +256 followed by 9 digits)
+  const isValidPhone = (phone: string): boolean => {
+    return /^\+256\d{9}$/.test(phone);
+  };
+
+  // Initiate payment
+  const initiatePayment = async () => {
+    if (!selectedItem) {
+      setError('No item selected.');
+      return;
+    }
+    if (!isValidEmail(paymentDetails.email)) {
+      setError('Please provide a valid email address.');
+      return;
+    }
+    if (!isValidPhone(paymentDetails.phone)) {
+      setError('Please provide a valid phone number (e.g., +256123456789).');
+      return;
+    }
+    if (!paymentDetails.amount) {
+      setError('Please select a payment amount.');
+      return;
+    }
+
+    setIsLoading(true);
+    setError('');
+
+    try {
+      const amount = parseFloat(paymentDetails.amount);
+      const response = await axios.post('http://localhost:5000/api/initiate-payment', {
+        amount,
+        currency: 'UGX',
+        description: `Payment for ${selectedItem.name}`,
+        email: paymentDetails.email,
+        phone: paymentDetails.phone,
+        packageName: selectedItem.name,
+      });
+
+      setIframeUrl(response.data.iframeUrl);
+      // Track payment initiation
+      if (typeof window.gtag === 'function') {
+        window.gtag('event', 'begin_checkout', {
+          currency: 'UGX',
+          value: amount,
+          items: [{ item_id: selectedItem.name, item_name: selectedItem.name }],
+        });
+      }
+    } catch (error) {
+      setError('Failed to initiate payment. Please try again.');
+      console.error('Payment error:', error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   // Animation variants
@@ -274,33 +342,18 @@ const Catalogue = () => {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
-      transition: {
-        staggerChildren: 0.1,
-      },
+      transition: { staggerChildren: 0.1 },
     },
   };
 
   const cardVariants = {
     hidden: { opacity: 0, y: 20 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: { duration: 0.4, ease: 'easeOut' },
-    },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: 'easeOut' } },
   };
 
-  // Animation for accordion content
   const accordionVariants = {
-    collapsed: {
-      height: 0,
-      opacity: 0,
-      overflow: 'hidden',
-    },
-    expanded: {
-      height: 'auto',
-      opacity: 1,
-      transition: { duration: 0.3, ease: 'easeOut' },
-    },
+    collapsed: { height: 0, opacity: 0, overflow: 'hidden' },
+    expanded: { height: 'auto', opacity: 1, transition: { duration: 0.3, ease: 'easeOut' } },
   };
 
   return (
@@ -321,9 +374,7 @@ const Catalogue = () => {
             complex web applications. All packages include responsive design and
             lead capture.
           </p>
-          
-          {/* Main toggle button for packages */}
-          <button 
+          <button
             onClick={togglePackages}
             className="mx-auto flex items-center justify-center py-3 px-6 bg-[#ff5831] text-white rounded-lg font-medium hover:bg-[#e04a29] transition-colors duration-200"
           >
@@ -357,7 +408,6 @@ const Catalogue = () => {
                     className="bg-white rounded-2xl shadow-lg overflow-hidden transition-all duration-300 hover:shadow-xl"
                   >
                     <div className="p-6">
-                      {/* Card Header */}
                       <div className="mb-4">
                         <h3 className="text-2xl font-bold text-[#ff5831] mb-2">
                           {pkg.name}
@@ -367,23 +417,18 @@ const Catalogue = () => {
                         </p>
                         <p className="text-gray-500 text-sm">{pkg.usdPrice}</p>
                       </div>
-
                       <p className="text-gray-700 text-sm font-medium mb-4">
                         {pkg.idealFor}
                       </p>
                       <p className="text-gray-600 text-sm mb-6">
                         {pkg.description}
                       </p>
-
-                      {/* Timeline */}
                       <div className="flex items-center justify-between mb-6">
                         <span className="text-gray-500 text-sm">Timeline</span>
                         <span className="bg-[#ff5831]/10 text-[#ff5831] text-sm py-1 px-3 rounded-full font-medium">
                           {pkg.timeline}
                         </span>
                       </div>
-
-                      {/* Toggle Button */}
                       <button
                         onClick={() => toggleCard(cardId)}
                         className="flex items-center justify-center w-full py-3 px-4 bg-[#ffd60a]/10 text-[#ffd60a] rounded-lg font-medium hover:bg-[#ffd60a]/20 transition-colors duration-200"
@@ -395,8 +440,6 @@ const Catalogue = () => {
                           <ChevronDown className="w-5 h-5 ml-2" />
                         )}
                       </button>
-
-                      {/* Expandable Content */}
                       <AnimatePresence>
                         {isOpen && (
                           <motion.div
@@ -406,7 +449,6 @@ const Catalogue = () => {
                             exit="collapsed"
                             className="mt-6"
                           >
-                            {/* Features */}
                             <div className="space-y-6">
                               <div>
                                 <h4 className="text-sm font-bold text-[#00d66b] mb-3 flex items-center">
@@ -419,15 +461,12 @@ const Catalogue = () => {
                                       key={i}
                                       className="flex items-start text-sm leading-relaxed text-gray-700"
                                     >
-                                      <span className="text-[#00d66b] mr-2 text-lg">
-                                        •
-                                      </span>{' '}
+                                      <span className="text-[#00d66b] mr-2 text-lg">•</span>
                                       {feature}
                                     </li>
                                   ))}
                                 </ul>
                               </div>
-
                               <div>
                                 <h4 className="text-sm font-bold text-[#ff5831] mb-3 flex items-center">
                                   <span className="w-1 h-4 bg-[#ff5831] mr-2 rounded-full"></span>
@@ -439,15 +478,12 @@ const Catalogue = () => {
                                       key={i}
                                       className="flex items-start text-sm leading-relaxed text-gray-700"
                                     >
-                                      <span className="text-[#ff5831] mr-2 text-lg">
-                                        •
-                                      </span>{' '}
+                                      <span className="text-[#ff5831] mr-2 text-lg">•</span>
                                       {feature}
                                     </li>
                                   ))}
                                 </ul>
                               </div>
-
                               <div>
                                 <h4 className="text-sm font-bold text-[#ffd60a] mb-3 flex items-center">
                                   <span className="w-1 h-4 bg-[#ffd60a] mr-2 rounded-full"></span>
@@ -459,15 +495,12 @@ const Catalogue = () => {
                                       key={i}
                                       className="flex items-start text-sm leading-relaxed text-gray-700"
                                     >
-                                      <span className="text-[#ffd60a] mr-2 text-lg">
-                                        •
-                                      </span>{' '}
+                                      <span className="text-[#ffd60a] mr-2 text-lg">•</span>
                                       {feature}
                                     </li>
                                   ))}
                                 </ul>
                               </div>
-
                               <div>
                                 <h4 className="text-sm font-bold text-[#ad00ff] mb-3 flex items-center">
                                   <span className="w-1 h-4 bg-[#ad00ff] mr-2 rounded-full"></span>
@@ -479,9 +512,7 @@ const Catalogue = () => {
                                       key={i}
                                       className="flex items-start text-sm leading-relaxed text-gray-700"
                                     >
-                                      <span className="text-[#ad00ff] mr-2 text-lg">
-                                        •
-                                      </span>{' '}
+                                      <span className="text-[#ad00ff] mr-2 text-lg">•</span>
                                       {feature}
                                     </li>
                                   ))}
@@ -492,15 +523,17 @@ const Catalogue = () => {
                         )}
                       </AnimatePresence>
                     </div>
-
-                    {/* CTA Button */}
                     <div className="px-6 pb-6">
-                      <a
-                        href="#contact"
+                      <button
+                        onClick={() => {
+                          setSelectedItem(pkg);
+                          setPaymentDetails({ ...paymentDetails, amount: getPriceOptions(pkg.price)[0].toString() });
+                          setShowPaymentModal(true);
+                        }}
                         className="block w-full py-3 px-6 bg-[#00d66b] text-white text-center font-semibold rounded-lg transition-colors duration-300 hover:bg-[#00ba5e]"
                       >
-                        Get Started
-                      </a>
+                        Buy Now
+                      </button>
                     </div>
                   </motion.div>
                 );
@@ -523,9 +556,7 @@ const Catalogue = () => {
             Enhance your website with tailored add-ons to boost functionality,
             visibility, and branding.
           </p>
-          
-          {/* Toggle button for add-ons */}
-          <button 
+          <button
             onClick={toggleAddOns}
             className="mx-auto flex items-center justify-center py-3 px-6 bg-[#ad00ff] text-white rounded-lg font-medium hover:bg-[#9b00e8] transition-colors duration-200"
           >
@@ -547,7 +578,7 @@ const Catalogue = () => {
               exit="hidden"
               className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mb-16"
             >
-              {addOns.map((addOn, index) => (
+              {addOns.map((addOn) => (
                 <motion.div
                   key={addOn.name}
                   variants={cardVariants}
@@ -561,14 +592,111 @@ const Catalogue = () => {
                     <p className="text-gray-500 text-xs">{addOn.usdPrice}</p>
                   </div>
                   <p className="text-gray-600 text-sm mb-4">{addOn.description}</p>
-                  <a
-                    href="#contact"
+                  <button
+                    onClick={() => {
+                      setSelectedItem(addOn);
+                      setPaymentDetails({ ...paymentDetails, amount: getPriceOptions(addOn.price)[0].toString() });
+                      setShowPaymentModal(true);
+                    }}
                     className="block w-full py-2 px-4 bg-[#ad00ff]/10 text-[#ad00ff] text-center font-medium rounded-lg transition-colors duration-300 hover:bg-[#ad00ff]/20"
                   >
                     Add to Package
-                  </a>
+                  </button>
                 </motion.div>
               ))}
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Payment Modal */}
+        <AnimatePresence>
+          {showPaymentModal && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+            >
+              <motion.div
+                initial={{ scale: 0.8, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.8, opacity: 0 }}
+                className="bg-white p-8 rounded-xl max-w-lg w-full"
+              >
+                <h3 className="text-xl font-bold text-[#ff5831] mb-4">
+                  Purchase {selectedItem?.name}
+                </h3>
+                {iframeUrl ? (
+                  <iframe
+                    src={iframeUrl}
+                    className="w-full h-96 border-none"
+                    title="PesaPal Payment"
+                  />
+                ) : (
+                  <>
+                    <p className="text-gray-700 mb-4">
+                      Price: {selectedItem?.price} ({selectedItem?.usdPrice})
+                    </p>
+                    {error && (
+                      <p className="text-red-500 mb-4 text-sm">{error}</p>
+                    )}
+                    {selectedItem?.price.includes('–') && (
+                      <select
+                        value={paymentDetails.amount}
+                        onChange={(e) =>
+                          setPaymentDetails({ ...paymentDetails, amount: e.target.value })
+                        }
+                        className="w-full p-2 mb-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00d66b]"
+                      >
+                        <option value="">Select Amount</option>
+                        {getPriceOptions(selectedItem.price).map((amount, index) => (
+                          <option key={index} value={amount}>
+                            UGX {amount.toLocaleString()}
+                          </option>
+                        ))}
+                      </select>
+                    )}
+                    <input
+                      type="email"
+                      placeholder="Email Address (e.g., user@example.com)"
+                      value={paymentDetails.email}
+                      onChange={(e) =>
+                        setPaymentDetails({ ...paymentDetails, email: e.target.value })
+                      }
+                      className="w-full p-2 mb-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00d66b]"
+                    />
+                    <input
+                      type="tel"
+                      placeholder="Phone Number (e.g., +256123456789)"
+                      value={paymentDetails.phone}
+                      onChange={(e) =>
+                        setPaymentDetails({ ...paymentDetails, phone: e.target.value })
+                      }
+                      className="w-full p-2 mb-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00d66b]"
+                    />
+                    <button
+                      onClick={initiatePayment}
+                      disabled={isLoading}
+                      className={`w-full py-3 px-6 bg-[#00d66b] text-white rounded-lg font-semibold hover:bg-[#00ba5e] transition-colors duration-300 ${
+                        isLoading ? 'opacity-50 cursor-not-allowed' : ''
+                      }`}
+                    >
+                      {isLoading ? 'Processing...' : 'Proceed to Payment'}
+                    </button>
+                    <button
+                      onClick={() => {
+                        setShowPaymentModal(false);
+                        setIframeUrl('');
+                        setError('');
+                        setPaymentDetails({ email: '', phone: '', amount: '' });
+                      }}
+                      className="w-full py-3 px-6 mt-2 text-gray-700 font-semibold rounded-lg hover:bg-gray-100 transition-colors duration-300"
+                    >
+                      Cancel
+                    </button>
+                  </>
+                )}
+              </motion.div>
             </motion.div>
           )}
         </AnimatePresence>
