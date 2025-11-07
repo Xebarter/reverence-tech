@@ -12,8 +12,33 @@ interface ModalProps {
 const Modal = ({ isOpen, onClose, children }: ModalProps) => {
   if (!isOpen) return null;
 
+  // Handle escape key press
+  const handleEscape = (e: KeyboardEvent) => {
+    if (e.key === 'Escape') {
+      onClose();
+    }
+  };
+
+  // Handle backdrop click
+  const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (e.target === e.currentTarget) {
+      onClose();
+    }
+  };
+
+  // Add event listeners
+  useState(() => {
+    document.addEventListener('keydown', handleEscape);
+    return () => {
+      document.removeEventListener('keydown', handleEscape);
+    };
+  });
+
   return createPortal(
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
+    <div 
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50"
+      onClick={handleBackdropClick}
+    >
       <div className="bg-[#E5E8EB] rounded-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
         {children}
       </div>
