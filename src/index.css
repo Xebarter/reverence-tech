@@ -16,3 +16,53 @@ body {
   margin: 0;
   padding: 0;
 }
+
+/* Glassmorphic effect */
+.glassmorphic-card {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
+}
+
+.glassmorphic-button {
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.glassmorphic-icon {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+/* Neumorphic effect */
+.neumorphic-card {
+  box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.2), 
+              -5px -5px 10px rgba(255, 255, 255, 0.05);
+  border-radius: 24px;
+}
+
+.neumorphic-button {
+  box-shadow: 3px 3px 6px rgba(0, 0, 0, 0.2),
+              -3px -3px 6px rgba(255, 255, 255, 0.05);
+  transition: all 0.3s ease;
+  border-radius: 16px;
+}
+
+.neumorphic-button:hover {
+  box-shadow: inset 3px 3px 6px rgba(0, 0, 0, 0.2),
+              inset -3px -3px 6px rgba(255, 255, 255, 0.05);
+}
+
+.neumorphic-button:active {
+  box-shadow: inset 4px 4px 8px rgba(0, 0, 0, 0.2),
+              inset -4px -4px 8px rgba(255, 255, 255, 0.05);
+}
+
+.neumorphic-icon {
+  box-shadow: 3px 3px 6px rgba(0, 0, 0, 0.2),
+              -3px -3px 6px rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+}

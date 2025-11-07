@@ -50,7 +50,7 @@ export default function Header() {
             </Link>
             <button
               onClick={() => scrollToSection('contact')}
-              className="bg-[#2DBE7E] text-white px-6 py-2 rounded-lg hover:bg-[#25a169] transition-all duration-300 font-medium shadow-lg hover:shadow-xl"
+              className="bg-[#F2B134] text-white px-6 py-2 rounded-lg hover:bg-[#d89e2d] transition-all duration-300 font-medium shadow-lg hover:shadow-xl"
             >
               Get Started
             </button>
@@ -59,7 +59,7 @@ export default function Header() {
           <div className="md:hidden">
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="text-white hover:text-[#2DBE7E] transition-colors"
+              className="text-white hover:text-[#F2B134] transition-colors"
             >
               {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
@@ -70,33 +70,33 @@ export default function Header() {
           <div className="md:hidden pb-6 space-y-4">
             <button
               onClick={() => scrollToSection('home')}
-              className="block w-full text-left text-[#E5E8EB] hover:text-[#2DBE7E] transition-colors py-2 font-medium"
+              className="block w-full text-left text-[#E5E8EB] hover:text-[#F2B134] transition-colors py-2 font-medium"
             >
               Home
             </button>
             <button
               onClick={() => scrollToSection('services')}
-              className="block w-full text-left text-[#E5E8EB] hover:text-[#2DBE7E] transition-colors py-2 font-medium"
+              className="block w-full text-left text-[#E5E8EB] hover:text-[#F2B134] transition-colors py-2 font-medium"
             >
               Services
             </button>
             <Link
               to="/blog"
-              className="block w-full text-left text-[#E5E8EB] hover:text-[#2DBE7E] transition-colors py-2 font-medium"
+              className="block w-full text-left text-[#E5E8EB] hover:text-[#F2B134] transition-colors py-2 font-medium"
               onClick={() => setIsMenuOpen(false)}
             >
               Blog
             </Link>
             <Link
               to="/careers"
-              className="block w-full text-left text-[#E5E8EB] hover:text-[#2DBE7E] transition-colors py-2 font-medium"
+              className="block w-full text-left text-[#E5E8EB] hover:text-[#F2B134] transition-colors py-2 font-medium"
               onClick={() => setIsMenuOpen(false)}
             >
               Careers
             </Link>
             <button
               onClick={() => scrollToSection('contact')}
-              className="block w-full bg-[#2DBE7E] text-white px-6 py-3 rounded-lg hover:bg-[#25a169] transition-all font-medium"
+              className="block w-full bg-[#F2B134] text-white px-6 py-3 rounded-lg hover:bg-[#d89e2d] transition-all font-medium"
             >
               Get Started
             </button>

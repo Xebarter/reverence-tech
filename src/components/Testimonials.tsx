@@ -117,7 +117,7 @@ export default function Testimonials({ onShowTestimonialForm }: { onShowTestimon
             <p className="mt-1 text-gray-500">Be the first to share your experience with us.</p>
             <button
               onClick={handleSubmitTestimonial}
-              className="mt-4 px-4 py-2 bg-[#2DBE7E] text-white rounded-md hover:bg-[#25a169] transition-colors"
+              className="mt-4 px-4 py-2 bg-[#F2B134] text-white rounded-md hover:bg-[#d89e2d] transition-colors"
             >
               Share Your Experience
             </button>

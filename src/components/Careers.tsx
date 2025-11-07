@@ -203,7 +203,7 @@ export default function Careers() {
                           href={job.application_link} 
                           target="_blank" 
                           rel="noopener noreferrer"
-                          className="bg-[#2DBE7E] text-white px-4 py-2 rounded-lg hover:bg-[#25a169] transition-colors font-medium"
+                          className="bg-[#F2B134] text-white px-4 py-2 rounded-lg hover:bg-[#d89e2d] transition-colors font-medium"
                         >
                           Apply Now
                         </a>
@@ -220,7 +220,7 @@ export default function Careers() {
                               }));
                             }
                           }}
-                          className="bg-[#2DBE7E] text-white px-4 py-2 rounded-lg hover:bg-[#25a169] transition-colors font-medium"
+                          className="bg-[#F2B134] text-white px-4 py-2 rounded-lg hover:bg-[#d89e2d] transition-colors font-medium"
                         >
                           Apply
                         </button>
@@ -314,7 +314,7 @@ export default function Careers() {
                     href={job.application_link} 
                     target="_blank" 
                     rel="noopener noreferrer"
-                    className="bg-[#2DBE7E] text-white px-4 py-2 rounded-lg hover:bg-[#25a169] transition-colors font-medium"
+                    className="bg-[#F2B134] text-white px-4 py-2 rounded-lg hover:bg-[#d89e2d] transition-colors font-medium"
                   >
                     Apply Now
                   </a>
@@ -331,7 +331,7 @@ export default function Careers() {
                         }));
                       }
                     }}
-                    className="bg-[#2DBE7E] text-white px-4 py-2 rounded-lg hover:bg-[#25a169] transition-colors font-medium"
+                    className="bg-[#F2B134] text-white px-4 py-2 rounded-lg hover:bg-[#d89e2d] transition-colors font-medium"
                   >
                     Apply for this Position
                   </button>
@@ -485,7 +485,7 @@ export default function Careers() {
                     </button>
                     <button
                       type="submit"
-                      className="px-4 py-2 bg-[#1C3D5A] text-white rounded-lg hover:bg-[#2DBE7E] transition-colors font-medium disabled:opacity-50"
+                      className="px-4 py-2 bg-[#1C3D5A] text-white rounded-lg hover:bg-[#F2B134] transition-colors font-medium disabled:opacity-50"
                       disabled={isSubmitting}
                     >
                       {isSubmitting ? 'Submitting...' : 'Submit Application'}

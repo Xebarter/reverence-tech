@@ -199,7 +199,7 @@ export default function Services() {
                       e.stopPropagation();
                       handleGetStarted(service);
                     }}
-                    className="w-full bg-[#2DBE7E] text-white py-3 rounded-lg hover:bg-[#25a169] transition-all duration-300 font-semibold"
+                    className="w-full bg-[#F2B134] text-white py-3 rounded-lg hover:bg-[#d89e2d] transition-all duration-300 font-semibold"
                   >
                     Get Started
                   </button>
@@ -288,7 +288,7 @@ export default function Services() {
                     setSelectedService(null);
                     handleGetStarted(selectedService);
                   }}
-                  className="w-full bg-[#2DBE7E] text-white py-4 rounded-lg hover:bg-[#25a169] transition-all duration-300 font-semibold text-lg"
+                  className="w-full bg-[#F2B134] text-white py-4 rounded-lg hover:bg-[#d89e2d] transition-all duration-300 font-semibold text-lg"
                 >
                   Request a Consultation
                 </button>
@@ -448,7 +448,7 @@ export default function Services() {
                     <button
                       type="submit"
                       disabled={submitting}
-                      className="w-full bg-[#2DBE7E] text-white py-4 rounded-lg hover:bg-[#25a169] transition-all duration-300 font-semibold text-lg flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="w-full bg-[#F2B134] text-white py-4 rounded-lg hover:bg-[#d89e2d] transition-all duration-300 font-semibold text-lg flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {submitting ? 'Sending...' : 'Send Message'}
                     </button>

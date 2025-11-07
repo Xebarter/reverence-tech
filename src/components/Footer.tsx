@@ -24,28 +24,28 @@ export default function Footer() {
             <div className="flex gap-4">
               <a
                 href="#"
-                className="bg-white/10 p-3 rounded-lg hover:bg-[#2DBE7E] transition-all duration-300"
+                className="bg-white/10 p-3 rounded-lg hover:bg-[#F2B134] transition-all duration-300"
                 aria-label="Facebook"
               >
                 <Facebook size={20} />
               </a>
               <a
                 href="#"
-                className="bg-white/10 p-3 rounded-lg hover:bg-[#2DBE7E] transition-all duration-300"
+                className="bg-white/10 p-3 rounded-lg hover:bg-[#F2B134] transition-all duration-300"
                 aria-label="Twitter"
               >
                 <Twitter size={20} />
               </a>
               <a
                 href="#"
-                className="bg-white/10 p-3 rounded-lg hover:bg-[#2DBE7E] transition-all duration-300"
+                className="bg-white/10 p-3 rounded-lg hover:bg-[#F2B134] transition-all duration-300"
                 aria-label="LinkedIn"
               >
                 <Linkedin size={20} />
               </a>
               <a
                 href="#"
-                className="bg-white/10 p-3 rounded-lg hover:bg-[#2DBE7E] transition-all duration-300"
+                className="bg-white/10 p-3 rounded-lg hover:bg-[#F2B134] transition-all duration-300"
                 aria-label="Instagram"
               >
                 <Instagram size={20} />
