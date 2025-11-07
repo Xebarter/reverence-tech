@@ -20,7 +20,6 @@ import Blog from './components/Blog';
 import BlogPost from './components/BlogPost';
 import BlogManagement from './components/admin/Blog';
 import AdminAuth from './components/admin/Auth';
-import ProtectedRoute from './components/admin/ProtectedRoute';
 import ProtectedRouteTemp from './components/admin/ProtectedRouteTemp';
 import UserManagement from './components/admin/UserManagement';
 import Unauthorized from './components/admin/Unauthorized';

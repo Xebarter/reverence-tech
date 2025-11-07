@@ -63,13 +63,6 @@ export default function Services() {
     }
   };
 
-  const scrollToContact = () => {
-    const element = document.getElementById('contact');
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
-    }
-  };
-
   const handleGetStarted = (service: Service) => {
     setSelectedService(service);
     setFormData({
@@ -77,6 +70,14 @@ export default function Services() {
       service_interest: service.package_name,
     });
     setShowContactForm(true);
+    
+    // Scroll to contact form when opening it
+    setTimeout(() => {
+      const element = document.getElementById('service-contact-form');
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth' });
+      }
+    }, 100);
   };
 
   const handleContactFormChange = (

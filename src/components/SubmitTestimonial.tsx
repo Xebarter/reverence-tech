@@ -125,7 +125,7 @@ export default function SubmitTestimonial({ isOpen, onClose }: { isOpen: boolean
         rating: 0,
         avatar_url: '',
       });
-    }, 300); // Delay to allow modal transition to finish
+    }, 300);
   };
 
   return (

@@ -9,7 +9,7 @@ export default function DatabaseTest() {
     const testConnection = async () => {
       try {
         // Test basic connection by querying a simple table that should exist
-        const { data, error } = await supabase
+        const { data: _data, error } = await supabase
           .from('services')
           .select('count')
           .limit(1);

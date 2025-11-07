@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, Edit, Trash2 } from 'lucide-react';
+import { Plus, Edit, Trash2, Star } from 'lucide-react';
 
 interface Testimonial {
   id: string;

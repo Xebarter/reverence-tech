@@ -3,12 +3,12 @@ import { Mail, Phone, MapPin, Send } from 'lucide-react';
 import { supabase, Inquiry } from '../lib/supabase';
 
 export default function Contact() {
-  const [formData, setFormData] = useState<Inquiry>({
+  const [formData, setFormData] = useState<Omit<Inquiry, 'id' | 'created_at'>>({
     full_name: '',
     email: '',
-    phone: '',
-    company: '',
-    service_interest: '',
+    phone_number: '',
+    company_name: '',
+    interested_package: '',
     message: '',
   });
   const [submitting, setSubmitting] = useState(false);
@@ -31,9 +31,9 @@ export default function Contact() {
       setFormData({
         full_name: '',
         email: '',
-        phone: '',
-        company: '',
-        service_interest: '',
+        phone_number: '',
+        company_name: '',
+        interested_package: '',
         message: '',
       });
 
@@ -179,8 +179,8 @@ export default function Contact() {
                     <input
                       type="tel"
                       id="phone"
-                      name="phone"
-                      value={formData.phone}
+                      name="phone_number"
+                      value={formData.phone_number}
                       onChange={handleChange}
                       required
                       className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-[#2DBE7E] focus:ring-2 focus:ring-[#2DBE7E]/20 outline-none transition-all"
@@ -196,8 +196,8 @@ export default function Contact() {
                   <input
                     type="text"
                     id="company"
-                    name="company"
-                    value={formData.company}
+                    name="company_name"
+                    value={formData.company_name}
                     onChange={handleChange}
                     className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-[#2DBE7E] focus:ring-2 focus:ring-[#2DBE7E]/20 outline-none transition-all"
                     placeholder="Your Company Name"
@@ -210,8 +210,8 @@ export default function Contact() {
                   </label>
                   <select
                     id="service_interest"
-                    name="service_interest"
-                    value={formData.service_interest}
+                    name="interested_package"
+                    value={formData.interested_package}
                     onChange={handleChange}
                     required
                     className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-[#2DBE7E] focus:ring-2 focus:ring-[#2DBE7E]/20 outline-none transition-all"
