@@ -66,36 +66,36 @@ export default function Hero() {
   };
 
   return (
-    <section id="home" className="pt-32 pb-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-[#1C3D5A] to-[#143040] relative overflow-hidden">
+    <section id="home" className="pt-32 pb-20 px-4 sm:px-6 lg:px-8 bg-[#E5E8EB] relative overflow-hidden">
       {/* Background elements */}
       <div className="absolute inset-0 z-0">
-        <div className="absolute inset-0 bg-gradient-to-br from-[#1C3D5A] to-[#143040] opacity-70"></div>
+        <div className="absolute inset-0 bg-[#E5E8EB] opacity-100"></div>
       </div>
 
       <div className="max-w-7xl mx-auto relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           {/* Left side - Text content */}
           <div>
-            <div className="glassmorphic-card neumorphic-card p-8 md:p-10 rounded-3xl backdrop-blur-xl bg-white/5 border border-white/10 shadow-2xl">
-              <h1 className="text-4xl sm:text-5xl lg:text-5xl font-bold text-white mb-6 leading-tight">
+            <div className="p-8 md:p-10 rounded-3xl bg-white shadow-lg border border-[#1C3D5A]/10">
+              <h1 className="text-4xl sm:text-5xl lg:text-5xl font-bold text-[#1C3D5A] mb-6 leading-tight">
                 Empowering East Africa Through
                 <span className="text-[#F2B134]"> Digital Innovation</span>
               </h1>
-              <p className="text-xl text-[#E5E8EB] mb-8 max-w-2xl leading-relaxed">
+              <p className="text-xl text-[#1C3D5A]/80 mb-8 max-w-2xl leading-relaxed">
                 From rural communities to enterprise corporations, we deliver cutting-edge technology solutions
                 tailored for the Ugandan market and beyond.
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
                 <button
                   onClick={() => scrollToSection('services')}
-                  className="glassmorphic-button neumorphic-button bg-[#F2B134] text-white px-8 py-4 rounded-xl hover:bg-[#d89e2d] transition-all duration-300 font-semibold text-lg shadow-xl hover:shadow-2xl hover:scale-105 flex items-center gap-2 border border-white/20"
+                  className="bg-[#1C3D5A] text-white px-8 py-4 rounded-xl hover:bg-[#143040] transition-all duration-300 font-semibold text-lg shadow-lg hover:shadow-xl hover:scale-105 flex items-center gap-2"
                 >
                   Explore Our Services
                   <ArrowRight size={20} />
                 </button>
                 <button
                   onClick={() => scrollToSection('contact')}
-                  className="glassmorphic-button neumorphic-button bg-transparent border-2 border-[#F2B134] text-[#F2B134] px-8 py-4 rounded-xl hover:bg-[#F2B134] hover:text-white transition-all duration-300 font-semibold text-lg backdrop-blur-sm bg-white/10"
+                  className="bg-transparent border-2 border-[#1C3D5A] text-[#1C3D5A] px-8 py-4 rounded-xl hover:bg-[#1C3D5A] hover:text-white transition-all duration-300 font-semibold text-lg"
                 >
                   Contact Us
                 </button>
@@ -104,7 +104,7 @@ export default function Hero() {
           </div>
 
           {/* Right side - Carousel */}
-          <div className="relative h-96 lg:h-[500px] rounded-3xl overflow-hidden glassmorphic-card neumorphic-card border border-white/10 shadow-2xl">
+          <div className="relative h-96 lg:h-[500px] rounded-3xl overflow-hidden border border-[#1C3D5A]/10 shadow-lg">
             {heroImages.length > 0 ? (
               <>
                 {heroImages.map((image, index) => (
@@ -119,7 +119,7 @@ export default function Hero() {
                       alt={image.title}
                       className="w-full h-full object-cover"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#1C3D5A] to-transparent opacity-70"></div>
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#1C3D5A] to-transparent opacity-30"></div>
                   </div>
                 ))}
               </>
@@ -138,8 +138,8 @@ export default function Hero() {
                     onClick={() => setCurrentImageIndex(index)}
                     className={`w-3 h-3 rounded-full transition-all ${
                       index === currentImageIndex 
-                        ? 'bg-[#F2B134] w-6' 
-                        : 'bg-white/50'
+                        ? 'bg-[#1C3D5A] w-6' 
+                        : 'bg-[#1C3D5A]/50'
                     }`}
                   />
                 ))}
@@ -149,32 +149,32 @@ export default function Hero() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-20">
-          <div className="glassmorphic-card neumorphic-card bg-white/10 backdrop-blur-sm p-8 rounded-2xl hover:bg-white/20 transition-all duration-300 border border-white/20 shadow-xl">
-            <div className="glassmorphic-icon neumorphic-icon bg-[#F2B134] w-14 h-14 rounded-xl flex items-center justify-center mb-4 border border-white/20">
-              <Code className="text-white" size={28} />
+          <div className="bg-white p-8 rounded-2xl hover:shadow-lg transition-all duration-300 border border-[#1C3D5A]/10">
+            <div className="bg-[#1C3D5A]/10 w-14 h-14 rounded-xl flex items-center justify-center mb-4">
+              <Code className="text-[#1C3D5A]" size={28} />
             </div>
-            <h3 className="text-xl font-bold text-white mb-3">Custom Development</h3>
-            <p className="text-[#E5E8EB] leading-relaxed">
+            <h3 className="text-xl font-bold text-[#1C3D5A] mb-3">Custom Development</h3>
+            <p className="text-[#1C3D5A]/80 leading-relaxed">
               Tailored web and mobile applications designed for your unique business needs and local workflows.
             </p>
           </div>
 
-          <div className="glassmorphic-card neumorphic-card bg-white/10 backdrop-blur-sm p-8 rounded-2xl hover:bg-white/20 transition-all duration-300 border border-white/20 shadow-xl">
-            <div className="glassmorphic-icon neumorphic-icon bg-[#F2B134] w-14 h-14 rounded-xl flex items-center justify-center mb-4 border border-white/20">
-              <Globe className="text-white" size={28} />
+          <div className="bg-white p-8 rounded-2xl hover:shadow-lg transition-all duration-300 border border-[#1C3D5A]/10">
+            <div className="bg-[#1C3D5A]/10 w-14 h-14 rounded-xl flex items-center justify-center mb-4">
+              <Globe className="text-[#1C3D5A]" size={28} />
             </div>
-            <h3 className="text-xl font-bold text-white mb-3">Digital Transformation</h3>
-            <p className="text-[#E5E8EB] leading-relaxed">
+            <h3 className="text-xl font-bold text-[#1C3D5A] mb-3">Digital Transformation</h3>
+            <p className="text-[#1C3D5A]/80 leading-relaxed">
               Modernize your operations with cloud solutions, e-commerce platforms, and digital marketing.
             </p>
           </div>
 
-          <div className="glassmorphic-card neumorphic-card bg-white/10 backdrop-blur-sm p-8 rounded-2xl hover:bg-white/20 transition-all duration-300 border border-white/20 shadow-xl">
-            <div className="glassmorphic-icon neumorphic-icon bg-[#1C3D5A] w-14 h-14 rounded-xl flex items-center justify-center mb-4 border border-white/20">
+          <div className="bg-white p-8 rounded-2xl hover:shadow-lg transition-all duration-300 border border-[#1C3D5A]/10">
+            <div className="bg-[#1C3D5A]/10 w-14 h-14 rounded-xl flex items-center justify-center mb-4">
               <Shield className="text-[#F2B134]" size={28} />
             </div>
-            <h3 className="text-xl font-bold text-white mb-3">Enterprise Security</h3>
-            <p className="text-[#E5E8EB] leading-relaxed">
+            <h3 className="text-xl font-bold text-[#1C3D5A] mb-3">Enterprise Security</h3>
+            <p className="text-[#1C3D5A]/80 leading-relaxed">
               Protect your business with comprehensive cybersecurity solutions and 24/7 threat monitoring.
             </p>
           </div>
