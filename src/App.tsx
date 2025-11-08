@@ -25,6 +25,7 @@ import UserManagement from './components/admin/UserManagement';
 import Unauthorized from './components/admin/Unauthorized';
 import TestAdminUsers from './components/admin/TestAdminUsers';
 import DatabaseTest from './components/admin/DatabaseTest';
+import SEO from './components/SEO';
 import { MessageCircle } from 'lucide-react';
 
 function App() {
@@ -40,6 +41,7 @@ function App() {
 
   return (
     <div>
+      <SEO />
       <Routes>
         {/* Public routes */}
         <Route path="/" element={
@@ -99,8 +101,8 @@ function App() {
         href="https://wa.me/256783676313" 
         target="_blank" 
         rel="noopener noreferrer"
-        className="fixed bottom-6 right-6 bg-green-500 text-white p-4 rounded-full shadow-lg hover:bg-green-600 transition-all duration-300 z-50"
-        aria-label="Chat with us on WhatsApp"
+        className="fixed bottom-6 right-6 bg-green-500 text-white p-4 rounded-full shadow-lg hover:bg-green-600 transition-all duration-300 z-40"
+        aria-label="Contact us on WhatsApp"
       >
         <MessageCircle size={24} />
       </a>

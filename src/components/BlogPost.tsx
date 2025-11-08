@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { format } from 'date-fns';
+import SEO from './SEO';
 
 interface BlogPost {
   id: string;
@@ -87,11 +88,11 @@ export default function BlogPost() {
       <div className="min-h-screen bg-gray-50 pt-20">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="text-center">
-            <h1 className="text-4xl font-bold text-gray-900 mb-4">Blog Post Not Found</h1>
+            <h1 className="text-4xl font-bold text-gray-900 mb-4">Post Not Found</h1>
             <p className="text-gray-600 mb-8">The blog post you're looking for doesn't exist or has been removed.</p>
-            <Link
-              to="/blog"
-              className="inline-flex items-center px-4 py-2 border border-transparent text-base font-medium rounded-md text-white bg-green-600 hover:bg-green-700"
+            <Link 
+              to="/blog" 
+              className="inline-flex items-center px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors"
             >
               Back to Blog
             </Link>
@@ -103,52 +104,56 @@ export default function BlogPost() {
 
   return (
     <div className="min-h-screen bg-gray-50 pt-20">
+      <SEO 
+        title={post.title}
+        description={post.excerpt}
+        keywords={`technology, cloud migration, digital innovation, ${post.category?.name || ''}`}
+        ogTitle={post.title}
+        ogDescription={post.excerpt}
+        ogType="article"
+      />
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <article className="bg-white rounded-lg shadow-md overflow-hidden">
-          {post.cover_image_url ? (
-            <img
-              src={post.cover_image_url}
-              alt={post.title}
-              className="w-full h-64 object-cover"
-            />
-          ) : (
-            <div className="bg-gray-200 border-2 border-dashed rounded-xl w-full h-64" />
-          )}
-
-          <div className="p-6 sm:p-8">
-            <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
-              <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
-                {post.category?.name || 'General'}
-              </span>
-              <span className="text-gray-500">
+        <article>
+          <header className="mb-8">
+            <Link 
+              to="/blog" 
+              className="inline-flex items-center text-blue-600 hover:text-blue-800 mb-6"
+            >
+              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+              </svg>
+              Back to Blog
+            </Link>
+            
+            <h1 className="text-4xl font-bold text-gray-900 mb-4">{post.title}</h1>
+            
+            <div className="flex flex-wrap items-center gap-4 text-gray-600 mb-6">
+              <span>By <span className="font-medium">{post.author}</span></span>
+              <time dateTime={post.published_at}>
                 {format(new Date(post.published_at), 'MMMM d, yyyy')}
-              </span>
+              </time>
+              {post.category && (
+                <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+                  {post.category.name}
+                </span>
+              )}
             </div>
-
-            <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
-              {post.title}
-            </h1>
-
-            <div className="flex items-center mb-8">
-              <div className="text-gray-700">
-                <span className="font-medium">By {post.author}</span>
-              </div>
-            </div>
-
-            <div
-              className="prose prose-lg max-w-none"
-              dangerouslySetInnerHTML={{ __html: post.content }}
-            />
-
-            <div className="mt-12 pt-8 border-t border-gray-200">
-              <Link
-                to="/blog"
-                className="inline-flex items-center text-green-600 hover:text-green-800 font-medium"
-              >
-                ← Back to Blog
-              </Link>
-            </div>
-          </div>
+            
+            {post.cover_image_url ? (
+              <img 
+                src={post.cover_image_url} 
+                alt={post.title}
+                className="w-full h-96 object-cover rounded-xl mb-8"
+              />
+            ) : (
+              <div className="bg-gray-200 border-2 border-dashed rounded-xl w-full h-96 mb-8" />
+            )}
+          </header>
+          
+          <div 
+            className="prose prose-lg max-w-none"
+            dangerouslySetInnerHTML={{ __html: post.content }} 
+          />
         </article>
       </div>
     </div>

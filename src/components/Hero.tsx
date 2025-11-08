@@ -76,7 +76,7 @@ export default function Hero() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           {/* Left side - Text content */}
           <div>
-            <div className="p-8 md:p-10 rounded-3xl bg-white shadow-lg border border-[#1C3D5A]/10">
+            <div className="p-0 md:p-0 rounded-none bg-transparent shadow-none border-none">
               <h1 className="text-4xl sm:text-5xl lg:text-5xl font-bold text-[#1C3D5A] mb-6 leading-tight">
                 Empowering East Africa Through
                 <span className="text-[#F2B134]"> Digital Innovation</span>
