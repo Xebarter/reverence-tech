@@ -197,7 +197,6 @@ export default function SubmitTestimonial({ isOpen, onClose }: { isOpen: boolean
       });
       setAvatarFile(null);
       setAvatarPreview(null);
-      setAvatarUrl(null);
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
