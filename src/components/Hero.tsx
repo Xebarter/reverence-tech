@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ArrowRight, Code, Globe, Shield, Star, Quote } from 'lucide-react';
+import { ArrowRight, Star, Quote } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
 interface HeroImage {
@@ -195,8 +195,7 @@ export default function Hero() {
                 {heroImages.map((image, index) => (
                   <div
                     key={image.id}
-                    className={`absolute inset-0 transition-all duration-1000 ease-in-out ${index === currentImageIndex ? 'opacity-100' : 'opacity-0'
-                      }`}
+                    className={`absolute inset-0 transition-all duration-1000 ease-in-out ${index === currentImageIndex ? 'opacity-100' : 'opacity-0'}`}
                   >
                     <img
                       src={image.image_url}
@@ -225,6 +224,7 @@ export default function Hero() {
                         ? 'bg-[#f2b134] w-5 sm:w-6'
                         : 'bg-[#1C3D5A]/50'
                       }`}
+                    aria-label={`Go to slide ${index + 1}`}
                   />
                 ))}
               </div>
@@ -247,6 +247,7 @@ export default function Hero() {
                       src={testimonial.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(testimonial.name)}&background=2DBE7E&color=fff`}
                       alt={testimonial.name}
                       className="w-10 h-10 sm:w-12 sm:h-12 rounded-full object-cover flex-shrink-0"
+                      loading="lazy"
                       onError={(e) => {
                         const target = e.target as HTMLImageElement;
                         target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(testimonial.name)}&background=2DBE7E&color=fff`;
@@ -266,7 +267,7 @@ export default function Hero() {
             </div>
           ) : (
             <div className="text-center py-6 sm:py-8 bg-white/30 backdrop-blur-sm rounded-xl border border-white/20">
-              <Quote className="mx-auto text-[#1C3D5A]/50 mb-3 sm:mb-4" size={24} className="sm:w-8 sm:h-8" />
+              <Quote className="mx-auto text-[#1C3D5A]/50 mb-3 sm:mb-4" size={24} />
               <p className="text-[#1C3D5A]/80 text-sm sm:text-base">No testimonials available yet.</p>
             </div>
           )}

@@ -15,18 +15,15 @@ import ServicesManagement from './components/admin/Services';
 import HeroImages from './components/admin/HeroImages';
 import TestimonialsManagement from './components/admin/Testimonials';
 import Careers from './components/Careers';
-import JobApplicationForm from './components/JobApplicationForm';
 import CareersManagement from './components/admin/Careers';
 import Blog from './components/Blog';
 import BlogPost from './components/BlogPost';
 import BlogManagement from './components/admin/Blog';
 import AdminAuth from './components/admin/Auth';
-import ProtectedRouteTemp from './components/admin/ProtectedRouteTemp';
 import UserManagement from './components/admin/UserManagement';
 import Unauthorized from './components/admin/Unauthorized';
 import TestAdminUsers from './components/admin/TestAdminUsers';
 import SEO from './components/SEO';
-import { MessageCircle } from 'lucide-react';
 import { UserProvider } from './UserContext';
 
 function App() {

@@ -64,7 +64,7 @@ export default function JobApplicationForm({ jobId, jobTitle, onClose, onSubmitS
       // Get public URL
       const { data: { publicUrl } } = supabase.storage
         .from('resumes')
-        .getPublicUrl(fileName);
+        .getPublicUrl(data.path);
       
       return publicUrl;
     } catch (error) {

@@ -20,7 +20,6 @@ interface BlogPost {
 export default function Blog() {
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [loading, setLoading] = useState(true);
-  const isSingle = posts.length === 1;
 
   useEffect(() => {
     // In a real implementation, this would fetch from Supabase
