@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { supabase } from '../lib/supabase';
-import { Star } from 'lucide-react';
+import { Star, Upload } from 'lucide-react';
 
 interface ModalProps {
   isOpen: boolean;
@@ -54,13 +54,16 @@ export default function SubmitTestimonial({ isOpen, onClose }: { isOpen: boolean
     role: '',
     content: '',
     rating: 0,
-    avatar_url: '',
   });
   
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [hoverRating, setHoverRating] = useState(0);
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleRatingClick = (rating: number) => {
     setFormData({ ...formData, rating });
@@ -76,6 +79,79 @@ export default function SubmitTestimonial({ isOpen, onClose }: { isOpen: boolean
     });
   };
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Check if file is an image
+      if (!file.type.startsWith('image/')) {
+        setError('Please select an image file (JPEG, PNG, GIF, etc.)');
+        return;
+      }
+      
+      // Check file size (max 2MB)
+      if (file.size > 2 * 1024 * 1024) {
+        setError('File size must be less than 2MB');
+        return;
+      }
+      
+      setAvatarFile(file);
+      setAvatarPreview(URL.createObjectURL(file));
+      setError('');
+    }
+  };
+
+  const handleRemoveAvatar = () => {
+    setAvatarFile(null);
+    setAvatarPreview(null);
+    setAvatarUrl(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const uploadAvatar = async () => {
+    if (!avatarFile) return null;
+    
+    try {
+      // Validate file type and size (max 2MB)
+      if (!avatarFile.type.match('image.*')) {
+        throw new Error('Please select a valid image file (JPEG, PNG, GIF)');
+      }
+      if (avatarFile.size > 2 * 1024 * 1024) {
+        throw new Error('Image size must be less than 2MB');
+      }
+
+      // Generate unique file name
+      const fileExt = avatarFile.name.split('.').pop()?.toLowerCase();
+      const fileName = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}.${fileExt}`;
+      const filePath = `${fileName}`;
+
+      // Upload to Supabase storage
+      const { error: uploadError } = await supabase.storage
+        .from('testimonials')
+        .upload(filePath, avatarFile, {
+          cacheControl: '3600',
+          upsert: false
+        });
+
+      if (uploadError) throw uploadError;
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('testimonials')
+        .getPublicUrl(filePath);
+
+      if (!publicUrl) {
+        throw new Error('Failed to generate public URL');
+      }
+
+      return publicUrl;
+    } catch (err) {
+      console.error('Error uploading avatar:', err);
+      throw new Error(err instanceof Error ? err.message : 'Failed to upload avatar image');
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
@@ -89,6 +165,12 @@ export default function SubmitTestimonial({ isOpen, onClose }: { isOpen: boolean
     }
 
     try {
+      // Upload avatar if provided
+      let uploadedAvatarUrl = null;
+      if (avatarFile) {
+        uploadedAvatarUrl = await uploadAvatar();
+      }
+      
       const { error: submitError } = await supabase
         .from('testimonials')
         .insert([
@@ -98,7 +180,7 @@ export default function SubmitTestimonial({ isOpen, onClose }: { isOpen: boolean
             role: formData.role,
             content: formData.content,
             rating: formData.rating,
-            avatar_url: formData.avatar_url || null,
+            avatar_url: uploadedAvatarUrl || null,
             is_active: false, // Default to inactive until reviewed
           }
         ]);
@@ -114,10 +196,15 @@ export default function SubmitTestimonial({ isOpen, onClose }: { isOpen: boolean
         role: '',
         content: '',
         rating: 0,
-        avatar_url: '',
       });
+      setAvatarFile(null);
+      setAvatarPreview(null);
+      setAvatarUrl(null);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
     } catch (err) {
-      setError('Failed to submit testimonial. Please try again.');
+      setError(err instanceof Error ? err.message : 'Failed to submit testimonial. Please try again.');
       console.error('Error submitting testimonial:', err);
     } finally {
       setSubmitting(false);
@@ -132,8 +219,13 @@ export default function SubmitTestimonial({ isOpen, onClose }: { isOpen: boolean
       role: '',
       content: '',
       rating: 0,
-      avatar_url: '',
     });
+    setAvatarFile(null);
+    setAvatarPreview(null);
+    setAvatarUrl(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
   };
 
   const handleClose = () => {
@@ -148,8 +240,13 @@ export default function SubmitTestimonial({ isOpen, onClose }: { isOpen: boolean
         role: '',
         content: '',
         rating: 0,
-        avatar_url: '',
       });
+      setAvatarFile(null);
+      setAvatarPreview(null);
+      setAvatarUrl(null);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
     }, 300);
   };
 
@@ -262,18 +359,55 @@ export default function SubmitTestimonial({ isOpen, onClose }: { isOpen: boolean
                 </div>
 
                 <div>
-                  <label htmlFor="avatar_url" className="block text-sm font-semibold text-[#1C3D5A] mb-2">
-                    Avatar URL (optional)
+                  <label className="block text-sm font-semibold text-[#1C3D5A] mb-2">
+                    Avatar (optional)
                   </label>
-                  <input
-                    type="url"
-                    id="avatar_url"
-                    name="avatar_url"
-                    value={formData.avatar_url}
-                    onChange={handleChange}
-                    className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-[#2DBE7E] focus:ring-2 focus:ring-[#2DBE7E]/20 outline-none transition-all"
-                    placeholder="https://example.com/avatar.jpg"
-                  />
+                  <div className="flex items-center space-x-4">
+                    {avatarPreview ? (
+                      <div className="relative">
+                        <img 
+                          src={avatarPreview} 
+                          alt="Avatar preview" 
+                          className="w-16 h-16 rounded-full object-cover border-2 border-[#1C3D5A]"
+                        />
+                        <button
+                          type="button"
+                          onClick={handleRemoveAvatar}
+                          className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+                          aria-label="Remove avatar"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                            <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                          </svg>
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center border-2 border-dashed border-gray-400">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        </svg>
+                      </div>
+                    )}
+                    
+                    <div className="flex-1">
+                      <button
+                        type="button"
+                        onClick={() => fileInputRef.current?.click()}
+                        className="flex items-center px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+                      >
+                        <Upload className="mr-2" size={18} />
+                        {avatarFile ? 'Change Avatar' : 'Upload Avatar'}
+                      </button>
+                      <p className="text-xs text-gray-500 mt-1">JPEG, PNG, GIF (max 2MB)</p>
+                      <input
+                        type="file"
+                        ref={fileInputRef}
+                        onChange={handleFileChange}
+                        accept="image/*"
+                        className="hidden"
+                      />
+                    </div>
+                  </div>
                 </div>
               </div>
 

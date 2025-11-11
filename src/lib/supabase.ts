@@ -64,13 +64,16 @@ export interface Job {
   id: string;
   title: string;
   description: string;
-  requirements: string[];
-  is_remote: boolean;
-  job_type: 'Full-time' | 'Part-time' | 'Contract';
   location: string;
-  salary_range?: string;
-  is_active: boolean;
+  employment_type: string;
+  salary_range: string | null;
+  responsibilities: string[];
+  requirements: string[];
+  benefits: string[];
+  is_published: boolean;
+  application_link: string | null;
   created_at: string;
+  updated_at: string;
 }
 
 export interface JobApplication {

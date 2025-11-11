@@ -86,6 +86,10 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
           if (adminData && !adminError) {
             setAuthenticated(true);
             setIsAdmin(true);
+            // Redirect to admin dashboard after successful login
+            if (location.pathname === '/admin/auth') {
+              navigate('/admin');
+            }
           } else {
             setAuthenticated(true);
             setIsAdmin(false);

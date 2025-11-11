@@ -6,8 +6,8 @@ interface Service {
   id: string;
   package_name: string;
   description: string;
-  key_features: string[];
-  target_audience: string[];
+  key_features: { feature: string }[];
+  target_audience: { audience: string }[];
   suggested_pricing: string;
   display_order: number;
   created_at: string;
@@ -176,10 +176,10 @@ export default function Services() {
                 <div className="mb-6">
                   <div className="text-sm font-semibold text-[#1C3D5A] mb-3">Key Features:</div>
                   <ul className="space-y-2">
-                    {service.key_features.slice(0, 3).map((feature, idx) => (
+                    {service.key_features.slice(0, 3).map((featureObj, idx) => (
                       <li key={idx} className="flex items-start gap-2 text-sm text-gray-600">
                         <Check className="text-[#2DBE7E] flex-shrink-0 mt-0.5" size={16} />
-                        <span>{feature}</span>
+                        <span>{featureObj.feature}</span>
                       </li>
                     ))}
                     {service.key_features.length > 3 && (
@@ -253,10 +253,10 @@ export default function Services() {
                 <div className="mb-8">
                   <h4 className="text-xl font-bold text-[#1C3D5A] mb-4">Key Features</h4>
                   <ul className="space-y-3">
-                    {selectedService.key_features.map((feature, idx) => (
+                    {selectedService.key_features.map((featureObj, idx) => (
                       <li key={idx} className="flex items-start gap-3">
                         <Check className="text-[#2DBE7E] flex-shrink-0 mt-1" size={20} />
-                        <span className="text-gray-700">{feature}</span>
+                        <span className="text-gray-700">{featureObj.feature}</span>
                       </li>
                     ))}
                   </ul>
@@ -265,12 +265,12 @@ export default function Services() {
                 <div className="mb-8">
                   <h4 className="text-xl font-bold text-[#1C3D5A] mb-4">Perfect For</h4>
                   <div className="flex flex-wrap gap-3">
-                    {selectedService.target_audience.map((audience, idx) => (
+                    {selectedService.target_audience.map((audienceObj, idx) => (
                       <span
                         key={idx}
                         className="bg-[#2DBE7E]/10 text-[#1C3D5A] px-4 py-2 rounded-full text-sm font-medium"
                       >
-                        {audience}
+                        {audienceObj.audience}
                       </span>
                     ))}
                   </div>

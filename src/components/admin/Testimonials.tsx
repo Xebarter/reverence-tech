@@ -1,44 +1,22 @@
-import { useState } from 'react';
-import { Plus, Edit, Trash2, Star } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { Plus, Edit, Trash2, Star, Loader2, Upload, X } from 'lucide-react';
+import { supabase } from '../../lib/supabase';
 
 interface Testimonial {
   id: string;
   name: string;
   company: string;
-  role: string;
+  role: string | null;
   content: string;
   rating: number;
-  avatarUrl: string;
-  isActive: boolean;
-  createdAt: string;
+  avatar_url: string | null;
+  is_active: boolean;
+  created_at: string;
 }
 
 export default function Testimonials() {
-  const [testimonials, setTestimonials] = useState<Testimonial[]>([
-    {
-      id: '1',
-      name: 'Sarah Johnson',
-      company: 'TechStart Uganda',
-      role: 'CEO',
-      content: 'Reverence Technology transformed our digital presence. Their team delivered beyond our expectations with a solution tailored for the Ugandan market.',
-      rating: 5,
-      avatarUrl: 'https://randomuser.me/api/portraits/women/32.jpg',
-      isActive: true,
-      createdAt: '2023-03-10',
-    },
-    {
-      id: '2',
-      name: 'Michael Okafor',
-      company: 'Nile Logistics',
-      role: 'CTO',
-      content: 'The custom software solution helped us streamline operations and reduce costs by 30%. Highly recommended for businesses in East Africa.',
-      rating: 4,
-      avatarUrl: 'https://randomuser.me/api/portraits/men/54.jpg',
-      isActive: true,
-      createdAt: '2023-04-22',
-    },
-  ]);
-  
+  const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
+  const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingTestimonial, setEditingTestimonial] = useState<Testimonial | null>(null);
   const [formData, setFormData] = useState({
@@ -47,36 +25,190 @@ export default function Testimonials() {
     role: '',
     content: '',
     rating: 5,
-    avatarUrl: '',
-    isActive: true,
+    is_active: true,
   });
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+  const [existingAvatarUrl, setExistingAvatarUrl] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (editingTestimonial) {
-      // Update existing testimonial
-      setTestimonials(testimonials.map(t => 
-        t.id === editingTestimonial.id 
-          ? { ...t, ...formData } 
-          : t
-      ));
-    } else {
-      // Add new testimonial
-      const newTestimonial: Testimonial = {
-        id: Date.now().toString(),
-        ...formData,
-        createdAt: new Date().toISOString().split('T')[0],
-      };
-      setTestimonials([...testimonials, newTestimonial]);
+  useEffect(() => {
+    fetchTestimonials();
+  }, []);
+
+  const fetchTestimonials = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const { data, error } = await supabase
+        .from('testimonials')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setTestimonials(data || []);
+    } catch (err) {
+      console.error('Error fetching testimonials:', err);
+      setError('Failed to fetch testimonials');
+    } finally {
+      setLoading(false);
     }
-    
-    resetForm();
   };
 
-  const handleDelete = (id: string) => {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Check if file is an image
+      if (!file.type.startsWith('image/')) {
+        setError('Please select an image file (JPEG, PNG, GIF, etc.)');
+        return;
+      }
+      
+      // Check file size (max 2MB)
+      if (file.size > 2 * 1024 * 1024) {
+        setError('File size must be less than 2MB');
+        return;
+      }
+      
+      setAvatarFile(file);
+      setAvatarPreview(URL.createObjectURL(file));
+      setError('');
+    }
+  };
+
+  const handleRemoveAvatar = () => {
+    setAvatarFile(null);
+    setAvatarPreview(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const uploadAvatar = async () => {
+    if (!avatarFile) return null;
+    
+    try {
+      // Validate file type and size (max 2MB)
+      if (!avatarFile.type.match('image.*')) {
+        throw new Error('Please select a valid image file (JPEG, PNG, GIF)');
+      }
+      if (avatarFile.size > 2 * 1024 * 1024) {
+        throw new Error('Image size must be less than 2MB');
+      }
+
+      // Generate unique file name
+      const fileExt = avatarFile.name.split('.').pop()?.toLowerCase();
+      const fileName = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}.${fileExt}`;
+      const filePath = `${fileName}`;
+
+      // Upload to Supabase storage
+      const { error: uploadError } = await supabase.storage
+        .from('testimonials')
+        .upload(filePath, avatarFile, {
+          cacheControl: '3600',
+          upsert: false
+        });
+
+      if (uploadError) throw uploadError;
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('testimonials')
+        .getPublicUrl(filePath);
+
+      if (!publicUrl) {
+        throw new Error('Failed to generate public URL');
+      }
+
+      return publicUrl;
+    } catch (err) {
+      console.error('Error uploading avatar:', err);
+      throw new Error(err instanceof Error ? err.message : 'Failed to upload avatar image');
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    try {
+      setSubmitting(true);
+      setError(null);
+      
+      if (!formData.name.trim() || !formData.company.trim() || !formData.content.trim()) {
+        throw new Error('Please fill in all required fields');
+      }
+      
+      if (formData.rating < 1 || formData.rating > 5) {
+        throw new Error('Rating must be between 1 and 5');
+      }
+
+      // Upload avatar if provided
+      let avatarUrl = existingAvatarUrl;
+      if (avatarFile) {
+        avatarUrl = await uploadAvatar();
+      }
+
+      if (editingTestimonial) {
+        // Update existing testimonial
+        const { error } = await supabase
+          .from('testimonials')
+          .update({
+            name: formData.name.trim(),
+            company: formData.company.trim(),
+            role: formData.role.trim() || null,
+            content: formData.content.trim(),
+            rating: formData.rating,
+            avatar_url: avatarUrl,
+            is_active: formData.is_active,
+          })
+          .eq('id', editingTestimonial.id);
+
+        if (error) throw error;
+      } else {
+        // Add new testimonial
+        const { error } = await supabase
+          .from('testimonials')
+          .insert({
+            name: formData.name.trim(),
+            company: formData.company.trim(),
+            role: formData.role.trim() || null,
+            content: formData.content.trim(),
+            rating: formData.rating,
+            avatar_url: avatarUrl,
+            is_active: formData.is_active,
+          });
+
+        if (error) throw error;
+      }
+      
+      await fetchTestimonials();
+      resetForm();
+    } catch (err) {
+      console.error('Error saving testimonial:', err);
+      setError(err instanceof Error ? err.message : 'Failed to save testimonial');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
     if (!window.confirm('Are you sure you want to delete this testimonial?')) return;
-    setTestimonials(testimonials.filter(t => t.id !== id));
+    
+    try {
+      setError(null);
+      const { error } = await supabase
+        .from('testimonials')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+      await fetchTestimonials();
+    } catch (err) {
+      console.error('Error deleting testimonial:', err);
+      setError('Failed to delete testimonial');
+    }
   };
 
   const handleEdit = (testimonial: Testimonial) => {
@@ -84,12 +216,14 @@ export default function Testimonials() {
     setFormData({
       name: testimonial.name,
       company: testimonial.company,
-      role: testimonial.role,
+      role: testimonial.role || '',
       content: testimonial.content,
       rating: testimonial.rating,
-      avatarUrl: testimonial.avatarUrl,
-      isActive: testimonial.isActive,
+      is_active: testimonial.is_active,
     });
+    setExistingAvatarUrl(testimonial.avatar_url);
+    setAvatarPreview(testimonial.avatar_url);
+    setAvatarFile(null);
     setShowForm(true);
   };
 
@@ -100,29 +234,39 @@ export default function Testimonials() {
       role: '',
       content: '',
       rating: 5,
-      avatarUrl: '',
-      isActive: true,
+      is_active: true,
     });
+    setAvatarFile(null);
+    setAvatarPreview(null);
+    setExistingAvatarUrl(null);
     setEditingTestimonial(null);
     setShowForm(false);
+    setError(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
   };
 
   const renderStars = (rating: number) => {
     return (
       <div className="flex">
         {[...Array(5)].map((_, i) => (
-          <svg
+          <Star
             key={i}
-            className={`w-5 h-5 ${i < rating ? 'text-yellow-400' : 'text-gray-300'}`}
-            fill="currentColor"
-            viewBox="0 0 20 20"
-          >
-            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-          </svg>
+            className={`w-5 h-5 ${i < rating ? 'text-yellow-400 fill-current' : 'text-gray-300'}`}
+          />
         ))}
       </div>
     );
   };
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <Loader2 className="w-8 h-8 animate-spin text-[#1C3D5A]" />
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -144,6 +288,12 @@ export default function Testimonials() {
           </button>
         </div>
       </div>
+
+      {error && (
+        <div className="mb-6 bg-red-50 border border-red-200 text-red-800 p-4 rounded-lg">
+          {error}
+        </div>
+      )}
 
       {showForm && (
         <div className="mb-8 bg-white rounded-xl shadow-sm border border-gray-100 p-6">
@@ -193,14 +343,52 @@ export default function Testimonials() {
               
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Avatar URL
+                  Avatar Image
                 </label>
-                <input
-                  type="text"
-                  value={formData.avatarUrl}
-                  onChange={(e) => setFormData({ ...formData, avatarUrl: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#1C3D5A]"
-                />
+                <div className="flex items-center space-x-4">
+                  {avatarPreview ? (
+                    <div className="relative">
+                      <img 
+                        src={avatarPreview} 
+                        alt="Avatar preview" 
+                        className="w-16 h-16 rounded-full object-cover border-2 border-[#1C3D5A]"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleRemoveAvatar}
+                        className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+                        aria-label="Remove avatar"
+                      >
+                        <X size={14} />
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center border-2 border-dashed border-gray-400">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                      </svg>
+                    </div>
+                  )}
+                  
+                  <div className="flex-1">
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      className="flex items-center px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm"
+                    >
+                      <Upload className="mr-2" size={16} />
+                      {avatarFile ? 'Change Image' : 'Upload Image'}
+                    </button>
+                    <p className="text-xs text-gray-500 mt-1">JPEG, PNG, GIF (max 2MB)</p>
+                    <input
+                      type="file"
+                      ref={fileInputRef}
+                      onChange={handleFileChange}
+                      accept="image/*"
+                      className="hidden"
+                    />
+                  </div>
+                </div>
               </div>
               
               <div className="md:col-span-2">
@@ -228,7 +416,10 @@ export default function Testimonials() {
                       onClick={() => setFormData({ ...formData, rating: star })}
                       className="text-2xl focus:outline-none"
                     >
-                      {star <= formData.rating ? '★' : '☆'}
+                      <Star 
+                        className={`${star <= formData.rating ? 'text-yellow-400 fill-current' : 'text-gray-300'}`} 
+                        size={24}
+                      />
                     </button>
                   ))}
                   <span className="ml-2 text-sm text-gray-500">({formData.rating}/5)</span>
@@ -239,8 +430,8 @@ export default function Testimonials() {
                 <input
                   type="checkbox"
                   id="isActive"
-                  checked={formData.isActive}
-                  onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
+                  checked={formData.is_active}
+                  onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
                   className="h-4 w-4 text-[#1C3D5A] focus:ring-[#1C3D5A] border-gray-300 rounded"
                 />
                 <label htmlFor="isActive" className="ml-2 block text-sm text-gray-700">
@@ -254,13 +445,16 @@ export default function Testimonials() {
                 type="button"
                 onClick={resetForm}
                 className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors"
+                disabled={submitting}
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="px-4 py-2 bg-[#1C3D5A] text-white rounded-md hover:bg-[#143040] transition-colors"
+                className="px-4 py-2 bg-[#1C3D5A] text-white rounded-md hover:bg-[#143040] transition-colors flex items-center disabled:opacity-50"
+                disabled={submitting}
               >
+                {submitting && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
                 {editingTestimonial ? 'Update Testimonial' : 'Add Testimonial'}
               </button>
             </div>
@@ -273,7 +467,7 @@ export default function Testimonials() {
           <div key={testimonial.id} className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
             <div className="flex items-start">
               <img
-                src={testimonial.avatarUrl}
+                src={testimonial.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(testimonial.name)}&background=2DBE7E&color=fff`}
                 alt={testimonial.name}
                 className="w-12 h-12 rounded-full object-cover"
                 onError={(e) => {
@@ -287,7 +481,7 @@ export default function Testimonials() {
                     <h3 className="font-semibold text-gray-900">{testimonial.name}</h3>
                     <p className="text-sm text-gray-600">{testimonial.role}, {testimonial.company}</p>
                   </div>
-                  {testimonial.isActive && (
+                  {testimonial.is_active && (
                     <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
                       Published
                     </span>
@@ -297,16 +491,21 @@ export default function Testimonials() {
                   {renderStars(testimonial.rating)}
                 </div>
                 <p className="mt-3 text-gray-700 italic">"{testimonial.content}"</p>
+                <div className="mt-4 text-sm text-gray-500">
+                  {new Date(testimonial.created_at).toLocaleDateString()}
+                </div>
                 <div className="mt-4 flex justify-end space-x-2">
                   <button
                     onClick={() => handleEdit(testimonial)}
                     className="p-2 text-gray-500 hover:text-indigo-600"
+                    title="Edit"
                   >
                     <Edit size={18} />
                   </button>
                   <button
                     onClick={() => handleDelete(testimonial.id)}
                     className="p-2 text-gray-500 hover:text-red-600"
+                    title="Delete"
                   >
                     <Trash2 size={18} />
                   </button>
@@ -317,7 +516,7 @@ export default function Testimonials() {
         ))}
       </div>
 
-      {testimonials.length === 0 && (
+      {testimonials.length === 0 && !loading && (
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-12 text-center">
           <Star className="mx-auto text-gray-400" size={48} />
           <h3 className="mt-4 text-lg font-medium text-gray-900">No testimonials</h3>

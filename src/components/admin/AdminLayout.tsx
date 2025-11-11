@@ -1,16 +1,14 @@
 import { useState } from 'react';
-import { Link, useLocation, Outlet, useNavigate } from 'react-router-dom';
+import { Link, useLocation, Outlet } from 'react-router-dom';
 import { Menu, X, LayoutDashboard, Mail, Package, Image, MessageCircle, User, Briefcase, BookOpen, LogOut, Users } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 
 export default function AdminLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
-  const navigate = useNavigate();
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
-    navigate('/admin/auth');
   };
 
   const navigation = [
@@ -21,7 +19,7 @@ export default function AdminLayout() {
     { name: 'Testimonials', href: '/admin/testimonials', icon: MessageCircle },
     { name: 'Careers', href: '/admin/careers', icon: Briefcase },
     { name: 'Blog', href: '/admin/blog', icon: BookOpen },
-    { name: 'User Management', href: '/admin/users', icon: Users }, // Added User Management
+    { name: 'Users', href: '/admin/users', icon: Users },
   ];
 
   const isActive = (path: string) => {

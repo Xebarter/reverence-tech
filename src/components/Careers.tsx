@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { MapPin, Clock, DollarSign } from 'lucide-react';
 import SEO from './SEO';
+import JobApplicationForm from './JobApplicationForm';
+import { supabase } from '../lib/supabase';
 
 interface Job {
   id: string;
@@ -21,86 +23,38 @@ interface Job {
 export default function Careers() {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedJob, setSelectedJob] = useState<Job | null>(null);
 
   useEffect(() => {
-    // In a real implementation, this would fetch from Supabase
-    // For now, we'll simulate with sample data
-    const fetchJobs = async () => {
-      try {
-        // This is a placeholder - in a real app, you would fetch from your Supabase database
-        const sampleJobs: Job[] = [
-          {
-            id: '1',
-            title: 'Senior Frontend Developer',
-            description: 'We are looking for an experienced frontend developer to join our team and help build cutting-edge web applications for our clients in East Africa.',
-            location: 'Kampala, Uganda (Remote available)',
-            employment_type: 'Full-time',
-            salary_range: '$1,200 - $1,800',
-            responsibilities: [
-              'Develop responsive web applications using React and TypeScript',
-              'Collaborate with UX/UI designers to implement pixel-perfect interfaces',
-              'Optimize applications for maximum speed and scalability',
-              'Participate in code reviews and contribute to team knowledge sharing'
-            ],
-            requirements: [
-              '3+ years of experience with React and TypeScript',
-              'Strong knowledge of modern CSS and responsive design',
-              'Experience with state management libraries (Redux, Context API)',
-              'Familiarity with testing frameworks like Jest and React Testing Library'
-            ],
-            benefits: [
-              'Competitive salary',
-              'Flexible working hours',
-              'Health insurance',
-              'Professional development opportunities'
-            ],
-            is_published: true,
-            application_link: null,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          },
-          {
-            id: '2',
-            title: 'DevOps Engineer',
-            description: 'Join our infrastructure team to design and maintain our cloud-based solutions that power businesses across East Africa.',
-            location: 'Kampala, Uganda (Remote available)',
-            employment_type: 'Full-time',
-            salary_range: '$1,500 - $2,200',
-            responsibilities: [
-              'Design and implement CI/CD pipelines',
-              'Manage cloud infrastructure on AWS/GCP',
-              'Monitor and optimize system performance',
-              'Ensure security and compliance of our infrastructure'
-            ],
-            requirements: [
-              '3+ years of DevOps experience',
-              'Strong knowledge of Docker and Kubernetes',
-              'Experience with cloud platforms (AWS, GCP)',
-              'Proficiency in Infrastructure as Code tools (Terraform)'
-            ],
-            benefits: [
-              'Competitive salary',
-              'Remote work options',
-              'Learning budget for conferences and courses',
-              'Stock options'
-            ],
-            is_published: true,
-            application_link: null,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          }
-        ];
-
-        setJobs(sampleJobs);
-      } catch (error) {
-        console.error('Error fetching jobs:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchJobs();
   }, []);
+
+  const fetchJobs = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('jobs')
+        .select('*')
+        .eq('is_published', true)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setJobs(data || []);
+    } catch (error) {
+      // Log detailed Supabase error info to help diagnose 404/permission issues
+      console.error('Error fetching jobs:', error);
+      try {
+        console.error('Error details:', {
+          message: (error as any)?.message,
+          status: (error as any)?.status,
+          details: (error as any)?.details
+        });
+      } catch (err) {
+        // swallow
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -116,7 +70,7 @@ export default function Careers() {
 
   return (
     <div className="min-h-screen bg-gray-50 pt-20">
-      <SEO 
+      <SEO
         title="Careers"
         description="Join our team at Reverence Technology and help empower East Africa through digital innovation. We're hiring talented developers, designers, and tech professionals."
         keywords="careers, jobs, technology jobs, Uganda, East Africa, digital innovation, web development"
@@ -126,7 +80,7 @@ export default function Careers() {
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-gray-900 mb-4">Join Our Team</h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Help us empower East Africa through digital innovation. We're looking for passionate individuals 
+            Help us empower East Africa through digital innovation. We're looking for passionate individuals
             who want to make a difference in the tech landscape of Uganda and beyond.
           </p>
         </div>
@@ -141,7 +95,7 @@ export default function Careers() {
               <div key={job.id} className="bg-white rounded-xl shadow-sm overflow-hidden hover:shadow-md transition-shadow duration-300">
                 <div className="p-6">
                   <h2 className="text-2xl font-bold text-gray-900 mb-3">{job.title}</h2>
-                  
+
                   <div className="space-y-3 mb-6">
                     <div className="flex items-center text-gray-600">
                       <MapPin className="w-5 h-5 mr-2 text-gray-400" />
@@ -158,7 +112,7 @@ export default function Careers() {
                       </div>
                     )}
                   </div>
-                  
+
                   <div className="mb-6">
                     <h3 className="font-semibold text-gray-900 mb-2">Responsibilities</h3>
                     <ul className="list-disc list-inside text-gray-600 space-y-1">
@@ -170,12 +124,9 @@ export default function Careers() {
                       )}
                     </ul>
                   </div>
-                  
-                  <button 
-                    onClick={() => {
-                      // In a real implementation, this would open a modal or navigate to application page
-                      alert('In a real application, this would open the job application form');
-                    }}
+
+                  <button
+                    onClick={() => setSelectedJob(job)}
                     className="w-full bg-[#1C3D5A] text-white py-3 px-4 rounded-lg hover:bg-[#143040] transition-colors font-medium"
                   >
                     Apply Now
@@ -219,6 +170,17 @@ export default function Careers() {
           </div>
         </div>
       </div>
+
+      {selectedJob && (
+        <JobApplicationForm
+          jobId={selectedJob.id}
+          jobTitle={selectedJob.title}
+          onClose={() => setSelectedJob(null)}
+          onSubmitSuccess={() => {
+            // Optionally refresh jobs or show a message
+          }}
+        />
+      )}
     </div>
   );
 }
