@@ -16,11 +16,24 @@ const getOptimizedImageUrl = (url: string, width: number): string => {
 
   // If using Supabase storage or Unsplash, add optimization params
   if (url.includes('unsplash.com')) {
-    return `${url}&w=${width}&q=80`;
+    return `${url}&w=${width}&q=80&auto=format&fit=crop`;
   }
   if (url.includes('supabase.co')) {
     // For Supabase storage, add transform params
-    return `${url}?width=${width}&quality=80`;
+    return `${url}?width=${width}&quality=80&resize=cover`;
+  }
+  return url;
+};
+
+// Create a smaller thumbnail URL for initial loading
+const getThumbnailUrl = (url: string): string => {
+  if (!url) return url;
+
+  if (url.includes('unsplash.com')) {
+    return `${url}&w=50&h=50&q=30&blur=2&auto=format`;
+  }
+  if (url.includes('supabase.co')) {
+    return `${url}?width=50&height=50&quality=30&resize=cover`;
   }
   return url;
 };
@@ -51,6 +64,9 @@ export default function Hero() {
   // State for managing text transitions
   const [textTransitionState, setTextTransitionState] = useState<'idle' | 'fadingOut' | 'fadingIn'>('idle');
 
+  // Track image loading states for better UX
+  const [imageLoadStates, setImageLoadStates] = useState<Record<string, 'loading' | 'loaded' | 'error'>>({});
+
   const valuePropositions = [
     {
       valueProposition: "We help businesses go digital - and grow beyond.",
@@ -78,17 +94,41 @@ export default function Hero() {
     fetchTestimonials();
   }, []);
 
-  // Preload images for carousel
+  // Enhanced preload images for carousel with progressive loading
   const preloadImage = (imageUrl: string) => {
     if (!imageUrl || preloadedImages.current.has(imageUrl)) return;
 
-    // Create image element to preload
-    const img = new Image();
-    img.onload = () => {
-      // Mark image as loaded
-      setLoadedImages(prev => new Set(prev).add(imageUrl));
+    // Mark image as loading
+    setImageLoadStates(prev => ({ ...prev, [imageUrl]: 'loading' }));
+
+    // Create image element to preload with smaller thumbnail first
+    const imgThumb = new Image();
+    imgThumb.onload = () => {
+      // Thumbnail loaded, now load full image
+      const imgFull = new Image();
+      imgFull.onload = () => {
+        // Mark image as loaded
+        setLoadedImages(prev => new Set(prev).add(imageUrl));
+        setImageLoadStates(prev => ({ ...prev, [imageUrl]: 'loaded' }));
+      };
+      imgFull.onerror = () => {
+        setImageLoadStates(prev => ({ ...prev, [imageUrl]: 'error' }));
+      };
+      imgFull.src = getOptimizedImageUrl(imageUrl, 1024);
     };
-    img.src = getOptimizedImageUrl(imageUrl, 1024);
+    imgThumb.onerror = () => {
+      // If thumbnail fails, try full image directly
+      const imgFull = new Image();
+      imgFull.onload = () => {
+        setLoadedImages(prev => new Set(prev).add(imageUrl));
+        setImageLoadStates(prev => ({ ...prev, [imageUrl]: 'loaded' }));
+      };
+      imgFull.onerror = () => {
+        setImageLoadStates(prev => ({ ...prev, [imageUrl]: 'error' }));
+      };
+      imgFull.src = getOptimizedImageUrl(imageUrl, 1024);
+    };
+    imgThumb.src = getThumbnailUrl(imageUrl);
 
     // Also add to preload links for better performance
     const link = document.createElement('link');
@@ -150,11 +190,17 @@ export default function Hero() {
         }
       }, 7000); // Change both image and text every 7 seconds
 
-      // Preload first and second images on mount
+      // Preload first few images on mount for better initial experience
       if (heroImages.length > 0) {
+        // Preload current image
         preloadImage(heroImages[0].image_url);
+        
+        // Preload next 2 images if they exist
         if (heroImages.length > 1) {
           preloadImage(heroImages[1].image_url);
+        }
+        if (heroImages.length > 2) {
+          preloadImage(heroImages[2].image_url);
         }
       }
 
@@ -181,9 +227,12 @@ export default function Hero() {
         setHeroImages(valid);
         setCurrentImageIndex(0); // reset carousel to the first image when images load
         
-        // Preload first image immediately
+        // Preload first few images immediately
         if (valid.length > 0) {
           preloadImage(valid[0].image_url);
+        }
+        if (valid.length > 1) {
+          preloadImage(valid[1].image_url);
         }
       }
     } catch (error) {
@@ -200,7 +249,7 @@ export default function Hero() {
       ];
       setHeroImages(fallbackImages);
       
-      // Preload fallback image
+      // Preload fallback images
       preloadImage(fallbackImages[0].image_url);
     }
   };
@@ -292,6 +341,7 @@ export default function Hero() {
             {heroImages.map((image, index) => {
               const isCurrent = index === currentImageIndex;
               const isLoaded = loadedImages.has(image.image_url);
+              const loadState = imageLoadStates[image.image_url];
               
               return (
                 <div
@@ -300,8 +350,8 @@ export default function Hero() {
                     isCurrent ? 'opacity-100' : 'opacity-0'
                   }`}
                 >
-                  {/* Show image only when loaded */}
-                  {isLoaded && (
+                  {/* Show image only when loaded, or show a low-quality preview during loading */}
+                  {isLoaded ? (
                     <>
                       <img
                         src={getOptimizedImageUrl(image.image_url, 1024)}
@@ -313,6 +363,21 @@ export default function Hero() {
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-[#1C3D5A]/40 to-transparent"></div>
                     </>
+                  ) : loadState === 'loading' ? (
+                    // Show a blurred low-quality preview while loading
+                    <>
+                      <img
+                        src={getThumbnailUrl(image.image_url)}
+                        alt={image.title}
+                        className="w-full h-full object-cover blur-sm scale-105"
+                        loading="eager"
+                        decoding="async"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-[#1C3D5A]/40 to-transparent"></div>
+                    </>
+                  ) : (
+                    // Gradient placeholder if image failed to load
+                    <div className="absolute inset-0 bg-gradient-to-br from-[#f2b134] to-[#00eedf]"></div>
                   )}
                 </div>
               );
