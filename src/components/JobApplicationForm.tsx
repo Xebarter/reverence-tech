@@ -141,13 +141,13 @@ export default function JobApplicationForm({ jobId, jobTitle, onClose, onSubmitS
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+      <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-gray-200 shadow-2xl">
         <div className="p-6">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-2xl font-bold text-gray-900">Apply for {jobTitle}</h2>
             <button 
               onClick={onClose}
-              className="text-gray-500 hover:text-gray-700"
+              className="text-gray-500 hover:text-gray-700 transition-colors duration-200"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -201,7 +201,7 @@ export default function JobApplicationForm({ jobId, jobTitle, onClose, onSubmitS
                     required
                     value={formData.full_name}
                     onChange={handleInputChange}
-                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-[#1C3D5A] focus:border-[#1C3D5A]"
+                    className="mt-1 block w-full bg-white border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-[#1C3D5A] focus:border-[#1C3D5A] text-gray-900"
                   />
                 </div>
                 
@@ -214,7 +214,7 @@ export default function JobApplicationForm({ jobId, jobTitle, onClose, onSubmitS
                     required
                     value={formData.email}
                     onChange={handleInputChange}
-                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-[#1C3D5A] focus:border-[#1C3D5A]"
+                    className="mt-1 block w-full bg-white border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-[#1C3D5A] focus:border-[#1C3D5A] text-gray-900"
                   />
                 </div>
                 
@@ -226,13 +226,13 @@ export default function JobApplicationForm({ jobId, jobTitle, onClose, onSubmitS
                     name="phone"
                     value={formData.phone}
                     onChange={handleInputChange}
-                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-[#1C3D5A] focus:border-[#1C3D5A]"
+                    className="mt-1 block w-full bg-white border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-[#1C3D5A] focus:border-[#1C3D5A] text-gray-900"
                   />
                 </div>
                 
                 <div>
                   <label htmlFor="resume" className="block text-sm font-medium text-gray-700">Resume/CV *</label>
-                  <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
+                  <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md bg-gray-50">
                     <div className="space-y-1 text-center">
                       <svg className="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true">
                         <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
@@ -269,7 +269,7 @@ export default function JobApplicationForm({ jobId, jobTitle, onClose, onSubmitS
                   rows={5}
                   value={formData.cover_letter}
                   onChange={handleInputChange}
-                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-[#1C3D5A] focus:border-[#1C3D5A]"
+                  className="mt-1 block w-full bg-white border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-[#1C3D5A] focus:border-[#1C3D5A] text-gray-900"
                 />
               </div>
               
