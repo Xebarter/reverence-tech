@@ -46,6 +46,10 @@ export default function Hero() {
   const carouselRef = useRef<HTMLDivElement>(null);
   const testimonialsRef = useRef<HTMLDivElement>(null);
   const [testimonialsVisible, setTestimonialsVisible] = useState(false);
+  // Track loaded images to prevent flickering
+  const [loadedImages, setLoadedImages] = useState<Set<string>>(new Set());
+  // State for managing text transitions
+  const [textTransitionState, setTextTransitionState] = useState<'idle' | 'fadingOut' | 'fadingIn'>('idle');
 
   const valuePropositions = [
     {
@@ -78,6 +82,15 @@ export default function Hero() {
   const preloadImage = (imageUrl: string) => {
     if (!imageUrl || preloadedImages.current.has(imageUrl)) return;
 
+    // Create image element to preload
+    const img = new Image();
+    img.onload = () => {
+      // Mark image as loaded
+      setLoadedImages(prev => new Set(prev).add(imageUrl));
+    };
+    img.src = getOptimizedImageUrl(imageUrl, 1024);
+
+    // Also add to preload links for better performance
     const link = document.createElement('link');
     link.rel = 'preload';
     link.as = 'image';
@@ -123,9 +136,17 @@ export default function Hero() {
         }
 
         if (valuePropositions.length > 1) {
-          setCurrentValueIndex((prevIndex) =>
-            prevIndex === valuePropositions.length - 1 ? 0 : prevIndex + 1
-          );
+          // Handle text transition with proper sequencing
+          setTextTransitionState('fadingOut');
+          setTimeout(() => {
+            setCurrentValueIndex((prevIndex) =>
+              prevIndex === valuePropositions.length - 1 ? 0 : prevIndex + 1
+            );
+            setTextTransitionState('fadingIn');
+            setTimeout(() => {
+              setTextTransitionState('idle');
+            }, 300); // Half of the transition duration
+          }, 300); // Half of the transition duration
         }
       }, 7000); // Change both image and text every 7 seconds
 
@@ -139,7 +160,9 @@ export default function Hero() {
 
       return () => clearInterval(interval);
     }
-  }, [heroImages, valuePropositions.length]); const fetchHeroImages = async () => {
+  }, [heroImages, valuePropositions.length]);
+
+  const fetchHeroImages = async () => {
     try {
       // Fetch all uploaded hero images. The admin UI stores the public URL in
       // `image_url`. We show all uploaded images so the carousel reflects what
@@ -157,11 +180,16 @@ export default function Hero() {
         const valid = data.filter((d: any) => d.image_url && d.image_url.trim() !== '');
         setHeroImages(valid);
         setCurrentImageIndex(0); // reset carousel to the first image when images load
+        
+        // Preload first image immediately
+        if (valid.length > 0) {
+          preloadImage(valid[0].image_url);
+        }
       }
     } catch (error) {
       console.error('Error fetching hero images:', error);
       // Fallback to default images if fetch fails
-      setHeroImages([
+      const fallbackImages = [
         {
           id: '1',
           title: 'Default Hero Image',
@@ -169,7 +197,11 @@ export default function Hero() {
           is_active: true,
           created_at: new Date().toISOString(),
         }
-      ]);
+      ];
+      setHeroImages(fallbackImages);
+      
+      // Preload fallback image
+      preloadImage(fallbackImages[0].image_url);
     }
   };
 
@@ -219,8 +251,10 @@ export default function Hero() {
                 {valuePropositions.map((item, index) => (
                   <div
                     key={index}
-                    className={`transition-all duration-1000 ease-in-out ${index === currentValueIndex ? 'opacity-100 static' : 'opacity-0 absolute invisible'
-                      }`}
+                    className={`transition-all duration-500 ease-in-out ${index === currentValueIndex ? 
+                      (textTransitionState === 'fadingOut' ? 'opacity-0' : 'opacity-100') : 
+                      'opacity-0 absolute invisible'}`
+                    }
                   >
                     <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-[#1C3D5A] mb-4 sm:mb-6 leading-tight">
                       {item.valueProposition}
@@ -252,30 +286,37 @@ export default function Hero() {
 
           {/* Right side - Carousel */}
           <div className="order-1 lg:order-2 relative h-64 sm:h-80 lg:h-[500px] rounded-3xl overflow-hidden border border-white/30 shadow-xl backdrop-blur-sm" ref={carouselRef}>
-            {heroImages.length > 0 ? (
-              <>
-                {heroImages.map((image, index) => (
-                  <div
-                    key={image.id}
-                    className={`absolute inset-0 transition-all duration-1000 ease-in-out ${index === currentImageIndex ? 'opacity-100' : 'opacity-0'}`}
-                  >
-                    <img
-                      src={getOptimizedImageUrl(image.image_url, 1024)}
-                      alt={image.title}
-                      className="w-full h-full object-cover"
-                      loading={index <= 1 ? "eager" : "lazy"}
-                      decoding="async"
-                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 90vw, 50vw"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#1C3D5A]/40 to-transparent"></div>
-                  </div>
-                ))}
-              </>
-            ) : (
-              <div className="bg-gray-200/20 border-2 border-dashed border-white/30 backdrop-blur-sm w-full h-full flex items-center justify-center">
-                <span className="text-[#1C3D5A] font-medium text-sm sm:text-base">No images available</span>
-              </div>
-            )}
+            {/* Beautiful gradient background that shows while images are loading */}
+            <div className="absolute inset-0 bg-gradient-to-br from-[#f2b134] to-[#00eedf]"></div>
+            
+            {heroImages.map((image, index) => {
+              const isCurrent = index === currentImageIndex;
+              const isLoaded = loadedImages.has(image.image_url);
+              
+              return (
+                <div
+                  key={image.id}
+                  className={`absolute inset-0 transition-all duration-1000 ease-in-out ${
+                    isCurrent ? 'opacity-100' : 'opacity-0'
+                  }`}
+                >
+                  {/* Show image only when loaded */}
+                  {isLoaded && (
+                    <>
+                      <img
+                        src={getOptimizedImageUrl(image.image_url, 1024)}
+                        alt={image.title}
+                        className="w-full h-full object-cover"
+                        loading={index <= 1 ? "eager" : "lazy"}
+                        decoding="async"
+                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 90vw, 50vw"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-[#1C3D5A]/40 to-transparent"></div>
+                    </>
+                  )}
+                </div>
+              );
+            })}
 
             {/* Carousel indicators */}
             {heroImages.length > 1 && (
