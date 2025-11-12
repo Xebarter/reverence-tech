@@ -6,8 +6,8 @@ interface Service {
   id: string;
   package_name: string;
   description: string;
-  key_features: string[];
-  target_audience: string[];
+  key_features: { feature: string }[];
+  target_audience: { audience: string }[];
   suggested_pricing: string;
   display_order: number;
   created_at: string;
@@ -128,7 +128,7 @@ export default function Services() {
     if (newFeature.trim()) {
       setFormData({
         ...formData,
-        key_features: [...formData.key_features, newFeature.trim()],
+        key_features: [...formData.key_features, { feature: newFeature.trim() }],
       });
       setNewFeature('');
     }
@@ -144,7 +144,7 @@ export default function Services() {
     if (newAudience.trim()) {
       setFormData({
         ...formData,
-        target_audience: [...formData.target_audience, newAudience.trim()],
+        target_audience: [...formData.target_audience, { audience: newAudience.trim() }],
       });
       setNewAudience('');
     }
@@ -265,9 +265,9 @@ export default function Services() {
                   </div>
                   {formData.key_features.length > 0 && (
                     <div className="flex flex-wrap gap-2">
-                      {formData.key_features.map((feature, index) => (
+                      {formData.key_features.map((featureObj, index) => (
                         <div key={index} className="flex items-center bg-[#1C3D5A]/5 text-[#1C3D5A] rounded-full px-3 py-1">
-                          <span className="text-sm">{feature}</span>
+                          <span className="text-sm">{featureObj.feature}</span>
                           <button
                             type="button"
                             onClick={() => removeFeature(index)}
@@ -305,9 +305,9 @@ export default function Services() {
                   </div>
                   {formData.target_audience.length > 0 && (
                     <div className="flex flex-wrap gap-2">
-                      {formData.target_audience.map((audience, index) => (
+                      {formData.target_audience.map((audienceObj, index) => (
                         <div key={index} className="flex items-center bg-[#1C3D5A]/5 text-[#1C3D5A] rounded-full px-3 py-1">
-                          <span className="text-sm">{audience}</span>
+                          <span className="text-sm">{audienceObj.audience}</span>
                           <button
                             type="button"
                             onClick={() => removeAudience(index)}
@@ -374,9 +374,9 @@ export default function Services() {
                 
                 <div className="flex flex-wrap items-center gap-2 mb-4">
                   <span className="text-xs text-gray-500 font-medium">Features:</span>
-                  {service.key_features.slice(0, 3).map((feature, index) => (
+                  {service.key_features.slice(0, 3).map((featureObj, index) => (
                     <span key={index} className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-[#1C3D5A]/10 text-[#1C3D5A]">
-                      {feature}
+                      {featureObj.feature}
                     </span>
                   ))}
                   {service.key_features.length > 3 && (

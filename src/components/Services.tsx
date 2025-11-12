@@ -138,11 +138,28 @@ export default function Services() {
     );
   }
 
+  // Add CSS for the pulse animation
+  const pulseKeyframes = `
+    @keyframes pulse {
+      0%, 100% {
+        box-shadow: 0 0 0 0 rgba(242, 177, 52, 0.4);
+      }
+      50% {
+        box-shadow: 0 0 0 10px rgba(242, 177, 52, 0);
+      }
+    }
+    
+    .animate-pulse {
+      animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+  `;
+
   // Determine how many services to show based on state
   const servicesToShow = showAllServices ? services : services.slice(0, 6);
 
   return (
     <section id="services" className="py-20 px-4 sm:px-6 lg:px-8 bg-[#E5E8EB]">
+      <style>{pulseKeyframes}</style>
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-16">
           <h2 className="text-4xl font-bold text-[#1C3D5A] mb-4">
@@ -154,59 +171,116 @@ export default function Services() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {servicesToShow.map((service) => (
-            <div
-              key={service.id}
-              className="bg-white rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden group cursor-pointer"
-              onClick={() => setSelectedService(service)}
-            >
-              <div className="p-8">
-                <div className="flex items-start justify-between mb-4">
-                  <h3 className="text-xl font-bold text-[#1C3D5A] group-hover:text-[#2DBE7E] transition-colors leading-tight">
-                    {service.package_name}
-                  </h3>
-                  <ChevronRight className="text-[#2DBE7E] flex-shrink-0 group-hover:translate-x-1 transition-transform" size={24} />
-                </div>
-
-                <p className="text-gray-600 mb-6 leading-relaxed line-clamp-3">
-                  {service.description}
-                </p>
-
-                <div className="mb-6">
-                  <div className="text-sm font-semibold text-[#1C3D5A] mb-3">Key Features:</div>
-                  <ul className="space-y-2">
-                    {service.key_features.slice(0, 3).map((featureObj, idx) => (
-                      <li key={idx} className="flex items-start gap-2 text-sm text-gray-600">
-                        <Check className="text-[#2DBE7E] flex-shrink-0 mt-0.5" size={16} />
-                        <span>{featureObj.feature}</span>
-                      </li>
-                    ))}
-                    {service.key_features.length > 3 && (
-                      <li className="text-sm text-[#2DBE7E] font-medium">
-                        +{service.key_features.length - 3} more features
-                      </li>
-                    )}
-                  </ul>
-                </div>
-
-                <div className="pt-6 border-t border-gray-200">
-                  <div className="text-2xl font-bold text-[#1C3D5A] mb-2">
-                    {service.suggested_pricing}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative">
+          {servicesToShow.map((service, index) => {
+            // Determine if this is the center card (featured)
+            const isCenterCard = index === 1 && servicesToShow.length >= 3;
+            
+            return (
+              <div
+                key={service.id}
+                className={`
+                  rounded-2xl transition-all duration-500 overflow-hidden cursor-pointer
+                  ${isCenterCard ? 
+                    'md:hover:-translate-y-6 md:z-20 bg-gradient-to-br from-[#1C3D5A] to-[#2a5779] text-white border-4 border-[#F2B134] shadow-2xl hover:shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25)] md:hover:scale-105 animate-pulse' : 
+                    'bg-white text-gray-800 border border-gray-200 hover:shadow-xl hover:-translate-y-1 md:z-10'
+                  }
+                `}
+                onClick={() => setSelectedService(service)}
+                style={{
+                  ...(isCenterCard ? {
+                    transform: 'translateY(-1rem) scale(1.02)',
+                    boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)'
+                  } : {})
+                }}
+              >
+                <div className="p-8">
+                  <div className="flex items-start justify-between mb-4">
+                    <h3 className={`
+                      text-xl font-bold leading-tight
+                      ${isCenterCard ? 'text-white' : 'text-[#1C3D5A] group-hover:text-[#2DBE7E]'}
+                    `}>
+                      {service.package_name}
+                    </h3>
+                    <ChevronRight 
+                      className={isCenterCard ? 'text-[#F2B134]' : 'text-[#2DBE7E]'} 
+                      size={24} 
+                    />
                   </div>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleGetStarted(service);
-                    }}
-                    className="w-full bg-[#F2B134] text-white py-3 rounded-lg hover:bg-[#d89e2d] transition-all duration-300 font-semibold"
-                  >
-                    Get Started
-                  </button>
+
+                  <p className={`
+                    mb-6 leading-relaxed line-clamp-3
+                    ${isCenterCard ? 'text-gray-200' : 'text-gray-600'}
+                  `}>
+                    {service.description}
+                  </p>
+
+                  <div className="mb-6">
+                    <div className={`
+                      text-sm font-semibold mb-3
+                      ${isCenterCard ? 'text-[#F2B134]' : 'text-[#1C3D5A]'}
+                    `}>
+                      Key Features:
+                    </div>
+                    <ul className="space-y-2">
+                      {service.key_features.slice(0, 3).map((featureObj, idx) => (
+                        <li key={idx} className="flex items-start gap-2 text-sm">
+                          <Check 
+                            className={isCenterCard ? 'text-[#F2B134] flex-shrink-0 mt-0.5' : 'text-[#2DBE7E] flex-shrink-0 mt-0.5'} 
+                            size={16} 
+                          />
+                          <span className={isCenterCard ? 'text-gray-200' : 'text-gray-600'}>
+                            {featureObj.feature}
+                          </span>
+                        </li>
+                      ))}
+                      {service.key_features.length > 3 && (
+                        <li className={`
+                          text-sm font-medium
+                          ${isCenterCard ? 'text-[#F2B134]' : 'text-[#2DBE7E]'}
+                        `}>
+                          +{service.key_features.length - 3} more features
+                        </li>
+                      )}
+                    </ul>
+                  </div>
+
+                  <div className={`
+                    pt-6 border-t
+                    ${isCenterCard ? 'border-gray-400/30' : 'border-gray-200'}
+                  `}>
+                    <div className={`
+                      text-2xl font-bold mb-2
+                      ${isCenterCard ? 'text-[#F2B134]' : 'text-[#1C3D5A]'}
+                    `}>
+                      {service.suggested_pricing}
+                    </div>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleGetStarted(service);
+                      }}
+                      className={`
+                        w-full py-3 rounded-lg transition-all duration-300 font-semibold
+                        ${isCenterCard ? 
+                          'bg-[#F2B134] text-[#1C3D5A] hover:bg-[#e6a328] shadow-lg' : 
+                          'bg-[#F2B134] text-[#1C3D5A] hover:bg-[#d89e2d]'
+                        }
+                      `}
+                    >
+                      Get Started
+                    </button>
+                  </div>
                 </div>
+                
+                {isCenterCard && (
+                  <div className="bg-[#F2B134] text-[#1C3D5A] text-center py-2">
+                    <span className="font-bold text-sm">MOST POPULAR</span>
+                  </div>
+                )}
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         {services.length > 6 && (
