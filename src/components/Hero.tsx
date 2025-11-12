@@ -42,7 +42,6 @@ export default function Hero() {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [currentValueIndex, setCurrentValueIndex] = useState(0);
   const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
-  const [imagesLoadedState, setImagesLoadedState] = useState<Record<string, boolean>>({});
   const preloadedImages = useRef<Set<string>>(new Set());
   const carouselRef = useRef<HTMLDivElement>(null);
   const testimonialsRef = useRef<HTMLDivElement>(null);
@@ -267,12 +266,6 @@ export default function Hero() {
                       loading={index <= 1 ? "eager" : "lazy"}
                       decoding="async"
                       sizes="(max-width: 640px) 100vw, (max-width: 1024px) 90vw, 50vw"
-                      onLoad={() => {
-                        setImagesLoadedState(prev => ({
-                          ...prev,
-                          [image.id]: true
-                        }));
-                      }}
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-[#1C3D5A]/40 to-transparent"></div>
                   </div>

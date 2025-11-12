@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { MapPin, Clock, DollarSign, ArrowLeft, Check, Loader2 } from 'lucide-react';
+import { MapPin, Clock, DollarSign, ArrowLeft, Check } from 'lucide-react';
 import SEO from './SEO';
 import JobApplicationForm from './JobApplicationForm';
 import { supabase } from '../lib/supabase';
@@ -257,7 +257,7 @@ export default function JobDetails() {
         />
       )}
 
-      <style jsx>{`
+      <style>{`
         @keyframes fade-in {
           from { opacity: 0; }
           to { opacity: 1; }

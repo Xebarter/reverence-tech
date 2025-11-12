@@ -16,7 +16,7 @@ interface BlogPost {
   category?: {
     name: string;
     slug: string;
-  };
+  } | null;
 }
 
 export default function Blog() {
@@ -43,7 +43,24 @@ export default function Blog() {
           .order('published_at', { ascending: false });
 
         if (error) throw error;
-        setPosts(data || []);
+        
+        // Process the data to ensure it matches our BlogPost interface
+        const processedData = (data || []).map((post: any) => ({
+          id: post.id,
+          title: post.title,
+          slug: post.slug,
+          excerpt: post.excerpt,
+          cover_image_url: post.cover_image_url,
+          author: post.author,
+          published_at: post.published_at,
+          created_at: post.created_at,
+          category: post.category ? {
+            name: post.category.name,
+            slug: post.category.slug
+          } : null
+        }));
+        
+        setPosts(processedData);
       } catch (error) {
         console.error('Error fetching blog posts:', error);
       } finally {
