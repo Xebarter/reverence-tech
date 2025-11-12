@@ -23,7 +23,7 @@ import AdminAuth from './components/admin/Auth';
 import UserManagement from './components/admin/UserManagement';
 import Unauthorized from './components/admin/Unauthorized';
 import TestAdminUsers from './components/admin/TestAdminUsers';
-import JobDetails from './components/JobDetails';
+import JobDetails from './components/JobDetails.tsx';
 import SEO from './components/SEO';
 import { UserProvider } from './UserContext';
 
@@ -62,8 +62,24 @@ function App() {
             </div>
           } />
           
-          <Route path="/blog" element={<Blog />} />
-          <Route path="/blog/:slug" element={<BlogPost />} />
+          <Route path="/blog" element={
+            <div className="min-h-screen">
+              <Header />
+              <main className="pt-20">
+                <Blog />
+              </main>
+              <Footer />
+            </div>
+          } />
+          <Route path="/blog/:slug" element={
+            <div className="min-h-screen">
+              <Header />
+              <main className="pt-20">
+                <BlogPost />
+              </main>
+              <Footer />
+            </div>
+          } />
           <Route path="/careers" element={
             <div className="min-h-screen">
               <Header />

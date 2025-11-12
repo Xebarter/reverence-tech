@@ -1,15 +1,24 @@
 import { Menu, X, ChevronRight } from 'lucide-react';
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const location = useLocation();
 
   const scrollToSection = (id: string) => {
     const element = document.getElementById(id);
     if (element) {
       element.scrollIntoView({ behavior: 'smooth' });
       setIsMenuOpen(false);
+    }
+  };
+
+  const navigateToSection = (sectionId: string) => {
+    if (location.pathname === '/') {
+      scrollToSection(sectionId);
+    } else {
+      window.location.href = `/#${sectionId}`;
     }
   };
 
@@ -20,27 +29,29 @@ export default function Header() {
       <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-20">
           <div className="flex-shrink-0 flex items-center">
-            <img 
-              src="/logo.svg" 
-              alt="Reverence Technology Logo" 
-              className="h-10 w-auto mr-3"
-            />
-            <h1 className="text-base md:text-2xl font-bold text-white flex flex-col md:flex-row items-start md:items-center">
-              <span>Reverence</span>
-              <span className="text-[#F2B134] md:ml-2 mt-0.5 md:mt-0 text-xs md:text-base">Technology</span>
-            </h1>
+            <Link to="/" className="flex items-center">
+              <img 
+                src="/logo.svg" 
+                alt="Reverence Technology Logo" 
+                className="h-10 w-auto mr-3"
+              />
+              <div className="text-base md:text-2xl font-bold text-white flex flex-col md:flex-row items-start md:items-center">
+                <span>Reverence</span>
+                <span className="text-[#F2B134] md:ml-2 mt-0.5 md:mt-0 text-xs md:text-base">Technology</span>
+              </div>
+            </Link>
           </div>
 
           {/* Desktop Nav */}
           <div className="hidden md:flex space-x-8 items-center">
             <button
-              onClick={() => scrollToSection('home')}
+              onClick={() => navigateToSection('home')}
               className="text-[#E5E8EB] hover:text-[#F2B134] transition-colors duration-300 font-medium text-base h-12 flex items-center border-b-2 border-transparent hover:border-[#F2B134]/50"
             >
               Home
             </button>
             <button
-              onClick={() => scrollToSection('services')}
+              onClick={() => navigateToSection('services')}
               className="text-[#E5E8EB] hover:text-[#F2B134] transition-colors duration-300 font-medium text-base h-12 flex items-center border-b-2 border-transparent hover:border-[#F2B134]/50"
             >
               Services
@@ -58,7 +69,7 @@ export default function Header() {
               Careers
             </Link>
             <button
-              onClick={() => scrollToSection('contact')}
+              onClick={() => navigateToSection('contact')}
               className="bg-[#F2B134] text-white px-6 py-2 rounded-lg hover:bg-[#d89e2d] transition-all duration-300 font-medium text-base h-12 flex items-center shadow-lg hover:shadow-xl"
             >
               Get Started
@@ -106,14 +117,20 @@ export default function Header() {
         {/* Menu Items */}
         <div className="px-6 py-8 space-y-4">
           <button
-            onClick={() => { scrollToSection('home'); closeMenu(); }}
+            onClick={() => { 
+              navigateToSection('home');
+              closeMenu(); 
+            }}
             className="flex w-full justify-between items-center text-[#E5E8EB] hover:text-[#F2B134] transition-colors py-4 font-medium text-lg border-b border-gray-700"
           >
             <span>Home</span>
             <ChevronRight size={20} className="text-gray-500" />
           </button>
           <button
-            onClick={() => { scrollToSection('services'); closeMenu(); }}
+            onClick={() => { 
+              navigateToSection('services');
+              closeMenu(); 
+            }}
             className="flex w-full justify-between items-center text-[#E5E8EB] hover:text-[#F2B134] transition-colors py-4 font-medium text-lg border-b border-gray-700"
           >
             <span>Services</span>
@@ -136,7 +153,10 @@ export default function Header() {
             <ChevronRight size={20} className="text-gray-500" />
           </Link>
           <button
-            onClick={() => { scrollToSection('contact'); closeMenu(); }}
+            onClick={() => { 
+              navigateToSection('contact');
+              closeMenu(); 
+            }}
             className="w-full bg-[#F2B134] text-white px-6 py-4 rounded-lg hover:bg-[#d89e2d] transition-all font-medium text-lg mt-6 shadow-lg hover:shadow-xl flex items-center justify-center"
           >
             Get Started

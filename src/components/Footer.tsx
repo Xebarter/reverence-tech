@@ -1,14 +1,8 @@
 import { Facebook, Twitter, Linkedin, Instagram, Mail, Phone } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
-
-  const scrollToSection = (id: string) => {
-    const element = document.getElementById(id);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
-    }
-  };
 
   return (
     <footer className="bg-[#1C3D5A] text-white">
@@ -23,28 +17,36 @@ export default function Footer() {
             </p>
             <div className="flex gap-4">
               <a
-                href="#"
+                href="https://facebook.com/reverencetech"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="bg-white/10 p-3 rounded-lg hover:bg-[#F2B134] transition-all duration-300"
                 aria-label="Facebook"
               >
                 <Facebook size={20} />
               </a>
               <a
-                href="#"
+                href="https://twitter.com/reverencetech"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="bg-white/10 p-3 rounded-lg hover:bg-[#F2B134] transition-all duration-300"
                 aria-label="Twitter"
               >
                 <Twitter size={20} />
               </a>
               <a
-                href="#"
+                href="https://linkedin.com/company/reverence-technology"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="bg-white/10 p-3 rounded-lg hover:bg-[#F2B134] transition-all duration-300"
                 aria-label="LinkedIn"
               >
                 <Linkedin size={20} />
               </a>
               <a
-                href="#"
+                href="https://instagram.com/reverencetech"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="bg-white/10 p-3 rounded-lg hover:bg-[#F2B134] transition-all duration-300"
                 aria-label="Instagram"
               >
@@ -57,57 +59,82 @@ export default function Footer() {
             <h4 className="text-lg font-bold mb-4">Quick Links</h4>
             <ul className="space-y-3">
               <li>
-                <button
-                  onClick={() => scrollToSection('home')}
+                <Link
+                  to="/"
                   className="text-[#E5E8EB] hover:text-[#2DBE7E] transition-colors"
                 >
                   Home
-                </button>
+                </Link>
               </li>
               <li>
-                <button
-                  onClick={() => scrollToSection('services')}
+                <Link
+                  to="/blog"
                   className="text-[#E5E8EB] hover:text-[#2DBE7E] transition-colors"
                 >
-                  Services
-                </button>
+                  Blog
+                </Link>
               </li>
               <li>
-                <button
-                  onClick={() => scrollToSection('about')}
+                <Link
+                  to="/careers"
                   className="text-[#E5E8EB] hover:text-[#2DBE7E] transition-colors"
                 >
-                  About Us
-                </button>
+                  Careers
+                </Link>
               </li>
               <li>
-                <button
-                  onClick={() => scrollToSection('contact')}
+                <a
+                  href="/#contact"
                   className="text-[#E5E8EB] hover:text-[#2DBE7E] transition-colors"
                 >
                   Contact
-                </button>
+                </a>
               </li>
             </ul>
           </div>
 
           <div>
-            <h4 className="text-lg font-bold mb-4">Popular Services</h4>
+            <h4 className="text-lg font-bold mb-4">Our Services</h4>
             <ul className="space-y-3 text-[#E5E8EB]">
-              <li className="hover:text-[#2DBE7E] transition-colors cursor-pointer">
-                Web Development
+              <li>
+                <a
+                  href="/#services"
+                  className="hover:text-[#2DBE7E] transition-colors"
+                >
+                  Web Development
+                </a>
               </li>
-              <li className="hover:text-[#2DBE7E] transition-colors cursor-pointer">
-                E-Commerce Solutions
+              <li>
+                <a
+                  href="/#services"
+                  className="hover:text-[#2DBE7E] transition-colors"
+                >
+                  E-Commerce Solutions
+                </a>
               </li>
-              <li className="hover:text-[#2DBE7E] transition-colors cursor-pointer">
-                Cloud Migration
+              <li>
+                <a
+                  href="/#services"
+                  className="hover:text-[#2DBE7E] transition-colors"
+                >
+                  Cloud Migration
+                </a>
               </li>
-              <li className="hover:text-[#2DBE7E] transition-colors cursor-pointer">
-                Cybersecurity
+              <li>
+                <a
+                  href="/#services"
+                  className="hover:text-[#2DBE7E] transition-colors"
+                >
+                  Cybersecurity
+                </a>
               </li>
-              <li className="hover:text-[#2DBE7E] transition-colors cursor-pointer">
-                IT Consulting
+              <li>
+                <a
+                  href="/#services"
+                  className="hover:text-[#2DBE7E] transition-colors"
+                >
+                  IT Consulting
+                </a>
               </li>
             </ul>
           </div>
@@ -147,13 +174,13 @@ export default function Footer() {
               © {currentYear} Reverence Technology. All rights reserved.
             </p>
             <div className="flex gap-6 text-sm">
-              <a href="#" className="text-[#E5E8EB] hover:text-[#2DBE7E] transition-colors">
+              <a href="/privacy" className="text-[#E5E8EB] hover:text-[#2DBE7E] transition-colors">
                 Privacy Policy
               </a>
-              <a href="#" className="text-[#E5E8EB] hover:text-[#2DBE7E] transition-colors">
+              <a href="/terms" className="text-[#E5E8EB] hover:text-[#2DBE7E] transition-colors">
                 Terms of Service
               </a>
-              <a href="#" className="text-[#E5E8EB] hover:text-[#2DBE7E] transition-colors">
+              <a href="/cookies" className="text-[#E5E8EB] hover:text-[#2DBE7E] transition-colors">
                 Cookie Policy
               </a>
             </div>

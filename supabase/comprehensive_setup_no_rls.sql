@@ -100,7 +100,7 @@ CREATE TABLE IF NOT EXISTS blog_posts (
   slug text NOT NULL UNIQUE,
   excerpt text,
   content text NOT NULL,
-  featured_image_url text,
+  cover_image_url text,
   is_published boolean DEFAULT false,
   published_at timestamptz,
   author text NOT NULL,
@@ -136,13 +136,69 @@ CREATE INDEX IF NOT EXISTS idx_blog_posts_slug ON blog_posts(slug);
 CREATE INDEX IF NOT EXISTS idx_blog_categories_slug ON blog_categories(slug);
 
 -- Create storage buckets
-INSERT INTO storage.buckets (id, name, public) 
-VALUES 
+INSERT INTO storage.buckets (id, name, public) VALUES 
   ('hero-images', 'hero-images', true),
   ('testimonials', 'testimonials', true),
-  ('blog-images', 'blog-images', true),
-  ('resumes', 'resumes', true)
+  ('resumes', 'resumes', true),
+  ('blog-images', 'blog-images', true)
 ON CONFLICT (id) DO NOTHING;
+
+-- Disable RLS on storage.objects
+ALTER TABLE storage.objects DISABLE ROW LEVEL SECURITY;
+
+-- Drop all existing policies on storage.objects
+DROP POLICY IF EXISTS "Public uploads to hero-images" ON storage.objects;
+DROP POLICY IF EXISTS "Public reads of hero-images" ON storage.objects;
+DROP POLICY IF EXISTS "Public uploads to testimonials" ON storage.objects;
+DROP POLICY IF EXISTS "Public reads of testimonials" ON storage.objects;
+DROP POLICY IF EXISTS "Public uploads to resumes" ON storage.objects;
+DROP POLICY IF EXISTS "Public reads of resumes" ON storage.objects;
+DROP POLICY IF EXISTS "Blog images are publicly readable" ON storage.objects;
+DROP POLICY IF EXISTS "Admins can manage blog images" ON storage.objects;
+DROP POLICY IF EXISTS "Public uploads to blog-images" ON storage.objects;
+DROP POLICY IF EXISTS "Public reads of blog-images" ON storage.objects;
+
+-- Allow anyone to upload to all buckets
+CREATE POLICY "Public uploads to hero-images"
+  ON storage.objects
+  FOR INSERT
+  WITH CHECK (bucket_id = 'hero-images');
+
+CREATE POLICY "Public uploads to testimonials"
+  ON storage.objects
+  FOR INSERT
+  WITH CHECK (bucket_id = 'testimonials');
+
+CREATE POLICY "Public uploads to resumes"
+  ON storage.objects
+  FOR INSERT
+  WITH CHECK (bucket_id = 'resumes');
+
+CREATE POLICY "Public uploads to blog-images"
+  ON storage.objects
+  FOR INSERT
+  WITH CHECK (bucket_id = 'blog-images');
+
+-- Allow anyone to read objects metadata from all buckets
+CREATE POLICY "Public reads of hero-images"
+  ON storage.objects
+  FOR SELECT
+  USING (bucket_id = 'hero-images');
+
+CREATE POLICY "Public reads of testimonials"
+  ON storage.objects
+  FOR SELECT
+  USING (bucket_id = 'testimonials');
+
+CREATE POLICY "Public reads of resumes"
+  ON storage.objects
+  FOR SELECT
+  USING (bucket_id = 'resumes');
+
+CREATE POLICY "Public reads of blog-images"
+  ON storage.objects
+  FOR SELECT
+  USING (bucket_id = 'blog-images');
 
 -- Create functions
 

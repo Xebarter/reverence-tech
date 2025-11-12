@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { ArrowRight, Star, Quote } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
@@ -9,6 +9,21 @@ interface HeroImage {
   is_active: boolean;
   created_at: string;
 }
+
+// Helper function to generate optimized image URL with responsive sizing
+const getOptimizedImageUrl = (url: string, width: number): string => {
+  if (!url) return url;
+
+  // If using Supabase storage or Unsplash, add optimization params
+  if (url.includes('unsplash.com')) {
+    return `${url}&w=${width}&q=80`;
+  }
+  if (url.includes('supabase.co')) {
+    // For Supabase storage, add transform params
+    return `${url}?width=${width}&quality=80`;
+  }
+  return url;
+};
 
 interface Testimonial {
   id: string;
@@ -27,6 +42,11 @@ export default function Hero() {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [currentValueIndex, setCurrentValueIndex] = useState(0);
   const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
+  const [imagesLoadedState, setImagesLoadedState] = useState<Record<string, boolean>>({});
+  const preloadedImages = useRef<Set<string>>(new Set());
+  const carouselRef = useRef<HTMLDivElement>(null);
+  const testimonialsRef = useRef<HTMLDivElement>(null);
+  const [testimonialsVisible, setTestimonialsVisible] = useState(false);
 
   const valuePropositions = [
     {
@@ -55,16 +75,54 @@ export default function Hero() {
     fetchTestimonials();
   }, []);
 
+  // Preload images for carousel
+  const preloadImage = (imageUrl: string) => {
+    if (!imageUrl || preloadedImages.current.has(imageUrl)) return;
+
+    const link = document.createElement('link');
+    link.rel = 'preload';
+    link.as = 'image';
+    link.href = getOptimizedImageUrl(imageUrl, 1024);
+    document.head.appendChild(link);
+    preloadedImages.current.add(imageUrl);
+  };
+
+  // Intersection Observer for testimonials lazy loading
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting && !testimonialsVisible) {
+            setTestimonialsVisible(true);
+            observer.disconnect();
+          }
+        });
+      },
+      { threshold: 0.1 }
+    );
+
+    if (testimonialsRef.current) {
+      observer.observe(testimonialsRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, [testimonialsVisible]);
+
   useEffect(() => {
     // Use a single interval to synchronize both carousels
     if (heroImages.length > 1 || valuePropositions.length > 1) {
       const interval = setInterval(() => {
         if (heroImages.length > 1) {
-          setCurrentImageIndex((prevIndex) =>
-            prevIndex === heroImages.length - 1 ? 0 : prevIndex + 1
-          );
+          setCurrentImageIndex((prevIndex) => {
+            const nextIndex = prevIndex === heroImages.length - 1 ? 0 : prevIndex + 1;
+            // Preload the next image when carousel rotates
+            if (heroImages[nextIndex]) {
+              preloadImage(heroImages[nextIndex].image_url);
+            }
+            return nextIndex;
+          });
         }
-        
+
         if (valuePropositions.length > 1) {
           setCurrentValueIndex((prevIndex) =>
             prevIndex === valuePropositions.length - 1 ? 0 : prevIndex + 1
@@ -72,11 +130,17 @@ export default function Hero() {
         }
       }, 7000); // Change both image and text every 7 seconds
 
+      // Preload first and second images on mount
+      if (heroImages.length > 0) {
+        preloadImage(heroImages[0].image_url);
+        if (heroImages.length > 1) {
+          preloadImage(heroImages[1].image_url);
+        }
+      }
+
       return () => clearInterval(interval);
     }
-  }, [heroImages, valuePropositions.length]);
-
-  const fetchHeroImages = async () => {
+  }, [heroImages, valuePropositions.length]); const fetchHeroImages = async () => {
     try {
       // Fetch all uploaded hero images. The admin UI stores the public URL in
       // `image_url`. We show all uploaded images so the carousel reflects what
@@ -156,9 +220,8 @@ export default function Hero() {
                 {valuePropositions.map((item, index) => (
                   <div
                     key={index}
-                    className={`transition-all duration-1000 ease-in-out ${
-                      index === currentValueIndex ? 'opacity-100 static' : 'opacity-0 absolute invisible'
-                    }`}
+                    className={`transition-all duration-1000 ease-in-out ${index === currentValueIndex ? 'opacity-100 static' : 'opacity-0 absolute invisible'
+                      }`}
                   >
                     <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-[#1C3D5A] mb-4 sm:mb-6 leading-tight">
                       {item.valueProposition}
@@ -169,7 +232,7 @@ export default function Hero() {
                   </div>
                 ))}
               </div>
-              
+
               <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
                 <button
                   onClick={() => scrollToSection('services')}
@@ -189,7 +252,7 @@ export default function Hero() {
           </div>
 
           {/* Right side - Carousel */}
-          <div className="order-1 lg:order-2 relative h-64 sm:h-80 lg:h-[500px] rounded-3xl overflow-hidden border border-white/30 shadow-xl backdrop-blur-sm">
+          <div className="order-1 lg:order-2 relative h-64 sm:h-80 lg:h-[500px] rounded-3xl overflow-hidden border border-white/30 shadow-xl backdrop-blur-sm" ref={carouselRef}>
             {heroImages.length > 0 ? (
               <>
                 {heroImages.map((image, index) => (
@@ -198,10 +261,18 @@ export default function Hero() {
                     className={`absolute inset-0 transition-all duration-1000 ease-in-out ${index === currentImageIndex ? 'opacity-100' : 'opacity-0'}`}
                   >
                     <img
-                      src={image.image_url}
+                      src={getOptimizedImageUrl(image.image_url, 1024)}
                       alt={image.title}
                       className="w-full h-full object-cover"
-                      loading="lazy"
+                      loading={index <= 1 ? "eager" : "lazy"}
+                      decoding="async"
+                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 90vw, 50vw"
+                      onLoad={() => {
+                        setImagesLoadedState(prev => ({
+                          ...prev,
+                          [image.id]: true
+                        }));
+                      }}
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-[#1C3D5A]/40 to-transparent"></div>
                   </div>
@@ -221,8 +292,8 @@ export default function Hero() {
                     key={index}
                     onClick={() => setCurrentImageIndex(index)}
                     className={`w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full transition-all backdrop-blur-sm ${index === currentImageIndex
-                        ? 'bg-[#f2b134] w-5 sm:w-6'
-                        : 'bg-[#1C3D5A]/50'
+                      ? 'bg-[#f2b134] w-5 sm:w-6'
+                      : 'bg-[#1C3D5A]/50'
                       }`}
                     aria-label={`Go to slide ${index + 1}`}
                   />
@@ -233,13 +304,13 @@ export default function Hero() {
         </div>
 
         {/* Testimonials section replacing the previous service cards */}
-        <div className="mt-12 sm:mt-16 lg:mt-20">
+        <div className="mt-12 sm:mt-16 lg:mt-20" ref={testimonialsRef}>
           <h2 className="text-xl sm:text-2xl font-bold text-center text-[#1C3D5A] mb-6 sm:mb-8">What Our Clients Say</h2>
-          {testimonials.length > 0 ? (
+          {testimonialsVisible && testimonials.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
               {testimonials.map((testimonial) => (
-                <div 
-                  key={testimonial.id} 
+                <div
+                  key={testimonial.id}
                   className="bg-white/30 backdrop-blur-sm p-4 sm:p-6 rounded-xl shadow-lg border border-white/20 hover:shadow-xl transition-all"
                 >
                   <div className="flex items-center mb-3 sm:mb-4">
@@ -248,6 +319,8 @@ export default function Hero() {
                       alt={testimonial.name}
                       className="w-10 h-10 sm:w-12 sm:h-12 rounded-full object-cover flex-shrink-0"
                       loading="lazy"
+                      decoding="async"
+                      sizes="(max-width: 640px) 40px, 48px"
                       onError={(e) => {
                         const target = e.target as HTMLImageElement;
                         target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(testimonial.name)}&background=2DBE7E&color=fff`;
@@ -265,10 +338,15 @@ export default function Hero() {
                 </div>
               ))}
             </div>
-          ) : (
+          ) : testimonialsVisible ? (
             <div className="text-center py-6 sm:py-8 bg-white/30 backdrop-blur-sm rounded-xl border border-white/20">
               <Quote className="mx-auto text-[#1C3D5A]/50 mb-3 sm:mb-4" size={24} />
               <p className="text-[#1C3D5A]/80 text-sm sm:text-base">No testimonials available yet.</p>
+            </div>
+          ) : (
+            <div className="text-center py-6 sm:py-8 bg-white/30 backdrop-blur-sm rounded-xl border border-white/20">
+              <Quote className="mx-auto text-[#1C3D5A]/50 mb-3 sm:mb-4" size={24} />
+              <p className="text-[#1C3D5A]/80 text-sm sm:text-base">Loading testimonials...</p>
             </div>
           )}
         </div>
