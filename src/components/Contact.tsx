@@ -21,9 +21,19 @@ export default function Contact() {
     setError('');
 
     try {
+      // Map form data to database columns
+      const inquiryData = {
+        full_name: formData.full_name,
+        email: formData.email,
+        phone_number: formData.phone_number,
+        company_name: formData.company_name,
+        interested_package: formData.interested_package,
+        message: formData.message,
+      };
+
       const { error: submitError } = await supabase
         .from('inquiries')
-        .insert([formData]);
+        .insert([inquiryData]);
 
       if (submitError) throw submitError;
 

@@ -50,26 +50,47 @@ export default function JobApplicationForm({ jobId, jobTitle, onClose, onSubmitS
     }
   };
 
-  const uploadResume = async (file: File) => {
+  const uploadResume = async () => {
+    if (!resumeFile) return null;
+    
     try {
-      const fileExt = file.name.split('.').pop();
+      // Validate file type and size (max 5MB)
+      const validTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+      if (!validTypes.includes(resumeFile.type)) {
+        throw new Error('Please select a valid file (PDF, DOC, DOCX)');
+      }
+      if (resumeFile.size > 5 * 1024 * 1024) {
+        throw new Error('File size must be less than 5MB');
+      }
+
+      // Generate unique file name
+      const fileExt = resumeFile.name.split('.').pop();
       const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
-      
-      const { data, error } = await supabase.storage
+      const filePath = `${fileName}`;
+
+      // Upload to Supabase storage
+      const { error: uploadError } = await supabase.storage
         .from('resumes')
-        .upload(fileName, file);
-      
-      if (error) throw error;
-      
+        .upload(filePath, resumeFile, {
+          cacheControl: '3600',
+          upsert: false
+        });
+
+      if (uploadError) throw uploadError;
+
       // Get public URL
       const { data: { publicUrl } } = supabase.storage
         .from('resumes')
-        .getPublicUrl(data.path);
-      
+        .getPublicUrl(filePath);
+
+      if (!publicUrl) {
+        throw new Error('Failed to generate public URL');
+      }
+
       return publicUrl;
-    } catch (error) {
-      console.error('Error uploading resume:', error);
-      throw error;
+    } catch (err) {
+      console.error('Error uploading resume:', err);
+      throw new Error(err instanceof Error ? err.message : 'Failed to upload resume');
     }
   };
 
@@ -84,14 +105,17 @@ export default function JobApplicationForm({ jobId, jobTitle, onClose, onSubmitS
       // Upload resume if provided
       if (resumeFile) {
         setUploading(true);
-        resumeUrl = await uploadResume(resumeFile);
+        resumeUrl = await uploadResume();
         setUploading(false);
       }
       
       // Submit application
       const applicationData = {
         job_id: jobId,
-        ...formData,
+        full_name: formData.full_name,
+        email: formData.email,
+        phone: formData.phone, // Fix field name to match database column
+        cover_letter: formData.cover_letter,
         resume_url: resumeUrl
       };
       

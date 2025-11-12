@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { MapPin, Clock, DollarSign } from 'lucide-react';
 import SEO from './SEO';
-import JobApplicationForm from './JobApplicationForm';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 
 interface Job {
@@ -23,7 +23,7 @@ interface Job {
 export default function Careers() {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedJob, setSelectedJob] = useState<Job | null>(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchJobs();
@@ -58,10 +58,18 @@ export default function Careers() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 pt-20">
+      <div className="min-h-screen bg-gray-50">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="text-center">
             <h1 className="text-4xl font-bold text-gray-900 mb-4">Loading Career Opportunities...</h1>
+          </div>
+          <div className="bg-white/30 backdrop-blur-sm rounded-xl shadow-lg p-8 border border-white/20 mt-8 max-w-2xl mx-auto">
+            <div className="animate-pulse space-y-4">
+              <div className="h-8 bg-gray-200/50 rounded w-3/4 mx-auto"></div>
+              <div className="h-4 bg-gray-200/50 rounded w-full"></div>
+              <div className="h-4 bg-gray-200/50 rounded w-5/6 mx-auto"></div>
+              <div className="h-4 bg-gray-200/50 rounded w-2/3 mx-auto"></div>
+            </div>
           </div>
         </div>
       </div>
@@ -69,7 +77,7 @@ export default function Careers() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 pt-20">
+    <div className="min-h-screen bg-gray-50">
       <SEO
         title="Careers"
         description="Join our team at Reverence Technology and help empower East Africa through digital innovation. We're hiring talented developers, designers, and tech professionals."
@@ -92,22 +100,26 @@ export default function Careers() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {jobs.map((job) => (
-              <div key={job.id} className="bg-white rounded-xl shadow-sm overflow-hidden hover:shadow-md transition-shadow duration-300">
+              <div 
+                key={job.id} 
+                className="bg-white/30 backdrop-blur-sm rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer border border-white/20"
+                onClick={() => navigate(`/job/${job.id}`)}
+              >
                 <div className="p-6">
                   <h2 className="text-2xl font-bold text-gray-900 mb-3">{job.title}</h2>
 
                   <div className="space-y-3 mb-6">
-                    <div className="flex items-center text-gray-600">
-                      <MapPin className="w-5 h-5 mr-2 text-gray-400" />
+                    <div className="flex items-center text-gray-700">
+                      <MapPin className="w-5 h-5 mr-2 text-[#1C3D5A]" />
                       <span>{job.location}</span>
                     </div>
-                    <div className="flex items-center text-gray-600">
-                      <Clock className="w-5 h-5 mr-2 text-gray-400" />
+                    <div className="flex items-center text-gray-700">
+                      <Clock className="w-5 h-5 mr-2 text-[#1C3D5A]" />
                       <span>{job.employment_type}</span>
                     </div>
                     {job.salary_range && (
-                      <div className="flex items-center text-gray-600">
-                        <DollarSign className="w-5 h-5 mr-2 text-gray-400" />
+                      <div className="flex items-center text-gray-700">
+                        <DollarSign className="w-5 h-5 mr-2 text-[#1C3D5A]" />
                         <span>{job.salary_range}</span>
                       </div>
                     )}
@@ -115,21 +127,24 @@ export default function Careers() {
 
                   <div className="mb-6">
                     <h3 className="font-semibold text-gray-900 mb-2">Responsibilities</h3>
-                    <ul className="list-disc list-inside text-gray-600 space-y-1">
+                    <ul className="list-disc list-inside text-gray-700 space-y-1">
                       {job.responsibilities.slice(0, 3).map((resp, index) => (
                         <li key={index}>{resp}</li>
                       ))}
                       {job.responsibilities.length > 3 && (
-                        <li className="text-blue-600">And more...</li>
+                        <li className="text-[#1C3D5A] font-medium">And more...</li>
                       )}
                     </ul>
                   </div>
 
                   <button
-                    onClick={() => setSelectedJob(job)}
-                    className="w-full bg-[#1C3D5A] text-white py-3 px-4 rounded-lg hover:bg-[#143040] transition-colors font-medium"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate(`/job/${job.id}`);
+                    }}
+                    className="w-full bg-[#f2b134] text-[#1C3D5A] py-3 px-4 rounded-lg hover:bg-[#d89e2d] transition-colors font-medium shadow-md"
                   >
-                    Apply Now
+                    View Details & Apply
                   </button>
                 </div>
               </div>
@@ -137,33 +152,33 @@ export default function Careers() {
           </div>
         )}
 
-        <div className="mt-16 bg-white rounded-xl shadow-sm p-8">
+        <div className="mt-16 bg-white/30 backdrop-blur-sm rounded-xl shadow-lg p-8 border border-white/20">
           <h2 className="text-2xl font-bold text-gray-900 mb-4">Why Work With Us?</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="text-center">
-              <div className="bg-[#F2B134] w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+              <div className="bg-[#F2B134] w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 backdrop-blur-sm border border-white/30">
                 <span className="text-2xl font-bold text-white">1</span>
               </div>
               <h3 className="text-lg font-semibold mb-2">Impactful Work</h3>
-              <p className="text-gray-600">
+              <p className="text-gray-700">
                 Contribute to projects that make a real difference in East Africa's digital transformation.
               </p>
             </div>
             <div className="text-center">
-              <div className="bg-[#2DBE7E] w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+              <div className="bg-[#2DBE7E] w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 backdrop-blur-sm border border-white/30">
                 <span className="text-2xl font-bold text-white">2</span>
               </div>
               <h3 className="text-lg font-semibold mb-2">Growth Opportunities</h3>
-              <p className="text-gray-600">
+              <p className="text-gray-700">
                 Continuous learning and professional development in cutting-edge technologies.
               </p>
             </div>
             <div className="text-center">
-              <div className="bg-[#1C3D5A] w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+              <div className="bg-[#1C3D5A] w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 backdrop-blur-sm border border-white/30">
                 <span className="text-2xl font-bold text-white">3</span>
               </div>
               <h3 className="text-lg font-semibold mb-2">Inclusive Culture</h3>
-              <p className="text-gray-600">
+              <p className="text-gray-700">
                 Collaborative environment that values diversity and encourages innovation.
               </p>
             </div>
@@ -171,16 +186,6 @@ export default function Careers() {
         </div>
       </div>
 
-      {selectedJob && (
-        <JobApplicationForm
-          jobId={selectedJob.id}
-          jobTitle={selectedJob.title}
-          onClose={() => setSelectedJob(null)}
-          onSubmitSuccess={() => {
-            // Optionally refresh jobs or show a message
-          }}
-        />
-      )}
     </div>
   );
 }

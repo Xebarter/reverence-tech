@@ -17,6 +17,22 @@ interface Job {
   updated_at: string;
 }
 
+// Helper function to ensure we're working with arrays
+const ensureArray = (data: any): string[] => {
+  if (Array.isArray(data)) {
+    return data;
+  }
+  if (typeof data === 'string') {
+    try {
+      const parsed = JSON.parse(data);
+      return Array.isArray(parsed) ? parsed : [parsed];
+    } catch (e) {
+      return data ? [data] : [];
+    }
+  }
+  return [];
+};
+
 interface JobApplication {
   id: string;
   job_id: string;
@@ -207,6 +223,12 @@ export default function CareersManagement() {
   };
 
   const openEditModal = (job: Job) => {
+    // Debugging: log the job data being passed to the edit modal
+    console.log('Editing job:', job);
+    console.log('Job responsibilities:', job.responsibilities);
+    console.log('Job requirements:', job.requirements);
+    console.log('Job benefits:', job.benefits);
+    
     setEditingJob(job);
     setFormData({
       title: job.title,
@@ -214,9 +236,9 @@ export default function CareersManagement() {
       location: job.location,
       employment_type: job.employment_type,
       salary_range: job.salary_range || '',
-      responsibilities: [...job.responsibilities],
-      requirements: [...job.requirements],
-      benefits: [...job.benefits],
+      responsibilities: ensureArray(job.responsibilities),
+      requirements: ensureArray(job.requirements),
+      benefits: ensureArray(job.benefits),
       is_published: job.is_published,
       application_link: job.application_link || ''
     });
@@ -238,7 +260,8 @@ export default function CareersManagement() {
     if (!newItem) return;
 
     setFormData(prev => {
-      const key = `${type}s` as keyof typeof formData;
+      // Fix the pluralization for 'responsibility'
+      const key = type === 'responsibility' ? 'responsibilities' : `${type}s` as keyof typeof formData;
       const currentList = Array.isArray(prev[key]) ? [...prev[key] as string[]] : [];
       return {
         ...prev,
@@ -254,7 +277,8 @@ export default function CareersManagement() {
 
   const removeListItem = (type: 'responsibility' | 'requirement' | 'benefit', index: number) => {
     setFormData(prev => {
-      const key = `${type}s` as keyof typeof formData;
+      // Fix the pluralization for 'responsibility'
+      const key = type === 'responsibility' ? 'responsibilities' : `${type}s` as keyof typeof formData;
       const currentList = Array.isArray(prev[key]) ? [...prev[key] as string[]] : [];
       return {
         ...prev,
@@ -279,19 +303,19 @@ export default function CareersManagement() {
   };
 
   return (
-    <div className="p-6">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900">Careers Management</h1>
-        <p className="text-gray-600 mt-2">
+    <div className="p-4 sm:p-6 min-h-screen bg-gray-50">
+      <div className="mb-4 sm:mb-6 max-w-7xl mx-auto">
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Careers Management</h1>
+        <p className="text-gray-600 mt-1 sm:mt-2 text-sm sm:text-base">
           Manage job postings and applications
         </p>
       </div>
 
-      <div className="border-b border-gray-200 mb-6">
-        <nav className="-mb-px flex space-x-8">
+      <div className="border-b border-gray-200 mb-4 sm:mb-6 max-w-7xl mx-auto">
+        <nav className="-mb-px flex space-x-4 sm:space-x-8 overflow-x-auto">
           <button
             onClick={() => setActiveTab('jobs')}
-            className={`py-4 px-1 border-b-2 font-medium text-sm ${activeTab === 'jobs'
+            className={`py-4 px-1 border-b-2 font-medium text-xs sm:text-sm whitespace-nowrap ${activeTab === 'jobs'
                 ? 'border-[#1C3D5A] text-[#1C3D5A]'
                 : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
               }`}
@@ -300,7 +324,7 @@ export default function CareersManagement() {
           </button>
           <button
             onClick={() => setActiveTab('applications')}
-            className={`py-4 px-1 border-b-2 font-medium text-sm ${activeTab === 'applications'
+            className={`py-4 px-1 border-b-2 font-medium text-xs sm:text-sm whitespace-nowrap ${activeTab === 'applications'
                 ? 'border-[#1C3D5A] text-[#1C3D5A]'
                 : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
               }`}
@@ -310,175 +334,181 @@ export default function CareersManagement() {
         </nav>
       </div>
 
-      {loading ? (
-        <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#1C3D5A]"></div>
-        </div>
-      ) : activeTab === 'jobs' ? (
-        <div>
-          <div className="flex justify-end mb-4">
-            <button
-              onClick={openCreateModal}
-              className="bg-[#1C3D5A] text-white px-4 py-2 rounded-md hover:bg-[#143040] transition-colors"
-            >
-              Create New Job
-            </button>
+      <div className="max-w-7xl mx-auto">
+        {loading ? (
+          <div className="flex justify-center items-center h-48 sm:h-64">
+            <div className="animate-spin rounded-full h-8 w-8 sm:h-12 sm:w-12 border-t-2 border-b-2 border-[#1C3D5A]"></div>
           </div>
+        ) : activeTab === 'jobs' ? (
+          <div>
+            <div className="flex justify-end mb-4">
+              <button
+                onClick={openCreateModal}
+                className="bg-[#1C3D5A] text-white px-3 py-2 sm:px-4 sm:py-2 rounded-md hover:bg-[#143040] transition-colors text-sm"
+              >
+                Create New Job
+              </button>
+            </div>
 
-          {jobs.length === 0 ? (
-            <div className="text-center py-12">
-              <p className="text-gray-500">No job postings yet.</p>
-            </div>
-          ) : (
-            <div className="bg-white shadow-sm rounded-lg overflow-hidden">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Position
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Location
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Type
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Status
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Posted
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {jobs.map((job) => (
-                    <tr key={job.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-gray-900">{job.title}</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-500">{job.location}</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-500">{job.employment_type}</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${job.is_published
-                            ? 'bg-green-100 text-green-800'
-                            : 'bg-yellow-100 text-yellow-800'
-                          }`}>
-                          {job.is_published ? 'Published' : 'Draft'}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {formatDate(job.created_at)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <button
-                          onClick={() => openEditModal(job)}
-                          className="text-[#1C3D5A] hover:text-[#143040] mr-3"
-                        >
-                          Edit
-                        </button>
-                        <button
-                          onClick={() => handleDelete(job.id)}
-                          className="text-red-600 hover:text-red-900"
-                        >
-                          Delete
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
-      ) : (
-        <div>
-          {applications.length === 0 ? (
-            <div className="text-center py-12">
-              <p className="text-gray-500">No job applications yet.</p>
-            </div>
-          ) : (
-            <div className="bg-white shadow-sm rounded-lg overflow-hidden">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Applicant
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Position
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Applied
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Status
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {applications.map((application) => (
-                    <tr key={application.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-gray-900">{application.full_name}</div>
-                        <div className="text-sm text-gray-500">{application.email}</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{application.job?.title || 'Unknown Position'}</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {formatDate(application.created_at)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <select
-                          value={application.status}
-                          onChange={(e) => handleStatusChange(application.id, e.target.value)}
-                          className="text-sm rounded-md border-gray-300 shadow-sm focus:border-[#1C3D5A] focus:ring focus:ring-[#1C3D5A] focus:ring-opacity-50"
-                        >
-                          <option value="new">New</option>
-                          <option value="reviewed">Reviewed</option>
-                          <option value="interview">Interview</option>
-                          <option value="rejected">Rejected</option>
-                          <option value="hired">Hired</option>
-                        </select>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <button
-                          onClick={() => {
-                            setViewingApplication(application);
-                            setIsApplicationModalOpen(true);
-                          }}
-                          className="text-[#1C3D5A] hover:text-[#143040]"
-                        >
-                          View Details
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
-      )}
+            {jobs.length === 0 ? (
+              <div className="text-center py-8 sm:py-12">
+                <p className="text-gray-500 text-sm sm:text-base">No job postings yet.</p>
+              </div>
+            ) : (
+              <div className="bg-white shadow-sm rounded-lg overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th scope="col" className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sm:px-6">
+                          Position
+                        </th>
+                        <th scope="col" className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sm:px-6 hidden sm:table-cell">
+                          Location
+                        </th>
+                        <th scope="col" className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sm:px-6 hidden sm:table-cell">
+                          Type
+                        </th>
+                        <th scope="col" className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sm:px-6 hidden md:table-cell">
+                          Status
+                        </th>
+                        <th scope="col" className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sm:px-6 hidden sm:table-cell">
+                          Posted
+                        </th>
+                        <th scope="col" className="px-3 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider sm:px-6">
+                          Actions
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {jobs.map((job) => (
+                        <tr key={job.id} className="hover:bg-gray-50">
+                          <td className="px-3 py-4 whitespace-nowrap sm:px-6">
+                            <div className="text-sm font-medium text-gray-900">{job.title}</div>
+                          </td>
+                          <td className="px-3 py-4 whitespace-nowrap sm:px-6 hidden sm:table-cell">
+                            <div className="text-sm text-gray-500">{job.location}</div>
+                          </td>
+                          <td className="px-3 py-4 whitespace-nowrap sm:px-6 hidden sm:table-cell">
+                            <div className="text-sm text-gray-500">{job.employment_type}</div>
+                          </td>
+                          <td className="px-3 py-4 whitespace-nowrap sm:px-6 hidden md:table-cell">
+                            <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${job.is_published
+                                ? 'bg-green-100 text-green-800'
+                                : 'bg-yellow-100 text-yellow-800'
+                              }`}>
+                              {job.is_published ? 'Published' : 'Draft'}
+                            </span>
+                          </td>
+                          <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-500 sm:px-6 hidden sm:table-cell">
+                            {formatDate(job.created_at)}
+                          </td>
+                          <td className="px-3 py-4 whitespace-nowrap text-right text-sm font-medium sm:px-6">
+                            <button
+                              onClick={() => openEditModal(job)}
+                              className="text-[#1C3D5A] hover:text-[#143040] mr-3 text-xs sm:text-sm"
+                            >
+                              Edit
+                            </button>
+                            <button
+                              onClick={() => handleDelete(job.id)}
+                              className="text-red-600 hover:text-red-900 text-xs sm:text-sm"
+                            >
+                              Delete
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+          </div>
+        ) : (
+          <div>
+            {applications.length === 0 ? (
+              <div className="text-center py-8 sm:py-12">
+                <p className="text-gray-500 text-sm sm:text-base">No job applications yet.</p>
+              </div>
+            ) : (
+              <div className="bg-white shadow-sm rounded-lg overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th scope="col" className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sm:px-6">
+                          Applicant
+                        </th>
+                        <th scope="col" className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sm:px-6 hidden sm:table-cell">
+                          Position
+                        </th>
+                        <th scope="col" className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sm:px-6 hidden sm:table-cell">
+                          Applied
+                        </th>
+                        <th scope="col" className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sm:px-6 hidden md:table-cell">
+                          Status
+                        </th>
+                        <th scope="col" className="px-3 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider sm:px-6">
+                          Actions
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {applications.map((application) => (
+                        <tr key={application.id} className="hover:bg-gray-50">
+                          <td className="px-3 py-4 whitespace-nowrap sm:px-6">
+                            <div className="text-sm font-medium text-gray-900">{application.full_name}</div>
+                            <div className="text-xs text-gray-500 sm:text-sm">{application.email}</div>
+                          </td>
+                          <td className="px-3 py-4 whitespace-nowrap sm:px-6 hidden sm:table-cell">
+                            <div className="text-sm text-gray-900">{application.job?.title || 'Unknown Position'}</div>
+                          </td>
+                          <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-500 sm:px-6 hidden sm:table-cell">
+                            {formatDate(application.created_at)}
+                          </td>
+                          <td className="px-3 py-4 whitespace-nowrap sm:px-6 hidden md:table-cell">
+                            <select
+                              value={application.status}
+                              onChange={(e) => handleStatusChange(application.id, e.target.value)}
+                              className="text-xs sm:text-sm rounded-md border-gray-300 shadow-sm focus:border-[#1C3D5A] focus:ring focus:ring-[#1C3D5A] focus:ring-opacity-50"
+                            >
+                              <option value="new">New</option>
+                              <option value="reviewed">Reviewed</option>
+                              <option value="interview">Interview</option>
+                              <option value="rejected">Rejected</option>
+                              <option value="hired">Hired</option>
+                            </select>
+                          </td>
+                          <td className="px-3 py-4 whitespace-nowrap text-right text-sm font-medium sm:px-6">
+                            <button
+                              onClick={() => {
+                                setViewingApplication(application);
+                                setIsApplicationModalOpen(true);
+                              }}
+                              className="text-[#1C3D5A] hover:text-[#143040] text-xs sm:text-sm"
+                            >
+                              View Details
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
 
       {/* Job Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-2 sm:p-4 z-50">
+          <div className="bg-white rounded-lg max-w-full sm:max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-4 sm:p-6">
               <div className="flex justify-between items-center mb-4">
-                <h2 className="text-2xl font-bold text-gray-900">
+                <h2 className="text-xl sm:text-2xl font-bold text-gray-900">
                   {editingJob ? 'Edit Job Posting' : 'Create New Job Posting'}
                 </h2>
                 <button
@@ -488,14 +518,14 @@ export default function CareersManagement() {
                   }}
                   className="text-gray-500 hover:text-gray-700"
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 sm:h-6 sm:w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                   </svg>
                 </button>
               </div>
 
-              <form onSubmit={handleSubmit} className="space-y-6">
-                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+              <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
+                <div className="grid grid-cols-1 gap-4 sm:gap-6 sm:grid-cols-2">
                   <div>
                     <label htmlFor="title" className="block text-sm font-medium text-gray-700">Job Title *</label>
                     <input
@@ -504,7 +534,7 @@ export default function CareersManagement() {
                       required
                       value={formData.title}
                       onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                      className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-[#1C3D5A] focus:border-[#1C3D5A]"
+                      className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-[#1C3D5A] focus:border-[#1C3D5A] text-sm"
                     />
                   </div>
 
@@ -516,7 +546,7 @@ export default function CareersManagement() {
                       required
                       value={formData.location}
                       onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                      className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-[#1C3D5A] focus:border-[#1C3D5A]"
+                      className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-[#1C3D5A] focus:border-[#1C3D5A] text-sm"
                     />
                   </div>
 
@@ -527,7 +557,7 @@ export default function CareersManagement() {
                       required
                       value={formData.employment_type}
                       onChange={(e) => setFormData({ ...formData, employment_type: e.target.value })}
-                      className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-[#1C3D5A] focus:border-[#1C3D5A]"
+                      className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-[#1C3D5A] focus:border-[#1C3D5A] text-sm"
                     >
                       <option value="">Select type</option>
                       <option value="Full-time">Full-time</option>
@@ -546,7 +576,7 @@ export default function CareersManagement() {
                       placeholder="$1,200 - $1,800"
                       value={formData.salary_range || ''}
                       onChange={(e) => setFormData({ ...formData, salary_range: e.target.value })}
-                      className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-[#1C3D5A] focus:border-[#1C3D5A]"
+                      className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-[#1C3D5A] focus:border-[#1C3D5A] text-sm"
                     />
                   </div>
 
@@ -555,39 +585,39 @@ export default function CareersManagement() {
                     <textarea
                       id="description"
                       required
-                      rows={4}
+                      rows={3}
                       value={formData.description}
                       onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                      className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-[#1C3D5A] focus:border-[#1C3D5A]"
+                      className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-[#1C3D5A] focus:border-[#1C3D5A] text-sm"
                     />
                   </div>
 
                   <div className="sm:col-span-2">
                     <label className="block text-sm font-medium text-gray-700 mb-2">Responsibilities</label>
-                    <div className="flex">
+                    <div className="flex flex-col sm:flex-row gap-2">
                       <input
                         type="text"
                         value={newListItem.responsibility}
                         onChange={(e) => setNewListItem({ ...newListItem, responsibility: e.target.value })}
                         onKeyPress={(e) => handleKeyPress(e, 'responsibility')}
-                        className="flex-1 border border-gray-300 rounded-l-md shadow-sm py-2 px-3 focus:outline-none focus:ring-[#1C3D5A] focus:border-[#1C3D5A]"
+                        className="flex-1 border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-[#1C3D5A] focus:border-[#1C3D5A] text-sm"
                         placeholder="Add a responsibility"
                       />
                       <button
                         type="button"
                         onClick={() => addListItem('responsibility')}
-                        className="bg-gray-200 border border-l-0 border-gray-300 rounded-r-md px-4 py-2 text-gray-700 hover:bg-gray-300"
+                        className="bg-gray-200 border border-gray-300 rounded-md px-4 py-2 text-gray-700 hover:bg-gray-300 text-sm whitespace-nowrap"
                       >
                         Add
                       </button>
                     </div>
-                    {formData.responsibilities.length > 0 && (
-                      <div className="mt-3">
+                    {ensureArray(formData.responsibilities).length > 0 && (
+                      <div className="mt-3 max-h-32 overflow-y-auto">
                         <div className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">Added Responsibilities:</div>
                         <ul className="space-y-1">
-                          {formData.responsibilities.map((item, index) => (
-                            <li key={index} className="flex items-center justify-between bg-blue-50 px-3 py-2 rounded border border-blue-100">
-                              <span className="text-sm text-gray-800">• {item}</span>
+                          {ensureArray(formData.responsibilities).map((item, index) => (
+                            <li key={index} className="flex items-center justify-between bg-blue-50 px-3 py-2 rounded border border-blue-100 text-sm">
+                              <span className="text-gray-800 truncate">• {item}</span>
                               <button
                                 type="button"
                                 onClick={() => removeListItem('responsibility', index)}
@@ -606,30 +636,30 @@ export default function CareersManagement() {
 
                   <div className="sm:col-span-2">
                     <label className="block text-sm font-medium text-gray-700 mb-2">Requirements</label>
-                    <div className="flex">
+                    <div className="flex flex-col sm:flex-row gap-2">
                       <input
                         type="text"
                         value={newListItem.requirement}
                         onChange={(e) => setNewListItem({ ...newListItem, requirement: e.target.value })}
                         onKeyPress={(e) => handleKeyPress(e, 'requirement')}
-                        className="flex-1 border border-gray-300 rounded-l-md shadow-sm py-2 px-3 focus:outline-none focus:ring-[#1C3D5A] focus:border-[#1C3D5A]"
+                        className="flex-1 border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-[#1C3D5A] focus:border-[#1C3D5A] text-sm"
                         placeholder="Add a requirement"
                       />
                       <button
                         type="button"
                         onClick={() => addListItem('requirement')}
-                        className="bg-gray-200 border border-l-0 border-gray-300 rounded-r-md px-4 py-2 text-gray-700 hover:bg-gray-300"
+                        className="bg-gray-200 border border-gray-300 rounded-md px-4 py-2 text-gray-700 hover:bg-gray-300 text-sm whitespace-nowrap"
                       >
                         Add
                       </button>
                     </div>
-                    {formData.requirements.length > 0 && (
-                      <div className="mt-3">
+                    {ensureArray(formData.requirements).length > 0 && (
+                      <div className="mt-3 max-h-32 overflow-y-auto">
                         <div className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">Added Requirements:</div>
                         <ul className="space-y-1">
-                          {formData.requirements.map((item, index) => (
-                            <li key={index} className="flex items-center justify-between bg-yellow-50 px-3 py-2 rounded border border-yellow-100">
-                              <span className="text-sm text-gray-800">• {item}</span>
+                          {ensureArray(formData.requirements).map((item, index) => (
+                            <li key={index} className="flex items-center justify-between bg-yellow-50 px-3 py-2 rounded border border-yellow-100 text-sm">
+                              <span className="text-gray-800 truncate">• {item}</span>
                               <button
                                 type="button"
                                 onClick={() => removeListItem('requirement', index)}
@@ -648,30 +678,30 @@ export default function CareersManagement() {
 
                   <div className="sm:col-span-2">
                     <label className="block text-sm font-medium text-gray-700 mb-2">Benefits</label>
-                    <div className="flex">
+                    <div className="flex flex-col sm:flex-row gap-2">
                       <input
                         type="text"
                         value={newListItem.benefit}
                         onChange={(e) => setNewListItem({ ...newListItem, benefit: e.target.value })}
                         onKeyPress={(e) => handleKeyPress(e, 'benefit')}
-                        className="flex-1 border border-gray-300 rounded-l-md shadow-sm py-2 px-3 focus:outline-none focus:ring-[#1C3D5A] focus:border-[#1C3D5A]"
+                        className="flex-1 border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-[#1C3D5A] focus:border-[#1C3D5A] text-sm"
                         placeholder="Add a benefit"
                       />
                       <button
                         type="button"
                         onClick={() => addListItem('benefit')}
-                        className="bg-gray-200 border border-l-0 border-gray-300 rounded-r-md px-4 py-2 text-gray-700 hover:bg-gray-300"
+                        className="bg-gray-200 border border-gray-300 rounded-md px-4 py-2 text-gray-700 hover:bg-gray-300 text-sm whitespace-nowrap"
                       >
                         Add
                       </button>
                     </div>
-                    {formData.benefits.length > 0 && (
-                      <div className="mt-3">
+                    {ensureArray(formData.benefits).length > 0 && (
+                      <div className="mt-3 max-h-32 overflow-y-auto">
                         <div className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">Added Benefits:</div>
                         <ul className="space-y-1">
-                          {formData.benefits.map((item, index) => (
-                            <li key={index} className="flex items-center justify-between bg-green-50 px-3 py-2 rounded border border-green-100">
-                              <span className="text-sm text-gray-800">• {item}</span>
+                          {ensureArray(formData.benefits).map((item, index) => (
+                            <li key={index} className="flex items-center justify-between bg-green-50 px-3 py-2 rounded border border-green-100 text-sm">
+                              <span className="text-gray-800 truncate">• {item}</span>
                               <button
                                 type="button"
                                 onClick={() => removeListItem('benefit', index)}
@@ -704,20 +734,20 @@ export default function CareersManagement() {
                   </div>
                 </div>
 
-                <div className="flex justify-end space-x-3">
+                <div className="flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-3">
                   <button
                     type="button"
                     onClick={() => {
                       setIsModalOpen(false);
                       resetForm();
                     }}
-                    className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#1C3D5A]"
+                    className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-xs sm:text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#1C3D5A] w-full sm:w-auto"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#1C3D5A] hover:bg-[#143040] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#1C3D5A]"
+                    className="px-4 py-2 border border-transparent rounded-md shadow-sm text-xs sm:text-sm font-medium text-white bg-[#1C3D5A] hover:bg-[#143040] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#1C3D5A] w-full sm:w-auto"
                   >
                     {editingJob ? 'Update Job' : 'Create Job'}
                   </button>
@@ -730,11 +760,11 @@ export default function CareersManagement() {
 
       {/* Application Detail Modal */}
       {isApplicationModalOpen && viewingApplication && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-2 sm:p-4 z-50">
+          <div className="bg-white rounded-lg max-w-full sm:max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-4 sm:p-6">
               <div className="flex justify-between items-center mb-4">
-                <h2 className="text-2xl font-bold text-gray-900">Application Details</h2>
+                <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Application Details</h2>
                 <button
                   onClick={() => {
                     setIsApplicationModalOpen(false);
@@ -742,19 +772,19 @@ export default function CareersManagement() {
                   }}
                   className="text-gray-500 hover:text-gray-700"
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 sm:h-6 sm:w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                   </svg>
                 </button>
               </div>
 
-              <div className="space-y-6">
+              <div className="space-y-4 sm:space-y-6">
                 <div>
-                  <h3 className="text-lg font-medium text-gray-900">{viewingApplication.full_name}</h3>
-                  <p className="text-gray-600">{viewingApplication.job?.title || 'Unknown Position'}</p>
+                  <h3 className="text-lg font-medium text-gray-900 text-sm sm:text-base">{viewingApplication.full_name}</h3>
+                  <p className="text-gray-600 text-sm">{viewingApplication.job?.title || 'Unknown Position'}</p>
                 </div>
 
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div className="grid grid-cols-1 gap-4 sm:gap-4 sm:grid-cols-2">
                   <div>
                     <label className="block text-sm font-medium text-gray-700">Email</label>
                     <p className="mt-1 text-sm text-gray-900">{viewingApplication.email}</p>
@@ -791,7 +821,7 @@ export default function CareersManagement() {
                 {viewingApplication.cover_letter && (
                   <div>
                     <label className="block text-sm font-medium text-gray-700">Cover Letter</label>
-                    <div className="mt-1 bg-gray-50 p-4 rounded-md">
+                    <div className="mt-1 bg-gray-50 p-3 sm:p-4 rounded-md max-h-48 overflow-y-auto">
                       <p className="text-sm text-gray-900 whitespace-pre-wrap">{viewingApplication.cover_letter}</p>
                     </div>
                   </div>
@@ -805,9 +835,9 @@ export default function CareersManagement() {
                         href={viewingApplication.resume_url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#1C3D5A]"
+                        className="inline-flex items-center px-3 py-2 sm:px-4 sm:py-2 border border-gray-300 shadow-sm text-xs sm:text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#1C3D5A]"
                       >
-                        <svg xmlns="http://www.w3.org/2000/svg" className="-ml-1 mr-2 h-5 w-5 text-gray-500" viewBox="0 0 20 20" fill="currentColor">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="-ml-1 mr-2 h-4 w-4 sm:h-5 sm:w-5 text-gray-500" viewBox="0 0 20 20" fill="currentColor">
                           <path fillRule="evenodd" d="M6 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V7.414A2 2 0 0015.414 6L12 2.586A2 2 0 0010.586 2H6zm5 6a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V8z" clipRule="evenodd" />
                         </svg>
                         Download Resume
@@ -835,7 +865,7 @@ export default function CareersManagement() {
                         console.error('Error updating notes:', error);
                       }
                     }}
-                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-[#1C3D5A] focus:border-[#1C3D5A]"
+                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-[#1C3D5A] focus:border-[#1C3D5A] text-sm"
                   />
                 </div>
               </div>

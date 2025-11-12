@@ -23,6 +23,7 @@ import AdminAuth from './components/admin/Auth';
 import UserManagement from './components/admin/UserManagement';
 import Unauthorized from './components/admin/Unauthorized';
 import TestAdminUsers from './components/admin/TestAdminUsers';
+import JobDetails from './components/JobDetails';
 import SEO from './components/SEO';
 import { UserProvider } from './UserContext';
 
@@ -63,7 +64,24 @@ function App() {
           
           <Route path="/blog" element={<Blog />} />
           <Route path="/blog/:slug" element={<BlogPost />} />
-          <Route path="/careers" element={<Careers />} />
+          <Route path="/careers" element={
+            <div className="min-h-screen">
+              <Header />
+              <main className="pt-20">
+                <Careers />
+              </main>
+              <Footer />
+            </div>
+          } />
+          <Route path="/job/:id" element={
+            <div className="min-h-screen">
+              <Header />
+              <main className="pt-20">
+                <JobDetails />
+              </main>
+              <Footer />
+            </div>
+          } />
           <Route path="/unauthorized" element={<Unauthorized />} />
           <Route path="/test-admin" element={<TestAdminUsers />} />
           {/* Admin routes */}
