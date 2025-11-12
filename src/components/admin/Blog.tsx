@@ -169,7 +169,7 @@ export default function BlogManagement() {
         updateData.published_at = null;
       }
 
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('blog_posts')
         .update(updateData)
         .eq('id', id)
@@ -343,7 +343,7 @@ export default function BlogManagement() {
 
       if (editingCategory) {
         // Update existing category
-        const { data, error } = await supabase
+        const { error } = await supabase
           .from('blog_categories')
           .update(categoryData)
           .eq('id', editingCategory.id);
@@ -356,7 +356,7 @@ export default function BlogManagement() {
         alert('Category updated successfully!');
       } else {
         // Create new category
-        const { data, error } = await supabase
+        const { error } = await supabase
           .from('blog_categories')
           .insert([categoryData]);
 
