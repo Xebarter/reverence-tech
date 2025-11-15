@@ -284,7 +284,7 @@ export default function Hero() {
   };
 
   return (
-    <section id="home" className="pt-20 sm:pt-20 lg:pt-32 pb-12 sm:pb-16 lg:pb-20 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+    <section id="home" className="pt-24 sm:pt-20 lg:pt-32 pb-12 sm:pb-16 lg:pb-20 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
       {/* Background elements with gradient */}
       <div className="absolute inset-0 z-0">
         <div className="absolute inset-0 bg-gradient-to-br from-[#f2b134] to-[#00c7f2] opacity-20"></div>
