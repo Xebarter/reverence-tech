@@ -1,14 +1,30 @@
 import { useState } from 'react';
-import { Link, useLocation, Outlet } from 'react-router-dom';
-import { Menu, X, LayoutDashboard, Mail, Package, Image, MessageCircle, User, Briefcase, BookOpen, LogOut, Users } from 'lucide-react';
-import { supabase } from '../../lib/supabase';
+import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
+import { 
+  LayoutDashboard, 
+  Mail, 
+  Package, 
+  Image, 
+  MessageCircle, 
+  Briefcase, 
+  BookOpen, 
+  Users, 
+  LogOut, 
+  Menu, 
+  X,
+  User
+} from 'lucide-react';
 
 export default function AdminLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
 
-  const handleSignOut = async () => {
-    await supabase.auth.signOut();
+  const handleSignOut = () => {
+    // Remove admin authentication status
+    localStorage.removeItem('admin_authenticated');
+    // Redirect to auth page
+    navigate('/admin/auth');
   };
 
   const navigation = [
