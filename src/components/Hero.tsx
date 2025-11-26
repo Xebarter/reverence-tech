@@ -397,38 +397,23 @@ export default function Hero() {
                     isCurrent ? 'opacity-100' : 'opacity-0'
                   }`}
                 >
-                  {/* Show image only when loaded, or show a low-quality preview during loading */}
-                  {isLoaded ? (
-                    <img
-                      src={getOptimizedImageUrl(image.image_url, 1024)}
-                      srcSet={`
-                        ${getOptimizedImageUrl(image.image_url, 400)} 400w,
-                        ${getOptimizedImageUrl(image.image_url, 800)} 800w,
-                        ${getOptimizedImageUrl(image.image_url, 1024)} 1024w,
-                        ${getOptimizedImageUrl(image.image_url, 1536)} 1536w,
-                        ${getOptimizedImageUrl(image.image_url, 1920)} 1920w
-                      `}
-                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 90vw, 50vw"
-                      alt={image.title}
-                      className="w-full h-full object-cover"
-                      loading={index <= 1 ? "eager" : "lazy"}
-                      decoding="async"
-                      fetchPriority={index === 0 ? "high" : "auto"}
-                    />
-                  ) : loadState === 'loading' ? (
-                    // Show a blurred low-quality preview while loading
-                    <img
-                      src={getThumbnailUrl(image.image_url)}
-                      alt={image.title}
-                      className="w-full h-full object-cover blur-sm scale-105"
-                      loading="eager"
-                      decoding="async"
-                      fetchPriority={index === 0 ? "high" : "auto"}
-                    />
-                  ) : (
-                    // Simple gray background placeholder if image failed to load
-                    <div className="absolute inset-0 bg-gray-200"></div>
-                  )}
+                  {/* Show image with progressive loading - no static placeholders */}
+                  <img
+                    src={getOptimizedImageUrl(image.image_url, 1024)}
+                    srcSet={`
+                      ${getOptimizedImageUrl(image.image_url, 400)} 400w,
+                      ${getOptimizedImageUrl(image.image_url, 800)} 800w,
+                      ${getOptimizedImageUrl(image.image_url, 1024)} 1024w,
+                      ${getOptimizedImageUrl(image.image_url, 1536)} 1536w,
+                      ${getOptimizedImageUrl(image.image_url, 1920)} 1920w
+                    `}
+                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 90vw, 50vw"
+                    alt={image.title}
+                    className="w-full h-full object-cover"
+                    loading={index <= 1 ? "eager" : "lazy"}
+                    decoding="async"
+                    fetchPriority={index === 0 ? "high" : "auto"}
+                  />
                 </div>
               );
             })}
