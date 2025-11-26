@@ -16,11 +16,11 @@ const getOptimizedImageUrl = (url: string, width: number): string => {
 
   // If using Supabase storage or Unsplash, add optimization params
   if (url.includes('unsplash.com')) {
-    return `${url}&w=${width}&q=80&auto=format&fit=crop`;
+    return `${url}&w=${width}&q=75&auto=format&fit=crop&fm=webp`;
   }
   if (url.includes('supabase.co')) {
     // For Supabase storage, add transform params
-    return `${url}?width=${width}&quality=80&resize=cover`;
+    return `${url}?width=${width}&quality=75&resize=cover&format=webp`;
   }
   return url;
 };
@@ -30,10 +30,23 @@ const getThumbnailUrl = (url: string): string => {
   if (!url) return url;
 
   if (url.includes('unsplash.com')) {
-    return `${url}&w=50&h=50&q=30&blur=2&auto=format`;
+    return `${url}&w=50&h=50&q=20&blur=2&auto=format&fm=webp`;
   }
   if (url.includes('supabase.co')) {
-    return `${url}?width=50&height=50&quality=30&resize=cover`;
+    return `${url}?width=50&height=50&quality=20&resize=cover&format=webp`;
+  }
+  return url;
+};
+
+// Create a medium quality image for progressive loading
+const getMediumQualityUrl = (url: string): string => {
+  if (!url) return url;
+
+  if (url.includes('unsplash.com')) {
+    return `${url}&w=400&q=50&auto=format&fit=crop&fm=webp`;
+  }
+  if (url.includes('supabase.co')) {
+    return `${url}?width=400&quality=50&resize=cover&format=webp`;
   }
   return url;
 };
@@ -104,29 +117,63 @@ export default function Hero() {
     // Create image element to preload with smaller thumbnail first
     const imgThumb = new Image();
     imgThumb.onload = () => {
-      // Thumbnail loaded, now load full image
-      const imgFull = new Image();
-      imgFull.onload = () => {
-        // Mark image as loaded
-        setLoadedImages(prev => new Set(prev).add(imageUrl));
-        setImageLoadStates(prev => ({ ...prev, [imageUrl]: 'loaded' }));
+      // Thumbnail loaded, now load medium quality image
+      const imgMedium = new Image();
+      imgMedium.onload = () => {
+        // Medium quality loaded, now load full image
+        const imgFull = new Image();
+        imgFull.onload = () => {
+          // Mark image as loaded
+          setLoadedImages(prev => new Set(prev).add(imageUrl));
+          setImageLoadStates(prev => ({ ...prev, [imageUrl]: 'loaded' }));
+        };
+        imgFull.onerror = () => {
+          setImageLoadStates(prev => ({ ...prev, [imageUrl]: 'error' }));
+        };
+        imgFull.src = getOptimizedImageUrl(imageUrl, 1024);
       };
-      imgFull.onerror = () => {
-        setImageLoadStates(prev => ({ ...prev, [imageUrl]: 'error' }));
+      imgMedium.onerror = () => {
+        // If medium fails, go straight to full image
+        const imgFull = new Image();
+        imgFull.onload = () => {
+          setLoadedImages(prev => new Set(prev).add(imageUrl));
+          setImageLoadStates(prev => ({ ...prev, [imageUrl]: 'loaded' }));
+        };
+        imgFull.onerror = () => {
+          setImageLoadStates(prev => ({ ...prev, [imageUrl]: 'error' }));
+        };
+        imgFull.src = getOptimizedImageUrl(imageUrl, 1024);
       };
-      imgFull.src = getOptimizedImageUrl(imageUrl, 1024);
+      imgMedium.src = getMediumQualityUrl(imageUrl);
     };
     imgThumb.onerror = () => {
-      // If thumbnail fails, try full image directly
-      const imgFull = new Image();
-      imgFull.onload = () => {
-        setLoadedImages(prev => new Set(prev).add(imageUrl));
-        setImageLoadStates(prev => ({ ...prev, [imageUrl]: 'loaded' }));
+      // If thumbnail fails, try medium image directly
+      const imgMedium = new Image();
+      imgMedium.onload = () => {
+        // Medium quality loaded, now load full image
+        const imgFull = new Image();
+        imgFull.onload = () => {
+          setLoadedImages(prev => new Set(prev).add(imageUrl));
+          setImageLoadStates(prev => ({ ...prev, [imageUrl]: 'loaded' }));
+        };
+        imgFull.onerror = () => {
+          setImageLoadStates(prev => ({ ...prev, [imageUrl]: 'error' }));
+        };
+        imgFull.src = getOptimizedImageUrl(imageUrl, 1024);
       };
-      imgFull.onerror = () => {
-        setImageLoadStates(prev => ({ ...prev, [imageUrl]: 'error' }));
+      imgMedium.onerror = () => {
+        // If medium fails, try full image directly
+        const imgFull = new Image();
+        imgFull.onload = () => {
+          setLoadedImages(prev => new Set(prev).add(imageUrl));
+          setImageLoadStates(prev => ({ ...prev, [imageUrl]: 'loaded' }));
+        };
+        imgFull.onerror = () => {
+          setImageLoadStates(prev => ({ ...prev, [imageUrl]: 'error' }));
+        };
+        imgFull.src = getOptimizedImageUrl(imageUrl, 1024);
       };
-      imgFull.src = getOptimizedImageUrl(imageUrl, 1024);
+      imgMedium.src = getMediumQualityUrl(imageUrl);
     };
     imgThumb.src = getThumbnailUrl(imageUrl);
 
@@ -188,7 +235,7 @@ export default function Hero() {
             }, 300); // Half of the transition duration
           }, 300); // Half of the transition duration
         }
-      }, 7000); // Change both image and text every 7 seconds
+      }, 5000); // Change both image and text every 5 seconds (faster rotation)
 
       // Preload first few images on mount for better initial experience
       if (heroImages.length > 0) {
@@ -352,32 +399,35 @@ export default function Hero() {
                 >
                   {/* Show image only when loaded, or show a low-quality preview during loading */}
                   {isLoaded ? (
-                    <>
-                      <img
-                        src={getOptimizedImageUrl(image.image_url, 1024)}
-                        alt={image.title}
-                        className="w-full h-full object-cover"
-                        loading={index <= 1 ? "eager" : "lazy"}
-                        decoding="async"
-                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 90vw, 50vw"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-[#1C3D5A]/40 to-transparent"></div>
-                    </>
+                    <img
+                      src={getOptimizedImageUrl(image.image_url, 1024)}
+                      srcSet={`
+                        ${getOptimizedImageUrl(image.image_url, 400)} 400w,
+                        ${getOptimizedImageUrl(image.image_url, 800)} 800w,
+                        ${getOptimizedImageUrl(image.image_url, 1024)} 1024w,
+                        ${getOptimizedImageUrl(image.image_url, 1536)} 1536w,
+                        ${getOptimizedImageUrl(image.image_url, 1920)} 1920w
+                      `}
+                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 90vw, 50vw"
+                      alt={image.title}
+                      className="w-full h-full object-cover"
+                      loading={index <= 1 ? "eager" : "lazy"}
+                      decoding="async"
+                      fetchPriority={index === 0 ? "high" : "auto"}
+                    />
                   ) : loadState === 'loading' ? (
                     // Show a blurred low-quality preview while loading
-                    <>
-                      <img
-                        src={getThumbnailUrl(image.image_url)}
-                        alt={image.title}
-                        className="w-full h-full object-cover blur-sm scale-105"
-                        loading="eager"
-                        decoding="async"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-[#1C3D5A]/40 to-transparent"></div>
-                    </>
+                    <img
+                      src={getThumbnailUrl(image.image_url)}
+                      alt={image.title}
+                      className="w-full h-full object-cover blur-sm scale-105"
+                      loading="eager"
+                      decoding="async"
+                      fetchPriority={index === 0 ? "high" : "auto"}
+                    />
                   ) : (
-                    // Gradient placeholder if image failed to load
-                    <div className="absolute inset-0 bg-gradient-to-br from-[#f2b134] to-[#00eedf]"></div>
+                    // Simple gray background placeholder if image failed to load
+                    <div className="absolute inset-0 bg-gray-200"></div>
                   )}
                 </div>
               );
