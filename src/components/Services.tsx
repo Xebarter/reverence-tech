@@ -162,9 +162,9 @@ export default function Services() {
       <style>{pulseKeyframes}</style>
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-16">
-          <h2 className="text-4xl font-bold text-[#1C3D5A] mb-4">
-            Our <span className="text-[#2DBE7E]">Service Packages</span>
-          </h2>
+          <h3 className="text-2xl font-bold flex items-center">
+            <span className="text-yellow-400 mr-2">Get in Touch</span>
+          </h3>
           <p className="text-lg text-gray-600 max-w-3xl mx-auto leading-relaxed">
             Comprehensive technology solutions designed for businesses, organizations, and institutions
             across Uganda and East Africa. Choose the package that fits your needs.
@@ -182,7 +182,7 @@ export default function Services() {
                 className={`
                   rounded-2xl transition-all duration-500 overflow-hidden cursor-pointer
                   ${isCenterCard ? 
-                    'md:hover:-translate-y-6 md:z-20 bg-gradient-to-br from-[#1C3D5A] to-[#2a5779] text-white border-4 border-[#F2B134] shadow-2xl hover:shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25)] md:hover:scale-105 animate-pulse' : 
+                    'md:hover:-translate-y-6 md:z-20 bg-primary-700 text-white border-4 border-yellow-400 shadow-2xl hover:shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25)] md:hover:scale-105 animate-pulse' : 
                     'bg-white text-gray-800 border border-gray-200 hover:shadow-xl hover:-translate-y-1 md:z-10'
                   }
                 `}
@@ -203,7 +203,7 @@ export default function Services() {
                       {service.package_name}
                     </h3>
                     <ChevronRight 
-                      className={isCenterCard ? 'text-[#F2B134]' : 'text-[#2DBE7E]'} 
+                      className={isCenterCard ? 'text-yellow-400' : 'text-[#2DBE7E]'} 
                       size={24} 
                     />
                   </div>
@@ -218,7 +218,7 @@ export default function Services() {
                   <div className="mb-6">
                     <div className={`
                       text-sm font-semibold mb-3
-                      ${isCenterCard ? 'text-[#F2B134]' : 'text-[#1C3D5A]'}
+                      ${isCenterCard ? 'text-yellow-400' : 'text-[#1C3D5A]'}
                     `}>
                       Key Features:
                     </div>
@@ -226,7 +226,7 @@ export default function Services() {
                       {service.key_features.slice(0, 3).map((featureObj, idx) => (
                         <li key={idx} className="flex items-start gap-2 text-sm">
                           <Check 
-                            className={isCenterCard ? 'text-[#F2B134] flex-shrink-0 mt-0.5' : 'text-[#2DBE7E] flex-shrink-0 mt-0.5'} 
+                            className={isCenterCard ? 'text-yellow-400 flex-shrink-0 mt-0.5' : 'text-[#2DBE7E] flex-shrink-0 mt-0.5'} 
                             size={16} 
                           />
                           <span className={isCenterCard ? 'text-gray-200' : 'text-gray-600'}>
@@ -237,7 +237,7 @@ export default function Services() {
                       {service.key_features.length > 3 && (
                         <li className={`
                           text-sm font-medium
-                          ${isCenterCard ? 'text-[#F2B134]' : 'text-[#2DBE7E]'}
+                          ${isCenterCard ? 'text-yellow-400' : 'text-[#2DBE7E]'}
                         `}>
                           +{service.key_features.length - 3} more features
                         </li>
@@ -251,7 +251,7 @@ export default function Services() {
                   `}>
                     <div className={`
                       text-2xl font-bold mb-2
-                      ${isCenterCard ? 'text-[#F2B134]' : 'text-[#1C3D5A]'}
+                      ${isCenterCard ? 'text-yellow-400' : 'text-[#1C3D5A]'}
                     `}>
                       {service.suggested_pricing}
                     </div>
@@ -263,8 +263,8 @@ export default function Services() {
                       className={`
                         w-full py-3 rounded-lg transition-all duration-300 font-semibold
                         ${isCenterCard ? 
-                          'bg-[#F2B134] text-[#1C3D5A] hover:bg-[#e6a328] shadow-lg' : 
-                          'bg-[#F2B134] text-[#1C3D5A] hover:bg-[#d89e2d]'
+                          'bg-yellow-400 text-primary-700 hover:bg-yellow-500' : 
+                          'bg-primary-700 text-white hover:bg-primary-800'
                         }
                       `}
                     >
@@ -274,7 +274,7 @@ export default function Services() {
                 </div>
                 
                 {isCenterCard && (
-                  <div className="bg-[#F2B134] text-[#1C3D5A] text-center py-2">
+                  <div className="bg-primary-700 p-6 text-white">
                     <span className="font-bold text-sm">MOST POPULAR</span>
                   </div>
                 )}
@@ -287,7 +287,7 @@ export default function Services() {
           <div className="text-center mt-12">
             <button
               onClick={() => setShowAllServices(!showAllServices)}
-              className="inline-flex items-center px-6 py-3 bg-[#1C3D5A] text-white rounded-lg hover:bg-[#143040] transition-colors duration-300 font-semibold"
+              className="inline-flex items-center px-6 py-3 bg-primary-700 text-white rounded-lg hover:bg-primary-800 transition-colors duration-300 font-semibold"
             >
               {showAllServices ? 'View Less' : 'View More'}
               <ChevronRight 
@@ -297,79 +297,18 @@ export default function Services() {
             </button>
           </div>
         )}
-
-        {selectedService && !showContactForm && (
-          <div
-            className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50"
-            onClick={() => setSelectedService(null)}
+        
+        <div className="mt-12 text-center">
+          <button
+            onClick={() => {
+              setSelectedService(null);
+              handleGetStarted(null);
+            }}
+            className="w-full max-w-md mx-auto bg-yellow-400 text-primary-700 hover:bg-yellow-500 transition-all duration-300 font-semibold text-lg py-4 px-8 rounded-lg shadow-lg hover:shadow-xl hover:-translate-y-0.5"
           >
-            <div
-              className="bg-white rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="p-8">
-                <div className="flex justify-between items-start mb-6">
-                  <h3 className="text-3xl font-bold text-[#1C3D5A]">
-                    {selectedService.package_name}
-                  </h3>
-                  <button
-                    onClick={() => setSelectedService(null)}
-                    className="text-gray-400 hover:text-gray-600 text-2xl"
-                  >
-                    ×
-                  </button>
-                </div>
-
-                <p className="text-gray-600 mb-8 text-lg leading-relaxed">
-                  {selectedService.description}
-                </p>
-
-                <div className="mb-8">
-                  <h4 className="text-xl font-bold text-[#1C3D5A] mb-4">Key Features</h4>
-                  <ul className="space-y-3">
-                    {selectedService.key_features.map((featureObj, idx) => (
-                      <li key={idx} className="flex items-start gap-3">
-                        <Check className="text-[#2DBE7E] flex-shrink-0 mt-1" size={20} />
-                        <span className="text-gray-700">{featureObj.feature}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-
-                <div className="mb-8">
-                  <h4 className="text-xl font-bold text-[#1C3D5A] mb-4">Perfect For</h4>
-                  <div className="flex flex-wrap gap-3">
-                    {selectedService.target_audience.map((audienceObj, idx) => (
-                      <span
-                        key={idx}
-                        className="bg-[#2DBE7E]/10 text-[#1C3D5A] px-4 py-2 rounded-full text-sm font-medium"
-                      >
-                        {audienceObj.audience}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="bg-[#E5E8EB] rounded-xl p-6 mb-8">
-                  <div className="text-sm text-gray-600 mb-2">Investment Range</div>
-                  <div className="text-3xl font-bold text-[#1C3D5A]">
-                    {selectedService.suggested_pricing}
-                  </div>
-                </div>
-
-                <button
-                  onClick={() => {
-                    setSelectedService(null);
-                    handleGetStarted(selectedService);
-                  }}
-                  className="w-full bg-[#F2B134] text-white py-4 rounded-lg hover:bg-[#d89e2d] transition-all duration-300 font-semibold text-lg"
-                >
-                  Request a Consultation
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+            Request a Consultation
+          </button>
+        </div>
 
         {/* Contact Form Modal */}
         {showContactForm && (

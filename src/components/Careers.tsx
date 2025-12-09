@@ -58,7 +58,7 @@ export default function Careers() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-green-50 to-yellow-50">
+      <div className="min-h-screen bg-gradient-to-br from-primary-50 via-green-50 to-yellow-50">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="text-center">
             <h1 className="text-4xl font-bold text-gray-900 mb-4">Loading Career Opportunities...</h1>
@@ -77,7 +77,7 @@ export default function Careers() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-green-50 to-yellow-50">
+    <div className="min-h-screen bg-gradient-to-br from-[#4B0082]/20 via-green-50 to-yellow-50">
       <SEO
         title="Careers"
         description="Join our team at Reverence Technology and help empower East Africa through digital innovation. We're hiring talented developers, designers, and tech professionals."
@@ -112,16 +112,16 @@ export default function Careers() {
 
                   <div className="space-y-3 mb-6">
                     <div className="flex items-center text-gray-700">
-                      <MapPin className="w-5 h-5 mr-2 text-blue-600" />
+                      <MapPin className="w-5 h-5 mr-2 text-[#4B0082]/70" />
                       <span>{job.location}</span>
                     </div>
                     <div className="flex items-center text-gray-700">
-                      <Clock className="w-5 h-5 mr-2 text-blue-600" />
+                      <Clock className="w-5 h-5 mr-2 text-[#4B0082]/70" />
                       <span>{job.employment_type}</span>
                     </div>
                     {job.salary_range && (
                       <div className="flex items-center text-gray-700">
-                        <DollarSign className="w-5 h-5 mr-2 text-blue-600" />
+                        <DollarSign className="w-5 h-5 mr-2 text-[#4B0082]/70" />
                         <span>{job.salary_range}</span>
                       </div>
                     )}
@@ -134,7 +134,7 @@ export default function Careers() {
                         <li key={index}>{resp}</li>
                       ))}
                       {job.responsibilities.length > 3 && (
-                        <li className="text-blue-600 font-medium">And more...</li>
+                        <li className="text-[#4B0082]/80 font-medium">And more...</li>
                       )}
                     </ul>
                   </div>
@@ -158,8 +158,8 @@ export default function Careers() {
           <h2 className="text-2xl font-bold text-gray-900 mb-4">Why Work With Us?</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="text-center">
-              <div className="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-2xl font-bold text-blue-800">1</span>
+              <div className="bg-primary-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-2xl font-bold text-primary-700">1</span>
               </div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">Impactful Work</h3>
               <p className="text-gray-700">

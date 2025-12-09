@@ -76,7 +76,7 @@ export default function Blog() {
       <div className="min-h-screen relative overflow-hidden pt-20">
         {/* Background gradient */}
         <div className="absolute inset-0 z-0">
-          <div className="absolute inset-0 bg-gradient-to-br from-[#f2b134] to-[#00c7f2] opacity-20"></div>
+          <div className="absolute inset-0 bg-gradient-to-br from-[#f2b134] to-[#4B0082] opacity-20"></div>
         </div>
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 relative z-10">
           <div className="text-center">
@@ -91,7 +91,7 @@ export default function Blog() {
     <div className="min-h-screen relative overflow-hidden pt-20">
       {/* Background gradient */}
       <div className="absolute inset-0 z-0">
-        <div className="absolute inset-0 bg-gradient-to-br from-[#f2b134] to-[#00c7f2] opacity-20"></div>
+        <div className="absolute inset-0 bg-gradient-to-br from-[#f2b134] to-[#4B0082] opacity-20"></div>
       </div>
       <SEO
         title="Blog"
@@ -128,7 +128,7 @@ export default function Blog() {
               )}
               <div className="p-8">
                 <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
-                  <span className="inline-flex items-center px-4 py-2 rounded-full text-lg font-medium bg-blue-100 text-blue-800">
+                  <span className="inline-flex items-center px-4 py-2 rounded-full text-lg font-medium bg-[#4B0082]/10 text-[#4B0082]">
                     {posts[0].category?.name || 'General'}
                   </span>
                   <time dateTime={posts[0].published_at} className="text-lg text-gray-700 font-medium">
@@ -136,7 +136,7 @@ export default function Blog() {
                   </time>
                 </div>
                 <h2 className="text-4xl font-bold text-gray-900 mb-6">
-                  <Link to={`/blog/${posts[0].slug}`} className="hover:text-blue-600 transition-colors">
+                  <Link to={`/blog/${posts[0].slug}`} className="hover:text-[#360061] transition-colors">
                     {posts[0].title}
                   </Link>
                 </h2>
@@ -147,7 +147,7 @@ export default function Blog() {
                   <span className="text-lg font-medium text-gray-900">{posts[0].author}</span>
                   <Link
                     to={`/blog/${posts[0].slug}`}
-                    className="text-white font-medium text-lg flex items-center px-6 py-3 bg-blue-600 rounded-lg hover:bg-blue-700 transition-all duration-300 shadow-lg"
+                    className="text-white font-medium text-lg flex items-center px-6 py-3 bg-[#4B0082] rounded-lg hover:bg-[#360061] transition-all duration-300 shadow-lg"
                   >
                     Read full article
                     <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -175,7 +175,7 @@ export default function Blog() {
                 )}
                 <div className="p-6">
                   <div className="flex items-center justify-between mb-4">
-                    <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+                    <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-[#4B0082]/10 text-[#4B0082]">
                       {post.category?.name || 'General'}
                     </span>
                     <time dateTime={post.published_at || post.created_at} className="text-sm text-gray-700 font-medium">
@@ -183,7 +183,7 @@ export default function Blog() {
                     </time>
                   </div>
                   <h2 className="text-2xl font-bold text-gray-900 mb-3 line-clamp-2">
-                    <Link to={`/blog/${post.slug}`} className="hover:text-blue-600 transition-colors">
+                    <Link to={`/blog/${post.slug}`} className="hover:text-[#360061] transition-colors">
                       {post.title}
                     </Link>
                   </h2>
@@ -194,7 +194,7 @@ export default function Blog() {
                     <span className="text-base font-medium text-gray-900">{post.author}</span>
                     <Link
                       to={`/blog/${post.slug}`}
-                      className="text-blue-600 hover:text-blue-800 font-medium flex items-center text-lg"
+                      className="text-[#4B0082] hover:text-[#360061] font-medium flex items-center text-lg"
                     >
                       Read more
                       <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">

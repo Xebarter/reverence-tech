@@ -143,7 +143,7 @@ export default function Testimonials({ onShowTestimonialForm }: { onShowTestimon
     <section className="py-20 px-4 sm:px-6 lg:px-8 bg-white">
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-16">
-          <h2 className="text-4xl font-bold text-[#1C3D5A] mb-4">
+          <h2 className="text-4xl font-bold text-[#4B0082] mb-4">
             Client <span className="text-[#2DBE7E]">Testimonials</span>
           </h2>
           <p className="text-lg text-gray-600 max-w-3xl mx-auto leading-relaxed">
@@ -152,7 +152,7 @@ export default function Testimonials({ onShowTestimonialForm }: { onShowTestimon
           
           <button
             onClick={handleSubmitTestimonial}
-            className="mt-6 px-6 py-3 bg-[#1C3D5A] text-white rounded-lg hover:bg-[#143040] transition-colors duration-300 font-semibold inline-flex items-center"
+            className="mt-6 px-6 py-3 bg-[#4B0082] text-white rounded-lg hover:bg-[#3A0061] transition-colors duration-300 font-semibold inline-flex items-center"
           >
             Submit Your Testimonial
           </button>
@@ -257,7 +257,7 @@ export default function Testimonials({ onShowTestimonialForm }: { onShowTestimon
                     key={index}
                     onClick={() => goToTestimonial(index)}
                     className={`w-3 h-3 rounded-full transition-all duration-300 ${
-                      index === currentIndex ? 'bg-[#1C3D5A] w-6' : 'bg-gray-300'
+                      index === currentIndex ? 'bg-[#4B0082] w-6' : 'bg-gray-300'
                     }`}
                     aria-label={`Go to testimonial ${index + 1}`}
                   />

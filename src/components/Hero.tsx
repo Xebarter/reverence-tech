@@ -327,7 +327,7 @@ export default function Hero() {
     <section id="home" className="pt-24 sm:pt-20 lg:pt-32 pb-12 sm:pb-16 lg:pb-20 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
       {/* Background elements with gradient */}
       <div className="absolute inset-0 z-0">
-        <div className="absolute inset-0 bg-gradient-to-br from-[#f2b134] to-[#00c7f2] opacity-20"></div>
+        <div className="absolute inset-0 bg-gradient-to-br from-yellow-400 to-primary-500 opacity-20"></div>
       </div>
 
       <div className="max-w-7xl mx-auto relative z-10">
@@ -345,10 +345,10 @@ export default function Hero() {
                       'opacity-0 absolute invisible'}`
                     }
                   >
-                    <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-[#1C3D5A] mb-4 sm:mb-6 leading-tight">
+                    <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-primary-700 mb-4 sm:mb-6 leading-tight">
                       {item.valueProposition}
                     </h1>
-                    <p className="text-lg sm:text-xl text-[#1C3D5A]/90 max-w-2xl leading-relaxed">
+                    <p className="text-lg sm:text-xl text-primary-800/90 max-w-2xl leading-relaxed">
                       {item.copy}
                     </p>
                   </div>
@@ -358,14 +358,14 @@ export default function Hero() {
               <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
                 <button
                   onClick={() => scrollToSection('services')}
-                  className="bg-[#f2b134] text-[#1C3D5A] px-6 sm:px-8 py-3 sm:py-4 rounded-xl hover:bg-[#d89e2d] transition-all duration-300 font-semibold text-base sm:text-lg shadow-lg hover:shadow-xl hover:scale-105 flex items-center gap-2 min-w-0 flex-1 justify-center"
+                  className="bg-yellow-400 text-primary-700 px-6 sm:px-8 py-3 sm:py-4 rounded-xl hover:bg-yellow-500 transition-all duration-300 font-semibold text-base sm:text-lg shadow-lg hover:shadow-xl hover:scale-105 flex items-center gap-2 min-w-0 flex-1 justify-center"
                 >
                   Get a Quote
                   <ArrowRight size={18} className="sm:w-5 sm:h-5" />
                 </button>
                 <button
                   onClick={() => scrollToSection('contact')}
-                  className="bg-transparent border-2 border-[#1C3D5A] text-[#1C3D5A] px-6 sm:px-8 py-3 sm:py-4 rounded-xl hover:bg-[#1C3D5A] hover:text-white transition-all duration-300 font-semibold text-base sm:text-lg backdrop-blur-sm min-w-0 flex-1 justify-center"
+                  className="bg-transparent border-2 border-primary-700 text-primary-700 px-6 sm:px-8 py-3 sm:py-4 rounded-xl hover:bg-primary-700 hover:text-white transition-all duration-300 font-semibold text-base sm:text-lg backdrop-blur-sm min-w-0 flex-1 justify-center"
                 >
                   Contact Us
                 </button>
@@ -376,7 +376,7 @@ export default function Hero() {
           {/* Right side - Carousel */}
           <div className="order-1 lg:order-2 relative h-64 sm:h-80 lg:h-[500px] rounded-3xl overflow-hidden border border-white/30 shadow-xl backdrop-blur-sm" ref={carouselRef}>
             {/* Beautiful gradient background that shows while images are loading */}
-            <div className="absolute inset-0 bg-gradient-to-br from-[#f2b134] to-[#00eedf]"></div>
+            <div className="absolute inset-0 bg-gradient-to-br from-yellow-400 to-primary-400"></div>
             
             {heroImages.map((image, index) => {
               const isCurrent = index === currentImageIndex;
@@ -399,8 +399,7 @@ export default function Hero() {
                       ${getOptimizedImageUrl(image.image_url, 800)} 800w,
                       ${getOptimizedImageUrl(image.image_url, 1024)} 1024w,
                       ${getOptimizedImageUrl(image.image_url, 1536)} 1536w,
-                      ${getOptimizedImageUrl(image.image_url, 1920)} 1920w
-                    `}
+                      ${getOptimizedImageUrl(image.image_url, 1920)} 1920w`}
                     sizes="(max-width: 640px) 100vw, (max-width: 1024px) 90vw, 50vw"
                     alt={image.title}
                     className="w-full h-full object-cover carousel-image"
@@ -432,10 +431,11 @@ export default function Hero() {
                   <button
                     key={index}
                     onClick={() => setCurrentImageIndex(index)}
-                    className={`w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full transition-all backdrop-blur-sm ${index === currentImageIndex
-                      ? 'bg-[#f2b134] w-5 sm:w-6'
-                      : 'bg-[#1C3D5A]/50'
-                      }`}
+                    className={`w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full transition-all backdrop-blur-sm ${
+                      index === currentImageIndex 
+                        ? 'bg-yellow-400 w-5 sm:w-6' 
+                        : 'bg-primary-700/50'
+                    }`}
                     aria-label={`Go to slide ${index + 1}`}
                   />
                 ))}
@@ -446,7 +446,7 @@ export default function Hero() {
 
         {/* Testimonials section replacing the previous service cards */}
         <div className="mt-12 sm:mt-16 lg:mt-20" ref={testimonialsRef}>
-          <h2 className="text-xl sm:text-2xl font-bold text-center text-[#1C3D5A] mb-6 sm:mb-8">What Our Clients Say</h2>
+          <h2 className="text-xl sm:text-2xl font-bold text-center text-[#4B0082] mb-6 sm:mb-8">What Our Clients Say</h2>
           {testimonialsVisible && testimonials.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
               {testimonials.map((testimonial) => (
@@ -468,26 +468,26 @@ export default function Hero() {
                       }}
                     />
                     <div className="ml-3 sm:ml-4 min-w-0">
-                      <h3 className="font-semibold text-[#1C3D5A] text-sm sm:text-base truncate">{testimonial.name}</h3>
-                      <p className="text-xs sm:text-sm text-[#1C3D5A]/80 truncate">{testimonial.role ? `${testimonial.role}, ` : ''}{testimonial.company}</p>
+                      <h3 className="font-semibold text-[#4B0082] text-sm sm:text-base truncate">{testimonial.name}</h3>
+                      <p className="text-xs sm:text-sm text-[#4B0082]/80 truncate">{testimonial.role ? `${testimonial.role}, ` : ''}{testimonial.company}</p>
                     </div>
                   </div>
                   <div className="mb-2 sm:mb-3">
                     {renderStars(testimonial.rating)}
                   </div>
-                  <p className="text-[#1C3D5A] text-xs sm:text-sm italic leading-relaxed">"{testimonial.content}"</p>
+                  <p className="text-[#4B0082] text-xs sm:text-sm italic leading-relaxed">"{testimonial.content}"</p>
                 </div>
               ))}
             </div>
           ) : testimonialsVisible ? (
             <div className="text-center py-6 sm:py-8 bg-white/30 backdrop-blur-sm rounded-xl border border-white/20">
-              <Quote className="mx-auto text-[#1C3D5A]/50 mb-3 sm:mb-4" size={24} />
-              <p className="text-[#1C3D5A]/80 text-sm sm:text-base">No testimonials available yet.</p>
+              <Quote className="mx-auto text-[#4B0082]/50 mb-3 sm:mb-4" size={24} />
+              <p className="text-[#4B0082]/80 text-sm sm:text-base">No testimonials available yet.</p>
             </div>
           ) : (
             <div className="text-center py-6 sm:py-8 bg-white/30 backdrop-blur-sm rounded-xl border border-white/20">
-              <Quote className="mx-auto text-[#1C3D5A]/50 mb-3 sm:mb-4" size={24} />
-              <p className="text-[#1C3D5A]/80 text-sm sm:text-base">Loading testimonials...</p>
+              <Quote className="mx-auto text-[#4B0082]/50 mb-3 sm:mb-4" size={24} />
+              <p className="text-[#4B0082]/80 text-sm sm:text-base">Loading testimonials...</p>
             </div>
           )}
         </div>

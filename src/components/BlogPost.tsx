@@ -123,7 +123,7 @@ export default function BlogPost() {
               </p>
               <Link
                 to="/blog"
-                className="inline-flex items-center px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-all duration-300 transform hover:-translate-y-1 shadow-lg hover:shadow-xl"
+                className="inline-flex items-center px-6 py-3 bg-primary-500 text-white font-medium rounded-lg hover:bg-primary-600 transition-all duration-300 transform hover:-translate-y-1 shadow-lg hover:shadow-xl"
               >
                 Back to Blog
               </Link>
@@ -155,7 +155,7 @@ export default function BlogPost() {
           <header className="px-6 pt-8 pb-4 border-b border-white/30">
             <Link
               to="/blog"
-              className="inline-flex items-center text-blue-600 hover:text-blue-800 mb-4 transition-colors duration-200 font-medium"
+              className="inline-flex items-center text-primary-500 hover:text-primary-700 mb-4 transition-colors duration-200 font-medium"
             >
               <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
@@ -169,7 +169,7 @@ export default function BlogPost() {
 
             {post.excerpt && (
               <div className="mb-6">
-                <p className="text-xl text-gray-800 italic border-l-4 border-blue-500 pl-4 py-2 bg-blue-50 rounded-r-lg font-medium">
+                <p className="text-xl text-gray-800 italic border-l-4 border-primary-500 pl-4 py-2 bg-primary-50 rounded-r-lg font-medium">
                   {post.excerpt}
                 </p>
               </div>
@@ -189,7 +189,7 @@ export default function BlogPost() {
                 </time>
               </div>
               {post.category && (
-                <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-bold bg-blue-100 text-blue-800">
+                <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-bold bg-primary-100 text-primary-700">
                   {post.category.name}
                 </span>
               )}
@@ -263,7 +263,7 @@ export default function BlogPost() {
                 href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`} 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="p-3 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-colors duration-200 shadow-md hover:shadow-lg"
+                className="p-3 bg-primary-500 text-white rounded-full hover:bg-primary-600 transition-colors duration-200 shadow-md hover:shadow-lg"
                 aria-label="Share on Facebook"
               >
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -276,7 +276,7 @@ export default function BlogPost() {
                 href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(window.location.href)}`} 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="p-3 bg-blue-700 text-white rounded-full hover:bg-blue-800 transition-colors duration-200 shadow-md hover:shadow-lg"
+                className="p-3 bg-primary-600 text-white rounded-full hover:bg-primary-700 transition-colors duration-200 shadow-md hover:shadow-lg"
                 aria-label="Share on LinkedIn"
               >
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
