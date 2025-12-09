@@ -72,13 +72,8 @@ export default function Hero() {
   const carouselRef = useRef<HTMLDivElement>(null);
   const testimonialsRef = useRef<HTMLDivElement>(null);
   const [testimonialsVisible, setTestimonialsVisible] = useState(false);
-  // Track loaded images to prevent flickering
-  const [loadedImages, setLoadedImages] = useState<Set<string>>(new Set());
   // State for managing text transitions
   const [textTransitionState, setTextTransitionState] = useState<'idle' | 'fadingOut' | 'fadingIn'>('idle');
-
-  // Track image loading states for better UX
-  const [imageLoadStates, setImageLoadStates] = useState<Record<string, 'loading' | 'loaded' | 'error'>>({});
 
   const valuePropositions = [
     {
@@ -111,12 +106,10 @@ export default function Hero() {
   const preloadImage = (imageUrl: string) => {
     if (!imageUrl || preloadedImages.current.has(imageUrl)) return;
 
-    // Mark image as loading
-    setImageLoadStates(prev => ({ ...prev, [imageUrl]: 'loading' }));
     preloadedImages.current.add(imageUrl);
 
     // Create a single image loader with a promise-based approach
-    const loadImage = (url: string, isFallback = false): Promise<string> => {
+    const loadImage = (url: string): Promise<string> => {
       return new Promise((resolve, reject) => {
         const img = new Image();
         img.src = url;
@@ -132,25 +125,10 @@ export default function Hero() {
 
     // Start with the smallest possible version
     loadImage(thumbnailUrl)
-      .then(() => {
-        // Once thumbnail is loaded, update the state to show it
-        setImageLoadStates(prev => ({ ...prev, [imageUrl]: 'loading' }));
-        
-        // Then try to load the medium version
-        return loadImage(mediumUrl);
-      })
-      .then(() => {
-        // Finally load the full version
-        return loadImage(fullUrl);
-      })
-      .then(() => {
-        // Image fully loaded
-        setLoadedImages(prev => new Set(prev).add(imageUrl));
-        setImageLoadStates(prev => ({ ...prev, [imageUrl]: 'loaded' }));
-      })
+      .then(() => loadImage(mediumUrl))
+      .then(() => loadImage(fullUrl))
       .catch((error) => {
         console.warn('Image loading failed:', error);
-        setImageLoadStates(prev => ({ ...prev, [imageUrl]: 'error' }));
       });
 
     // Add preload link for the full image in the background
@@ -380,8 +358,6 @@ export default function Hero() {
             
             {heroImages.map((image, index) => {
               const isCurrent = index === currentImageIndex;
-              const isLoaded = loadedImages.has(image.image_url);
-              const loadState = imageLoadStates[image.image_url];
               
               return (
                 <div

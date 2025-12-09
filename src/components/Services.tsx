@@ -63,12 +63,13 @@ export default function Services() {
     }
   };
 
-  const handleGetStarted = (service: Service) => {
-    setSelectedService(service);
-    setFormData({
-      ...formData,
-      service_interest: service.package_name,
-    });
+  const handleGetStarted = (service?: Service | null) => {
+    const nextService = service ?? null;
+    setSelectedService(nextService);
+    setFormData(prev => ({
+      ...prev,
+      service_interest: nextService?.package_name ?? '',
+    }));
     setShowContactForm(true);
     
     // Scroll to contact form when opening it
