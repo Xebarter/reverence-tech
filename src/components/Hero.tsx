@@ -107,83 +107,62 @@ export default function Hero() {
     fetchTestimonials();
   }, []);
 
-  // Enhanced preload images for carousel with progressive loading
+  // Optimized preload images for carousel with better progressive loading
   const preloadImage = (imageUrl: string) => {
     if (!imageUrl || preloadedImages.current.has(imageUrl)) return;
 
     // Mark image as loading
     setImageLoadStates(prev => ({ ...prev, [imageUrl]: 'loading' }));
-
-    // Create image element to preload with smaller thumbnail first
-    const imgThumb = new Image();
-    imgThumb.onload = () => {
-      // Thumbnail loaded, now load medium quality image
-      const imgMedium = new Image();
-      imgMedium.onload = () => {
-        // Medium quality loaded, now load full image
-        const imgFull = new Image();
-        imgFull.onload = () => {
-          // Mark image as loaded
-          setLoadedImages(prev => new Set(prev).add(imageUrl));
-          setImageLoadStates(prev => ({ ...prev, [imageUrl]: 'loaded' }));
-        };
-        imgFull.onerror = () => {
-          setImageLoadStates(prev => ({ ...prev, [imageUrl]: 'error' }));
-        };
-        imgFull.src = getOptimizedImageUrl(imageUrl, 1024);
-      };
-      imgMedium.onerror = () => {
-        // If medium fails, go straight to full image
-        const imgFull = new Image();
-        imgFull.onload = () => {
-          setLoadedImages(prev => new Set(prev).add(imageUrl));
-          setImageLoadStates(prev => ({ ...prev, [imageUrl]: 'loaded' }));
-        };
-        imgFull.onerror = () => {
-          setImageLoadStates(prev => ({ ...prev, [imageUrl]: 'error' }));
-        };
-        imgFull.src = getOptimizedImageUrl(imageUrl, 1024);
-      };
-      imgMedium.src = getMediumQualityUrl(imageUrl);
-    };
-    imgThumb.onerror = () => {
-      // If thumbnail fails, try medium image directly
-      const imgMedium = new Image();
-      imgMedium.onload = () => {
-        // Medium quality loaded, now load full image
-        const imgFull = new Image();
-        imgFull.onload = () => {
-          setLoadedImages(prev => new Set(prev).add(imageUrl));
-          setImageLoadStates(prev => ({ ...prev, [imageUrl]: 'loaded' }));
-        };
-        imgFull.onerror = () => {
-          setImageLoadStates(prev => ({ ...prev, [imageUrl]: 'error' }));
-        };
-        imgFull.src = getOptimizedImageUrl(imageUrl, 1024);
-      };
-      imgMedium.onerror = () => {
-        // If medium fails, try full image directly
-        const imgFull = new Image();
-        imgFull.onload = () => {
-          setLoadedImages(prev => new Set(prev).add(imageUrl));
-          setImageLoadStates(prev => ({ ...prev, [imageUrl]: 'loaded' }));
-        };
-        imgFull.onerror = () => {
-          setImageLoadStates(prev => ({ ...prev, [imageUrl]: 'error' }));
-        };
-        imgFull.src = getOptimizedImageUrl(imageUrl, 1024);
-      };
-      imgMedium.src = getMediumQualityUrl(imageUrl);
-    };
-    imgThumb.src = getThumbnailUrl(imageUrl);
-
-    // Also add to preload links for better performance
-    const link = document.createElement('link');
-    link.rel = 'preload';
-    link.as = 'image';
-    link.href = getOptimizedImageUrl(imageUrl, 1024);
-    document.head.appendChild(link);
     preloadedImages.current.add(imageUrl);
+
+    // Create a single image loader with a promise-based approach
+    const loadImage = (url: string, isFallback = false): Promise<string> => {
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.src = url;
+        img.onload = () => resolve(url);
+        img.onerror = () => reject(`Failed to load image: ${url}`);
+      });
+    };
+
+    // Try loading in this order: thumbnail -> medium -> full
+    const thumbnailUrl = getThumbnailUrl(imageUrl);
+    const mediumUrl = getMediumQualityUrl(imageUrl);
+    const fullUrl = getOptimizedImageUrl(imageUrl, 1024);
+
+    // Start with the smallest possible version
+    loadImage(thumbnailUrl)
+      .then(() => {
+        // Once thumbnail is loaded, update the state to show it
+        setImageLoadStates(prev => ({ ...prev, [imageUrl]: 'loading' }));
+        
+        // Then try to load the medium version
+        return loadImage(mediumUrl);
+      })
+      .then(() => {
+        // Finally load the full version
+        return loadImage(fullUrl);
+      })
+      .then(() => {
+        // Image fully loaded
+        setLoadedImages(prev => new Set(prev).add(imageUrl));
+        setImageLoadStates(prev => ({ ...prev, [imageUrl]: 'loaded' }));
+      })
+      .catch((error) => {
+        console.warn('Image loading failed:', error);
+        setImageLoadStates(prev => ({ ...prev, [imageUrl]: 'error' }));
+      });
+
+    // Add preload link for the full image in the background
+    if ('connection' in navigator && (navigator as any).connection?.effectiveType === '4g') {
+      // Only preload on fast connections
+      const link = document.createElement('link');
+      link.rel = 'preload';
+      link.as = 'image';
+      link.href = fullUrl;
+      link.fetchPriority = 'high';
+      document.head.appendChild(link);
+    }
   };
 
   // Intersection Observer for testimonials lazy loading
@@ -208,51 +187,65 @@ export default function Hero() {
   }, [testimonialsVisible]);
 
   useEffect(() => {
-    // Use a single interval to synchronize both carousels
+    // Preload first image immediately with high priority
+    if (heroImages.length > 0) {
+      preloadImage(heroImages[0].image_url);
+    }
+
+    // Set up intersection observer for lazy loading other images
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const imgElement = entry.target as HTMLImageElement;
+          const imgUrl = imgElement.dataset.src;
+          if (imgUrl) {
+            preloadImage(imgUrl);
+            observer.unobserve(imgElement); // Stop observing once loaded
+          }
+        }
+      });
+    }, {
+      rootMargin: '200px', // Start loading when within 200px of viewport
+      threshold: 0.01
+    });
+
+    // Observe all carousel images
+    const carouselImages = document.querySelectorAll('.carousel-image[data-src]');
+    carouselImages.forEach(img => observer.observe(img));
+
+    // Set up carousel rotation
+    let interval: NodeJS.Timeout;
     if (heroImages.length > 1 || valuePropositions.length > 1) {
-      const interval = setInterval(() => {
+      interval = setInterval(() => {
         if (heroImages.length > 1) {
           setCurrentImageIndex((prevIndex) => {
-            const nextIndex = prevIndex === heroImages.length - 1 ? 0 : prevIndex + 1;
-            // Preload the next image when carousel rotates
-            if (heroImages[nextIndex]) {
-              preloadImage(heroImages[nextIndex].image_url);
+            const nextIndex = (prevIndex + 1) % heroImages.length;
+            // Preload the next image in the sequence
+            const nextNextIndex = (nextIndex + 1) % heroImages.length;
+            if (heroImages[nextNextIndex]) {
+              preloadImage(heroImages[nextNextIndex].image_url);
             }
             return nextIndex;
           });
         }
 
         if (valuePropositions.length > 1) {
-          // Handle text transition with proper sequencing
           setTextTransitionState('fadingOut');
           setTimeout(() => {
             setCurrentValueIndex((prevIndex) =>
-              prevIndex === valuePropositions.length - 1 ? 0 : prevIndex + 1
+              (prevIndex + 1) % valuePropositions.length
             );
             setTextTransitionState('fadingIn');
-            setTimeout(() => {
-              setTextTransitionState('idle');
-            }, 300); // Half of the transition duration
-          }, 300); // Half of the transition duration
+            setTimeout(() => setTextTransitionState('idle'), 300);
+          }, 300);
         }
-      }, 5000); // Change both image and text every 5 seconds (faster rotation)
-
-      // Preload first few images on mount for better initial experience
-      if (heroImages.length > 0) {
-        // Preload current image
-        preloadImage(heroImages[0].image_url);
-        
-        // Preload next 2 images if they exist
-        if (heroImages.length > 1) {
-          preloadImage(heroImages[1].image_url);
-        }
-        if (heroImages.length > 2) {
-          preloadImage(heroImages[2].image_url);
-        }
-      }
-
-      return () => clearInterval(interval);
+      }, 5000);
     }
+
+    return () => {
+      if (interval) clearInterval(interval);
+      observer.disconnect();
+    };
   }, [heroImages, valuePropositions.length]);
 
   const fetchHeroImages = async () => {
@@ -399,7 +392,8 @@ export default function Hero() {
                 >
                   {/* Show image with progressive loading - no static placeholders */}
                   <img
-                    src={getOptimizedImageUrl(image.image_url, 1024)}
+                    src={isCurrent || index === 0 ? getOptimizedImageUrl(image.image_url, 400) : ''}
+                    data-src={image.image_url}
                     srcSet={`
                       ${getOptimizedImageUrl(image.image_url, 400)} 400w,
                       ${getOptimizedImageUrl(image.image_url, 800)} 800w,
@@ -409,10 +403,23 @@ export default function Hero() {
                     `}
                     sizes="(max-width: 640px) 100vw, (max-width: 1024px) 90vw, 50vw"
                     alt={image.title}
-                    className="w-full h-full object-cover"
-                    loading={index <= 1 ? "eager" : "lazy"}
+                    className="w-full h-full object-cover carousel-image"
+                    loading={isCurrent || index === 0 ? "eager" : "lazy"}
                     decoding="async"
                     fetchPriority={index === 0 ? "high" : "auto"}
+                    width="1024"
+                    height="500"
+                    style={{
+                      backgroundColor: '#f0f4f8',
+                      backgroundImage: `url(${getThumbnailUrl(image.image_url)})`,
+                      backgroundSize: 'cover',
+                      backgroundPosition: 'center',
+                      transition: 'opacity 0.3s ease-in-out'
+                    }}
+                    onLoad={(e) => {
+                      const img = e.target as HTMLImageElement;
+                      img.style.backgroundImage = 'none';
+                    }}
                   />
                 </div>
               );
