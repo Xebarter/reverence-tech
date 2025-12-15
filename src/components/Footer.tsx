@@ -146,10 +146,10 @@ export default function Footer() {
                 <Mail className="text-yellow-400 flex-shrink-0 mt-1" size={20} />
                 <div>
                   <a
-                    href="mailto:info@reverencetech.ug"
+                    href="mailto:reverencetechnology1@gmail.com"
                     className="text-white/90 hover:text-yellow-400 transition-colors"
                   >
-                    info@reverencetech.ug
+                    reverencetechnology1@gmail.com
                   </a>
                 </div>
               </li>
@@ -157,10 +157,10 @@ export default function Footer() {
                 <Phone className="text-yellow-400 flex-shrink-0 mt-1" size={20} />
                 <div>
                   <a
-                    href="tel:+256700000000"
+                    href="tel:+256783676313"
                     className="text-white/90 hover:text-yellow-400 transition-colors"
                   >
-                    +256 700 000 000
+                    +256 783 676 313
                   </a>
                 </div>
               </li>
