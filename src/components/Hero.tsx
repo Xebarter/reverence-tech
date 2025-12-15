@@ -126,7 +126,6 @@ export default function Hero() {
 
     const thumbnailUrl = getThumbnailUrl(imageUrl);
     const mediumUrl = getMediumQualityUrl(imageUrl);
-    const fullUrl = getOptimizedImageUrl(imageUrl, 1024);
 
     const loadSequence = [];
 
@@ -399,7 +398,7 @@ export default function Hero() {
                     className="w-full h-full object-cover carousel-image"
                     loading={isFirst ? "eager" : "lazy"}
                     decoding="async"
-                    fetchpriority={isFirst ? "high" : "auto"}
+                    fetchPriority={isFirst ? "high" : "auto"}
                     width="1024"
                     height="500"
                     style={{
