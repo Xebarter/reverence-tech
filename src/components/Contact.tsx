@@ -100,8 +100,8 @@ export default function Contact() {
                 </div>
                 <div>
                   <h4 className="font-semibold text-[#4B0082] mb-1">Call Us</h4>
-                  <p className="text-gray-600">+256 700 000 000</p>
-                  <p className="text-gray-600">+256 800 000 000</p>
+                  <p className="text-gray-600">+256 783 676 313</p>
+                  <p className="text-gray-600">+256 745 669 015</p>
                 </div>
               </div>
 
@@ -111,8 +111,8 @@ export default function Contact() {
                 </div>
                 <div>
                   <h4 className="font-semibold text-[#4B0082] mb-1">Email Us</h4>
-                  <p className="text-gray-600">info@reverencetech.ug</p>
-                  <p className="text-gray-600">support@reverencetech.ug</p>
+                  <p className="text-gray-600">reverencetechnology1@gmail.com</p>
+                  
                 </div>
               </div>
             </div>
