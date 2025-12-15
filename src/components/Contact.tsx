@@ -90,7 +90,7 @@ export default function Contact() {
                 <div>
                   <h4 className="font-semibold text-[#4B0082] mb-1">Our Office</h4>
                   <p className="text-gray-600">Kampala, Uganda</p>
-                  <p className="text-gray-600">Plot 123, Tech Hub Road</p>
+                  <p className="text-gray-600">Mutungo, Zone 1</p>
                 </div>
               </div>
 
@@ -100,8 +100,12 @@ export default function Contact() {
                 </div>
                 <div>
                   <h4 className="font-semibold text-[#4B0082] mb-1">Call Us</h4>
-                  <p className="text-gray-600">+256 783 676 313</p>
-                  <p className="text-gray-600">+256 745 669 015</p>
+                  <p className="text-gray-600">
+                    <a href="tel:+256783676313" className="hover:text-[#F2B134] transition-colors">+256 783 676 313</a>
+                  </p>
+                  <p className="text-gray-600">
+                    <a href="tel:+256745669015" className="hover:text-[#F2B134] transition-colors">+256 745 669 015</a>
+                  </p>
                 </div>
               </div>
 
@@ -111,8 +115,10 @@ export default function Contact() {
                 </div>
                 <div>
                   <h4 className="font-semibold text-[#4B0082] mb-1">Email Us</h4>
-                  <p className="text-gray-600">reverencetechnology1@gmail.com</p>
-                  
+                  <p className="text-gray-600">
+                    <a href="mailto:reverencetechnology1@gmail.com" className="hover:text-[#4B0082] transition-colors">reverencetechnology1@gmail.com</a>
+                  </p>
+
                 </div>
               </div>
             </div>
