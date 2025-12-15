@@ -69,7 +69,7 @@ export default function Contact() {
     <section id="contact" className="py-20 px-4 sm:px-6 lg:px-8 bg-white">
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-16">
-          <h2 className="text-4xl font-bold text-[#4B0082] mb-4">
+          <h2 className="text-4xl font-bold text-[#1C3D5A] mb-4">
             Get In <span className="text-[#2DBE7E]">Touch</span>
           </h2>
           <p className="text-lg text-gray-600 max-w-3xl mx-auto leading-relaxed">
@@ -80,7 +80,7 @@ export default function Contact() {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
           <div>
-            <h3 className="text-2xl font-bold text-[#4B0082] mb-8">Contact Information</h3>
+            <h3 className="text-2xl font-bold text-[#1C3D5A] mb-8">Contact Information</h3>
 
             <div className="space-y-6 mb-10">
               <div className="flex items-start gap-4">
@@ -88,7 +88,7 @@ export default function Contact() {
                   <MapPin className="text-[#2DBE7E]" size={24} />
                 </div>
                 <div>
-                  <h4 className="font-semibold text-[#4B0082] mb-1">Our Office</h4>
+                  <h4 className="font-semibold text-[#1C3D5A] mb-1">Our Office</h4>
                   <p className="text-gray-600">Kampala, Uganda</p>
                   <p className="text-gray-600">Mutungo, Zone 1</p>
                 </div>
@@ -99,7 +99,7 @@ export default function Contact() {
                   <Phone className="text-[#F2B134]" size={24} />
                 </div>
                 <div>
-                  <h4 className="font-semibold text-[#4B0082] mb-1">Call Us</h4>
+                  <h4 className="font-semibold text-[#1C3D5A] mb-1">Call Us</h4>
                   <p className="text-gray-600">
                     <a href="tel:+256783676313" className="hover:text-[#F2B134] transition-colors">+256 783 676 313</a>
                   </p>
@@ -110,20 +110,20 @@ export default function Contact() {
               </div>
 
               <div className="flex items-start gap-4">
-                <div className="bg-[#4B0082]/10 p-3 rounded-lg">
-                  <Mail className="text-[#4B0082]" size={24} />
+                <div className="bg-[#1C3D5A]/10 p-3 rounded-lg">
+                  <Mail className="text-[#1C3D5A]" size={24} />
                 </div>
                 <div>
-                  <h4 className="font-semibold text-[#4B0082] mb-1">Email Us</h4>
+                  <h4 className="font-semibold text-[#1C3D5A] mb-1">Email Us</h4>
                   <p className="text-gray-600">
-                    <a href="mailto:reverencetechnology1@gmail.com" className="hover:text-[#4B0082] transition-colors">reverencetechnology1@gmail.com</a>
+                    <a href="mailto:reverencetechnology1@gmail.com" className="hover:text-[#1C3D5A] transition-colors">reverencetechnology1@gmail.com</a>
                   </p>
 
                 </div>
               </div>
             </div>
 
-            <div className="bg-gradient-to-br from-[#4B0082] to-[#2d004e] rounded-xl p-8 text-white">
+            <div className="bg-gradient-to-br from-[#1C3D5A] to-[#152f45] rounded-xl p-8 text-white">
               <h4 className="text-xl font-bold mb-4">Office Hours</h4>
               <div className="space-y-2 text-[#E5E8EB]">
                 <p>Monday - Friday: 8:00 AM - 6:00 PM</p>
@@ -140,10 +140,10 @@ export default function Contact() {
 
           <div>
             <div className="bg-[#E5E8EB] rounded-xl p-8">
-              <h3 className="text-2xl font-bold text-[#4B0082] mb-6">Send Us a Message</h3>
+              <h3 className="text-2xl font-bold text-[#1C3D5A] mb-6">Send Us a Message</h3>
 
               {submitted && (
-                <div className="bg-[#2DBE7E]/10 border border-[#2DBE7E] text-[#4B0082] p-4 rounded-lg mb-6">
+                <div className="bg-[#2DBE7E]/10 border border-[#2DBE7E] text-[#1C3D5A] p-4 rounded-lg mb-6">
                   Thank you for your inquiry! We'll get back to you within 24 hours.
                 </div>
               )}
@@ -156,7 +156,7 @@ export default function Contact() {
 
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div>
-                  <label htmlFor="full_name" className="block text-sm font-semibold text-[#4B0082] mb-2">
+                  <label htmlFor="full_name" className="block text-sm font-semibold text-[#1C3D5A] mb-2">
                     Full Name *
                   </label>
                   <input
@@ -166,14 +166,14 @@ export default function Contact() {
                     value={formData.full_name}
                     onChange={handleChange}
                     required
-                    className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-[#4B0082] focus:ring-2 focus:ring-[#4B0082]/20 outline-none transition-all"
+                    className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-[#1C3D5A] focus:ring-2 focus:ring-[#1C3D5A]/20 outline-none transition-all"
                     placeholder="John Doe"
                   />
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                   <div>
-                    <label htmlFor="email" className="block text-sm font-semibold text-[#4B0082] mb-2">
+                    <label htmlFor="email" className="block text-sm font-semibold text-[#1C3D5A] mb-2">
                       Email Address *
                     </label>
                     <input
@@ -183,13 +183,13 @@ export default function Contact() {
                       value={formData.email}
                       onChange={handleChange}
                       required
-                      className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-[#4B0082] focus:ring-2 focus:ring-[#4B0082]/20 outline-none transition-all"
+                      className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-[#1C3D5A] focus:ring-2 focus:ring-[#1C3D5A]/20 outline-none transition-all"
                       placeholder="john@example.com"
                     />
                   </div>
 
                   <div>
-                    <label htmlFor="phone" className="block text-sm font-semibold text-[#4B0082] mb-2">
+                    <label htmlFor="phone" className="block text-sm font-semibold text-[#1C3D5A] mb-2">
                       Phone Number *
                     </label>
                     <input
@@ -199,14 +199,14 @@ export default function Contact() {
                       value={formData.phone_number}
                       onChange={handleChange}
                       required
-                      className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-[#4B0082] focus:ring-2 focus:ring-[#4B0082]/20 outline-none transition-all"
+                      className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-[#1C3D5A] focus:ring-2 focus:ring-[#1C3D5A]/20 outline-none transition-all"
                       placeholder="+256 700 000 000"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label htmlFor="company" className="block text-sm font-semibold text-[#4B0082] mb-2">
+                  <label htmlFor="company" className="block text-sm font-semibold text-[#1C3D5A] mb-2">
                     Company/Organization
                   </label>
                   <input
@@ -215,13 +215,13 @@ export default function Contact() {
                     name="company_name"
                     value={formData.company_name}
                     onChange={handleChange}
-                    className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-[#4B0082] focus:ring-2 focus:ring-[#4B0082]/20 outline-none transition-all"
+                    className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-[#1C3D5A] focus:ring-2 focus:ring-[#1C3D5A]/20 outline-none transition-all"
                     placeholder="Your Company Name"
                   />
                 </div>
 
                 <div>
-                  <label htmlFor="service_interest" className="block text-sm font-semibold text-[#4B0082] mb-2">
+                  <label htmlFor="service_interest" className="block text-sm font-semibold text-[#1C3D5A] mb-2">
                     Service Interest *
                   </label>
                   <select
@@ -255,7 +255,7 @@ export default function Contact() {
                 </div>
 
                 <div>
-                  <label htmlFor="message" className="block text-sm font-semibold text-[#4B0082] mb-2">
+                  <label htmlFor="message" className="block text-sm font-semibold text-[#1C3D5A] mb-2">
                     Message *
                   </label>
                   <textarea
@@ -265,7 +265,7 @@ export default function Contact() {
                     onChange={handleChange}
                     required
                     rows={5}
-                    className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-[#4B0082] focus:ring-2 focus:ring-[#4B0082]/20 outline-none transition-all resize-none"
+                    className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-[#1C3D5A] focus:ring-2 focus:ring-[#1C3D5A]/20 outline-none transition-all resize-none"
                     placeholder="Tell us about your project or inquiry..."
                   />
                 </div>
