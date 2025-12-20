@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { MapPin, Clock, DollarSign, ArrowLeft, Check } from 'lucide-react';
+import { MapPin, Clock, Banknote, ArrowLeft, CheckCircle2, Briefcase, Info, Sparkles } from 'lucide-react';
+import { motion } from 'framer-motion';
 import SEO from './SEO';
 import JobApplicationForm from './JobApplicationForm';
 import { supabase } from '../lib/supabase';
@@ -16,9 +17,6 @@ interface Job {
   requirements: string[];
   benefits: string[];
   is_published: boolean;
-  application_link: string | null;
-  created_at: string;
-  updated_at: string;
 }
 
 export default function JobDetails() {
@@ -30,9 +28,7 @@ export default function JobDetails() {
   const [isApplicationFormOpen, setIsApplicationFormOpen] = useState(false);
 
   useEffect(() => {
-    if (id) {
-      fetchJobDetails(id);
-    }
+    if (id) fetchJobDetails(id);
   }, [id]);
 
   const fetchJobDetails = async (jobId: string) => {
@@ -46,74 +42,28 @@ export default function JobDetails() {
         .single();
 
       if (error) throw error;
-      
-      if (!data) {
-        setError('Job not found');
-        return;
-      }
-
-      // Debugging: log the actual data being fetched
-      console.log('Job data fetched:', data);
-      console.log('Responsibilities:', data.responsibilities);
-      console.log('Requirements:', data.requirements);
-      console.log('Benefits:', data.benefits);
-
       setJob(data);
     } catch (err) {
-      console.error('Error fetching job details:', err);
-      setError('Failed to load job details. Please try again later.');
+      setError('Failed to load job details.');
     } finally {
       setLoading(false);
     }
   };
 
-  const renderListItems = (items: string[] | string | null | undefined) => {
-    // Handle case where items might be stored as a JSON string instead of an array
-    let parsedItems: string[] = [];
-    
-    if (Array.isArray(items)) {
-      parsedItems = items;
-    } else if (typeof items === 'string') {
-      try {
-        parsedItems = JSON.parse(items);
-      } catch (e) {
-        // If parsing fails, treat as a single item
-        parsedItems = [items];
-      }
+  const parseList = (items: any) => {
+    if (Array.isArray(items)) return items;
+    if (typeof items === 'string') {
+      try { return JSON.parse(items); } catch { return [items]; }
     }
-    
-    // Filter out any null or undefined items
-    parsedItems = parsedItems.filter(item => item != null && item !== '');
-    
-    if (parsedItems.length === 0) {
-      return (
-        <li className="text-gray-600 italic">No items specified</li>
-      );
-    }
-    
-    return parsedItems.map((item, index) => (
-      <li key={index} className="flex items-start">
-        <span className="text-green-500 mr-2">•</span>
-        <span className="text-gray-700">{item}</span>
-      </li>
-    ));
+    return [];
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-primary-50 via-green-50 to-yellow-50">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <div className="text-center">
-            <h1 className="text-4xl font-bold text-gray-900 mb-4">Loading Job Details...</h1>
-          </div>
-          <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100 mt-8 max-w-2xl mx-auto">
-            <div className="animate-pulse space-y-4">
-              <div className="h-8 bg-gray-200 rounded w-3/4 mx-auto"></div>
-              <div className="h-4 bg-gray-200 rounded w-full"></div>
-              <div className="h-4 bg-gray-200 rounded w-5/6 mx-auto"></div>
-              <div className="h-4 bg-gray-200 rounded w-2/3 mx-auto"></div>
-            </div>
-          </div>
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6">
+        <div className="w-full max-w-2xl space-y-6">
+          <div className="h-12 bg-slate-200 animate-pulse rounded-2xl w-2/3 mx-auto" />
+          <div className="h-64 bg-white rounded-[2rem] shadow-sm animate-pulse" />
         </div>
       </div>
     );
@@ -121,160 +71,164 @@ export default function JobDetails() {
 
   if (error || !job) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-primary-50 via-green-50 to-yellow-50">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <div className="bg-white rounded-2xl shadow-xl p-8 text-center border border-gray-100">
-            <h1 className="text-2xl font-bold text-gray-900 mb-4">Error</h1>
-            <p className="text-gray-700 mb-6">{error || 'Job not found'}</p>
-            <button
-              onClick={() => navigate('/careers')}
-              className="px-6 py-3 bg-gradient-to-r from-yellow-400 to-yellow-500 text-gray-900 rounded-lg hover:from-yellow-500 hover:to-yellow-600 transition-all font-medium shadow-md"
-            >
-              Back to Careers
-            </button>
-          </div>
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6 text-center">
+        <div className="max-w-md">
+          <Info className="w-16 h-16 text-slate-300 mx-auto mb-4" />
+          <h2 className="text-2xl font-black text-[#1C3D5A] mb-2">Oops! Job not found</h2>
+          <p className="text-slate-500 mb-8">This position may have been filled or the link has expired.</p>
+          <button onClick={() => navigate('/careers')} className="px-8 py-3 bg-[#1C3D5A] text-white rounded-xl font-bold">
+            View All Openings
+          </button>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-green-50 to-yellow-50">
+    <div className="min-h-screen bg-slate-50 pb-24">
       <SEO
-        title={`${job.title} | Reverence Technology Careers`}
-        description={`Join our team as a ${job.title} at Reverence Technology. ${job.description.substring(0, 150)}...`}
-        keywords={`careers, job, ${job.title}, technology jobs, Uganda, East Africa`}
-        ogTitle={`${job.title} | Reverence Technology Careers`}
+        title={`${job.title} | Careers`}
+        description={`Join Reverence Technology as a ${job.title}.`}
       />
-      
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
 
-        {/* Back Button */}
-        <button
-          onClick={() => navigate('/careers')}
-          className="group flex items-center text-gray-900 hover:text-primary-700 mb-8 transition-all duration-200 font-medium"
-        >
-          <ArrowLeft className="w-5 h-5 mr-2 group-hover:-translate-x-1 transition-transform duration-300" />
-          Back to all jobs
-        </button>
-
-        {/* Job Details Card */}
-        <div className="bg-white rounded-2xl shadow-2xl overflow-hidden mb-8 border border-gray-100 hover:border-gray-200 transition-all duration-300">
-          <div className="p-8 lg:p-10">
-            <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-6 leading-tight">
-              {job.title}
-            </h1>
-            
-            <div className="flex flex-wrap gap-4 mb-8">
-              <div className="flex items-center text-gray-700">
-                <MapPin className="w-5 h-5 mr-2 text-primary-500" />
-                <span>{job.location}</span>
-              </div>
-              <div className="flex items-center text-gray-700">
-                <Clock className="w-5 h-5 mr-2 text-primary-500" />
-                <span>{job.employment_type}</span>
-              </div>
-              {job.salary_range && (
-                <div className="flex items-center text-gray-700">
-                  <DollarSign className="w-5 h-5 mr-2 text-primary-500" />
-                  <span>{job.salary_range}</span>
-                </div>
-              )}
-            </div>
-
-            <div className="mb-8">
-              <h2 className="text-xl font-bold text-gray-900 mb-4">Job Description</h2>
-              <p className="text-gray-700 leading-relaxed whitespace-pre-line">{job.description}</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="grid lg:grid-cols-2 gap-8 mb-8">
-          {/* Responsibilities */}
-          <div className="bg-white rounded-2xl shadow-2xl p-8 border border-gray-100 hover:border-gray-200 transition-all duration-300">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Key Responsibilities</h2>
-            <ul className="space-y-3">
-              {renderListItems(job.responsibilities)}
-            </ul>
-          </div>
-
-          {/* Requirements */}
-          <div className="bg-white rounded-2xl shadow-2xl p-8 border border-gray-100 hover:border-gray-200 transition-all duration-300">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Requirements</h2>
-            <ul className="space-y-3">
-              {renderListItems(job.requirements)}
-            </ul>
-          </div>
-        </div>
-
-        {/* Benefits */}
-        <div className="bg-white rounded-2xl shadow-2xl p-8 mb-8 border border-gray-100 hover:border-gray-200 transition-all duration-300">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">What We Offer</h2>
-          <ul className="space-y-3">
-            {renderListItems(job.benefits)}
-          </ul>
-        </div>
-
-        {/* Apply Section */}
-        <div className="bg-white rounded-2xl shadow-2xl p-8 text-center border border-gray-100 hover:border-gray-200 transition-all duration-300">
-          <h3 className="text-2xl font-bold text-gray-900 mb-4">Ready to Join Our Team?</h3>
-          <p className="text-gray-700 mb-8 max-w-md mx-auto">Take the first step towards an exciting career with Reverence Technology.</p>
+      {/* Hero Header */}
+      <div className="bg-[#1C3D5A] pt-32 pb-20 px-4">
+        <div className="max-w-6xl mx-auto">
           <button
-            onClick={() => setIsApplicationFormOpen(true)}
-            className="w-full lg:w-auto px-12 py-4 bg-gradient-to-r from-yellow-400 to-yellow-500 text-gray-900 rounded-2xl hover:from-yellow-500 hover:to-yellow-600 transition-all font-bold text-lg shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center justify-center gap-2 mx-auto"
+            onClick={() => navigate('/careers')}
+            className="flex items-center text-slate-400 hover:text-yellow-400 mb-8 transition-colors font-bold text-sm uppercase tracking-widest"
           >
-            <Check className="w-5 h-5" />
-            Apply Now
+            <ArrowLeft className="w-4 h-4 mr-2" /> Back to Careers
           </button>
-        </div>
 
-        {/* About Company */}
-        <div className="bg-white rounded-2xl shadow-2xl p-8 lg:p-10 border border-gray-100 hover:border-gray-200 transition-all duration-300">
-          <h2 className="text-3xl font-bold text-gray-900 mb-6">About Reverence Technology</h2>
-          <div className="space-y-4 text-gray-700 text-lg leading-relaxed">
-            <p>
-              Reverence Technology is a leading Ugandan tech company dedicated to empowering East Africa 
-              through digital innovation. We specialize in creating cutting-edge solutions that address 
-              local challenges while positioning our clients for global success.
-            </p>
-            <p>
-              Join our team of passionate professionals who are transforming the technology landscape 
-              across East Africa, one innovative solution at a time. We're looking for driven individuals 
-              like you to help shape the future.
-            </p>
+          <motion.h1
+            initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+            className="text-4xl md:text-6xl font-black text-white mb-6 leading-tight"
+          >
+            {job.title}
+          </motion.h1>
+
+          <div className="flex flex-wrap gap-6 text-slate-300">
+            <div className="flex items-center gap-2 px-4 py-2 bg-white/5 rounded-full border border-white/10">
+              <MapPin size={18} className="text-yellow-400" /> {job.location}
+            </div>
+            <div className="flex items-center gap-2 px-4 py-2 bg-white/5 rounded-full border border-white/10">
+              <Clock size={18} className="text-yellow-400" /> {job.employment_type}
+            </div>
+            {job.salary_range && (
+              <div className="flex items-center gap-2 px-4 py-2 bg-white/5 rounded-full border border-white/10">
+                <Banknote size={18} className="text-yellow-400" /> {job.salary_range}
+              </div>
+            )}
           </div>
         </div>
       </div>
 
-      {isApplicationFormOpen && job && (
+      <div className="max-w-6xl mx-auto px-4 -mt-10">
+        <div className="grid lg:grid-cols-3 gap-8">
+
+          {/* Main Content */}
+          <div className="lg:col-span-2 space-y-8">
+            <div className="bg-white rounded-[2.5rem] p-8 md:p-12 shadow-sm border border-slate-100">
+              <h2 className="text-2xl font-black text-[#1C3D5A] mb-6 flex items-center gap-3">
+                <Briefcase className="text-yellow-500" /> Role Overview
+              </h2>
+              <p className="text-slate-600 text-lg leading-relaxed whitespace-pre-line">
+                {job.description}
+              </p>
+
+              <hr className="my-10 border-slate-100" />
+
+              <div className="space-y-10">
+                <section>
+                  <h3 className="text-xl font-bold text-[#1C3D5A] mb-6">Key Responsibilities</h3>
+                  <div className="grid gap-4">
+                    {parseList(job.responsibilities).map((item: string, i: number) => (
+                      <div key={i} className="flex gap-4 p-4 rounded-2xl bg-slate-50 border border-slate-100 group hover:border-blue-200 transition-colors">
+                        <CheckCircle2 className="w-6 h-6 text-blue-500 shrink-0" />
+                        <span className="text-slate-700 font-medium">{item}</span>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+
+                <section>
+                  <h3 className="text-xl font-bold text-[#1C3D5A] mb-6">Requirements</h3>
+                  <div className="grid gap-3">
+                    {parseList(job.requirements).map((item: string, i: number) => (
+                      <div key={i} className="flex items-start gap-3">
+                        <div className="w-1.5 h-1.5 rounded-full bg-yellow-500 mt-2.5 shrink-0" />
+                        <span className="text-slate-600 leading-relaxed">{item}</span>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+              </div>
+            </div>
+
+            {/* Company Section */}
+            <div className="bg-gradient-to-br from-[#1C3D5A] to-[#0B1221] rounded-[2.5rem] p-10 text-white relative overflow-hidden">
+              <Sparkles className="absolute top-10 right-10 text-yellow-400/20 w-24 h-24" />
+              <h2 className="text-2xl font-black mb-6">About Reverence Technology</h2>
+              <p className="text-slate-300 leading-relaxed mb-6 text-lg">
+                We are a hub of innovation in Kampala, building technology that matters for East Africa.
+                Join a culture of excellence, ownership, and digital transformation.
+              </p>
+              <div className="flex gap-4">
+                <div className="px-4 py-2 bg-white/10 rounded-xl text-sm font-bold">Innovation First</div>
+                <div className="px-4 py-2 bg-white/10 rounded-xl text-sm font-bold">Local Impact</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Sidebar */}
+          <div className="lg:col-span-1">
+            <div className="sticky top-24 space-y-6">
+              <div className="bg-white rounded-[2rem] p-8 shadow-xl shadow-blue-900/5 border border-slate-100">
+                <h3 className="text-lg font-black text-[#1C3D5A] mb-6">What We Offer</h3>
+                <div className="space-y-4 mb-8">
+                  {parseList(job.benefits).map((benefit: string, i: number) => (
+                    <div key={i} className="flex items-center gap-3 text-slate-600">
+                      <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+                        <CheckCircle2 size={16} />
+                      </div>
+                      <span className="text-sm font-semibold">{benefit}</span>
+                    </div>
+                  ))}
+                </div>
+
+                <button
+                  onClick={() => setIsApplicationFormOpen(true)}
+                  className="w-full py-4 bg-yellow-400 hover:bg-[#1C3D5A] hover:text-white text-[#1C3D5A] rounded-2xl font-black text-lg transition-all transform hover:scale-[1.02] shadow-lg shadow-yellow-400/20"
+                >
+                  Apply for this Role
+                </button>
+                <p className="text-center text-slate-400 text-xs mt-4 font-medium">
+                  Takes less than 3 minutes to apply
+                </p>
+              </div>
+
+              <div className="bg-blue-50 rounded-[2rem] p-8 border border-blue-100">
+                <h4 className="font-bold text-[#1C3D5A] mb-2">Have Questions?</h4>
+                <p className="text-sm text-slate-600 mb-4">Contact our recruitment team for more details about our hiring process.</p>
+                <a href="mailto:careers@reverencetechnology.com" className="text-blue-600 font-bold text-sm hover:underline">
+                  careers@reverencetechnology.com
+                </a>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      {isApplicationFormOpen && (
         <JobApplicationForm
           jobId={job.id}
           jobTitle={job.title}
           onClose={() => setIsApplicationFormOpen(false)}
-          onSubmitSuccess={() => {
-            setIsApplicationFormOpen(false);
-          }}
+          onSubmitSuccess={() => setIsApplicationFormOpen(false)}
         />
       )}
-
-      <style>{`
-        @keyframes fade-in {
-          from { opacity: 0; }
-          to { opacity: 1; }
-        }
-        @keyframes fade-in-up {
-          from { 
-            opacity: 0; 
-            transform: translateY(20px); 
-          }
-          to { 
-            opacity: 1; 
-            transform: translateY(0); 
-          }
-        }
-        .animate-fade-in { animation: fade-in 0.6s ease-out; }
-        .animate-fade-in-up { animation: fade-in-up 0.8s ease-out; }
-      `}</style>
     </div>
   );
 }

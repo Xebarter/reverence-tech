@@ -1,27 +1,12 @@
 import { useState, useEffect } from 'react';
-import { MapPin, Clock, DollarSign } from 'lucide-react';
+import { MapPin, Clock, DollarSign, ArrowRight, Briefcase, Zap, Globe, Heart, Search } from 'lucide-react';
+import { motion } from 'framer-motion';
 import SEO from './SEO';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 
-interface Job {
-  id: string;
-  title: string;
-  description: string;
-  location: string;
-  employment_type: string;
-  salary_range: string | null;
-  responsibilities: string[];
-  requirements: string[];
-  benefits: string[];
-  is_published: boolean;
-  application_link: string | null;
-  created_at: string;
-  updated_at: string;
-}
-
 export default function Careers() {
-  const [jobs, setJobs] = useState<Job[]>([]);
+  const [jobs, setJobs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
@@ -36,158 +21,163 @@ export default function Careers() {
         .select('*')
         .eq('is_published', true)
         .order('created_at', { ascending: false });
-
       if (error) throw error;
       setJobs(data || []);
     } catch (error) {
-      // Log detailed Supabase error info to help diagnose 404/permission issues
       console.error('Error fetching jobs:', error);
-      try {
-        console.error('Error details:', {
-          message: (error as any)?.message,
-          status: (error as any)?.status,
-          details: (error as any)?.details
-        });
-      } catch (err) {
-        // swallow
-      }
     } finally {
       setLoading(false);
     }
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-primary-50 via-green-50 to-yellow-50">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <div className="text-center">
-            <h1 className="text-4xl font-bold text-gray-900 mb-4">Loading Career Opportunities...</h1>
-          </div>
-          <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100 mt-8 max-w-2xl mx-auto">
-            <div className="animate-pulse space-y-4">
-              <div className="h-8 bg-gray-200 rounded w-3/4 mx-auto"></div>
-              <div className="h-4 bg-gray-200 rounded w-full"></div>
-              <div className="h-4 bg-gray-200 rounded w-5/6 mx-auto"></div>
-              <div className="h-4 bg-gray-200 rounded w-2/3 mx-auto"></div>
-            </div>
-          </div>
-        </div>
+  const SkeletonCard = () => (
+    <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 animate-pulse">
+      <div className="h-6 bg-slate-200 rounded w-3/4 mb-4" />
+      <div className="space-y-3">
+        <div className="h-4 bg-slate-100 rounded w-1/2" />
+        <div className="h-4 bg-slate-100 rounded w-1/3" />
       </div>
-    );
-  }
+      <div className="mt-6 h-12 bg-slate-200 rounded-xl w-full" />
+    </div>
+  );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#4B0082]/20 via-green-50 to-yellow-50">
-      <SEO
-        title="Careers"
-        description="Join our team at Reverence Technology and help empower East Africa through digital innovation. We're hiring talented developers, designers, and tech professionals."
-        keywords="careers, jobs, technology jobs, Uganda, East Africa, digital innovation, web development"
-        ogTitle="Careers | Reverence Technology"
-      />
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">Join Our Team</h1>
-          <p className="text-xl text-gray-700 max-w-3xl mx-auto">
-            Help us empower East Africa through digital innovation. We're looking for passionate individuals
-            who want to make a difference in the tech landscape of Uganda and beyond.
-          </p>
+    <div className="min-h-screen bg-[#F8FAFC]">
+      <SEO title="Careers | Join Reverence Technology" />
+
+      {/* Hero Section */}
+      <section className="relative pt-32 pb-20 bg-[#1C3D5A] overflow-hidden">
+        <div className="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none">
+          <div className="absolute top-10 left-10 w-64 h-64 bg-yellow-400 rounded-full blur-[120px]" />
+          <div className="absolute bottom-10 right-10 w-64 h-64 bg-blue-400 rounded-full blur-[120px]" />
         </div>
 
-        {jobs.length === 0 ? (
-          <div className="text-center py-12">
-            <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100 max-w-2xl mx-auto">
-              <p className="text-gray-700 text-lg">No positions available at the moment. Check back soon!</p>
-            </div>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+            <span className="inline-block px-4 py-1.5 mb-6 text-xs font-black tracking-widest text-yellow-400 uppercase bg-yellow-400/10 border border-yellow-400/20 rounded-full">
+              We're Hiring
+            </span>
+            <h1 className="text-4xl md:text-6xl font-black text-white mb-6">
+              Build the future of <br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-orange-400">
+                East African Tech
+              </span>
+            </h1>
+            <p className="max-w-2xl mx-auto text-lg leading-relaxed text-slate-300">
+              Join a team of visionaries, engineers, and creatives dedicated to solving real-world problems through digital excellence.
+            </p>
+          </motion.div>
+        </div>
+      </section>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        {/* Culture / Perks Section */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-24">
+          <CultureCard
+            icon={<Zap className="text-yellow-500" />}
+            title="High Impact"
+            desc="Your code and designs directly affect the lives of thousands across the region."
+          />
+          <CultureCard
+            icon={<Globe className="text-blue-500" />}
+            title="Remote Friendly"
+            desc="We value output over hours. Work from where you are most inspired."
+          />
+          <CultureCard
+            icon={<Heart className="text-red-500" />}
+            title="Whole Human Care"
+            desc="Competitive salaries, health benefits, and a culture that respects your time."
+          />
+        </div>
+
+        {/* Job List Header */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-10 border-b border-slate-200 pb-8">
+          <div>
+            <h2 className="text-3xl font-black text-[#1C3D5A]">Open Positions</h2>
+            <p className="text-slate-500 font-medium">Find your next challenge</p>
+          </div>
+          <div className="flex items-center gap-2 text-sm font-bold text-slate-400">
+            <Briefcase size={18} />
+            <span>{jobs.length} roles available</span>
+          </div>
+        </div>
+
+        {loading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {[1, 2, 3, 4].map((i) => <SkeletonCard key={i} />)}
+          </div>
+        ) : jobs.length === 0 ? (
+          <div className="py-20 text-center bg-white rounded-[3rem] shadow-sm border border-slate-100">
+            <Search className="mx-auto text-slate-200 mb-4" size={48} />
+            <p className="text-xl font-bold text-slate-800">No active openings right now</p>
+            <p className="text-slate-500">Check back soon or follow us on LinkedIn.</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {jobs.map((job) => (
-              <div 
-                key={job.id} 
-                className="bg-white rounded-2xl shadow-xl overflow-hidden hover:shadow-2xl transition-all duration-300 cursor-pointer border border-gray-100 hover:border-gray-200 group"
+              <motion.div
+                whileHover={{ y: -5 }}
+                key={job.id}
+                className="bg-white p-8 rounded-[2rem] shadow-xl shadow-slate-200/50 border border-slate-50 hover:border-yellow-400 transition-all cursor-pointer group flex flex-col justify-between"
                 onClick={() => navigate(`/job/${job.id}`)}
               >
-                <div className="p-6">
-                  <h2 className="text-2xl font-bold text-gray-900 mb-3 group-hover:text-gray-900 transition-colors duration-200">{job.title}</h2>
+                <div>
+                  <div className="flex justify-between items-start mb-4">
+                    <h3 className="text-2xl font-black text-[#1C3D5A] group-hover:text-blue-600 transition-colors">
+                      {job.title}
+                    </h3>
+                    <span className="px-3 py-1 bg-slate-100 text-slate-500 text-[10px] font-black uppercase rounded-lg">
+                      {job.employment_type}
+                    </span>
+                  </div>
 
-                  <div className="space-y-3 mb-6">
-                    <div className="flex items-center text-gray-700">
-                      <MapPin className="w-5 h-5 mr-2 text-[#4B0082]/70" />
-                      <span>{job.location}</span>
-                    </div>
-                    <div className="flex items-center text-gray-700">
-                      <Clock className="w-5 h-5 mr-2 text-[#4B0082]/70" />
-                      <span>{job.employment_type}</span>
+                  <div className="flex flex-wrap gap-4 mb-6">
+                    <div className="flex items-center text-slate-500 text-sm font-medium">
+                      <MapPin size={16} className="mr-1.5 text-blue-500" />
+                      {job.location}
                     </div>
                     {job.salary_range && (
-                      <div className="flex items-center text-gray-700">
-                        <DollarSign className="w-5 h-5 mr-2 text-[#4B0082]/70" />
-                        <span>{job.salary_range}</span>
+                      <div className="flex items-center text-slate-500 text-sm font-medium">
+                        <DollarSign size={16} className="mr-1.5 text-green-500" />
+                        {job.salary_range}
                       </div>
                     )}
                   </div>
 
-                  <div className="mb-6">
-                    <h3 className="font-semibold text-gray-900 mb-2">Responsibilities</h3>
-                    <ul className="list-disc list-inside text-gray-700 space-y-1">
-                      {job.responsibilities.slice(0, 3).map((resp, index) => (
-                        <li key={index}>{resp}</li>
+                  <div className="mb-8">
+                    <p className="text-slate-600 line-clamp-2 text-sm leading-relaxed italic mb-4">
+                      "{job.description}"
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {job.responsibilities.slice(0, 2).map((r: string, i: number) => (
+                        <span key={i} className="px-2 py-1 bg-blue-50 text-blue-700 text-[10px] font-bold rounded">
+                          {r}
+                        </span>
                       ))}
-                      {job.responsibilities.length > 3 && (
-                        <li className="text-[#4B0082]/80 font-medium">And more...</li>
-                      )}
-                    </ul>
+                    </div>
                   </div>
-
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      navigate(`/job/${job.id}`);
-                    }}
-                    className="w-full bg-gradient-to-r from-yellow-400 to-yellow-500 text-gray-900 py-3 px-4 rounded-lg hover:from-yellow-500 hover:to-yellow-600 transition-all font-medium shadow-md"
-                  >
-                    View Details & Apply
-                  </button>
                 </div>
-              </div>
+
+                <button className="flex items-center justify-center w-full py-4 font-black text-[#1C3D5A] bg-yellow-400 rounded-2xl group-hover:bg-[#1C3D5A] group-hover:text-white transition-all duration-300">
+                  View Role & Apply <ArrowRight size={18} className="ml-2 group-hover:translate-x-1 transition-transform" />
+                </button>
+              </motion.div>
             ))}
           </div>
         )}
-
-        <div className="mt-16 bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Why Work With Us?</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="text-center">
-              <div className="bg-primary-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-2xl font-bold text-primary-700">1</span>
-              </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">Impactful Work</h3>
-              <p className="text-gray-700">
-                Contribute to projects that make a real difference in East Africa's digital transformation.
-              </p>
-            </div>
-            <div className="text-center">
-              <div className="bg-green-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-2xl font-bold text-green-800">2</span>
-              </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">Growth Opportunities</h3>
-              <p className="text-gray-700">
-                Continuous learning and professional development in cutting-edge technologies.
-              </p>
-            </div>
-            <div className="text-center">
-              <div className="bg-yellow-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-2xl font-bold text-yellow-800">3</span>
-              </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">Inclusive Culture</h3>
-              <p className="text-gray-700">
-                Collaborative environment that values diversity and encourages innovation.
-              </p>
-            </div>
-          </div>
-        </div>
       </div>
+    </div>
+  );
+}
 
+function CultureCard({ icon, title, desc }: { icon: React.ReactNode, title: string, desc: string }) {
+  return (
+    <div className="p-8 bg-white rounded-[2.5rem] border border-slate-100 shadow-sm hover:shadow-md transition-shadow">
+      <div className="w-14 h-14 bg-slate-50 rounded-2xl flex items-center justify-center mb-6">
+        {icon}
+      </div>
+      <h3 className="text-xl font-black text-[#1C3D5A] mb-3">{title}</h3>
+      <p className="text-slate-600 text-sm leading-relaxed">{desc}</p>
     </div>
   );
 }
