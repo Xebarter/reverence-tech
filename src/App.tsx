@@ -14,6 +14,7 @@ import Messages from './components/admin/Messages';
 import ServicesManagement from './components/admin/Services';
 import HeroImages from './components/admin/HeroImages';
 import TestimonialsManagement from './components/admin/Testimonials';
+import ProjectsManagement from './components/admin/Projects';
 import Careers from './components/Careers';
 import CareersManagement from './components/admin/Careers';
 import Blog from './components/Blog';
@@ -24,6 +25,8 @@ import UserManagement from './components/admin/UserManagement';
 import Unauthorized from './components/admin/Unauthorized';
 import TestAdminUsers from './components/admin/TestAdminUsers';
 import JobDetails from './components/JobDetails.tsx';
+import Projects from './components/Projects';
+import ProjectDetails from './components/ProjectDetails';
 import SEO from './components/SEO';
 import { UserProvider } from './UserContext';
 
@@ -49,6 +52,7 @@ function App() {
               <Header />
               <main>
                 <Hero />
+                <Projects />
                 <About />
                 <Services />
                 <Testimonials onShowTestimonialForm={handleOpenTestimonialForm} />
@@ -57,6 +61,16 @@ function App() {
                   onClose={handleCloseTestimonialForm} 
                 />
                 <Contact />
+              </main>
+              <Footer />
+            </div>
+          } />
+          
+          <Route path="/project/:id" element={
+            <div className="min-h-screen">
+              <Header />
+              <main className="pt-20">
+                <ProjectDetails />
               </main>
               <Footer />
             </div>
@@ -107,11 +121,13 @@ function App() {
             <Route path="services" element={<ServicesManagement />} />
             <Route path="hero-images" element={<HeroImages />} />
             <Route path="testimonials" element={<TestimonialsManagement />} />
-            <Route path="careers" element={<CareersManagement />} />
+            <Route path="projects" element={<ProjectsManagement />} />
             <Route path="blog" element={<BlogManagement />} />
             <Route path="users" element={<UserManagement />} />
+            <Route path="careers" element={<CareersManagement />} />
+            <Route path="test-admin-users" element={<TestAdminUsers />} />
           </Route>
-          
+
           {/* Temporary admin route for testing without admin checks */}
           <Route path="/admin-temp" element={
             <div className="min-h-screen">

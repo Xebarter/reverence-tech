@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Mail, Phone, MapPin, Send } from 'lucide-react';
+import { Mail, Phone, MapPin, Send, CheckCircle2, Clock, ShieldCheck, MessageSquare } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { supabase, Inquiry } from '../lib/supabase';
 
 export default function Contact() {
@@ -21,271 +22,241 @@ export default function Contact() {
     setError('');
 
     try {
-      // Map form data to database columns
-      const inquiryData = {
-        full_name: formData.full_name,
-        email: formData.email,
-        phone_number: formData.phone_number,
-        company_name: formData.company_name,
-        interested_package: formData.interested_package,
-        message: formData.message,
-      };
-
       const { error: submitError } = await supabase
         .from('inquiries')
-        .insert([inquiryData]);
+        .insert([formData]);
 
       if (submitError) throw submitError;
 
       setSubmitted(true);
       setFormData({
-        full_name: '',
-        email: '',
-        phone_number: '',
-        company_name: '',
-        interested_package: '',
-        message: '',
+        full_name: '', email: '', phone_number: '',
+        company_name: '', interested_package: '', message: '',
       });
-
-      setTimeout(() => setSubmitted(false), 5000);
+      // Keep success message visible for longer for better UX
+      setTimeout(() => setSubmitted(false), 8000);
     } catch (err) {
-      setError('Failed to submit inquiry. Please try again.');
-      console.error('Error submitting inquiry:', err);
+      setError('Connection error. Please check your internet and try again.');
     } finally {
       setSubmitting(false);
     }
   };
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
-  ) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
   return (
-    <section id="contact" className="py-20 px-4 sm:px-6 lg:px-8 bg-white">
-      <div className="max-w-7xl mx-auto">
-        <div className="text-center mb-16">
-          <h2 className="text-4xl font-bold text-[#1C3D5A] mb-4">
-            Get In <span className="text-[#2DBE7E]">Touch</span>
-          </h2>
-          <p className="text-lg text-gray-600 max-w-3xl mx-auto leading-relaxed">
-            Ready to transform your business with technology? Contact us today for a free consultation
-            and let's discuss how we can help you achieve your digital goals.
-          </p>
-        </div>
+    <section id="contact" className="py-24 px-4 bg-slate-50 relative overflow-hidden">
+      {/* Decorative background blur */}
+      <div className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/2 w-[500px] h-[500px] bg-indigo-100 rounded-full blur-3xl opacity-50" />
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-          <div>
-            <h3 className="text-2xl font-bold text-[#1C3D5A] mb-8">Contact Information</h3>
+      <div className="max-w-7xl mx-auto relative z-10">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 items-start">
 
-            <div className="space-y-6 mb-10">
-              <div className="flex items-start gap-4">
-                <div className="bg-[#2DBE7E]/10 p-3 rounded-lg">
-                  <MapPin className="text-[#2DBE7E]" size={24} />
-                </div>
-                <div>
-                  <h4 className="font-semibold text-[#1C3D5A] mb-1">Our Office</h4>
-                  <p className="text-gray-600">Kampala, Uganda</p>
-                  <p className="text-gray-600">Mutungo, Zone 1</p>
-                </div>
+          {/* Left Column: Context & Trust */}
+          <div className="lg:col-span-5">
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+            >
+              <h2 className="text-5xl font-black text-slate-900 mb-6 tracking-tight">
+                Let’s build your <br />
+                <span className="text-indigo-600 underline decoration-indigo-200 decoration-8 underline-offset-4">digital future</span>.
+              </h2>
+              <p className="text-xl text-slate-600 mb-12 leading-relaxed">
+                Based in Kampala, serving the world. We combine local expertise with global tech standards.
+              </p>
+
+              {/* Contact Cards */}
+              <div className="space-y-4 mb-12">
+                {[
+                  { icon: MapPin, title: "Our Headquarters", detail: "Mutungo, Zone 1, Kampala, Uganda", color: "bg-blue-500" },
+                  { icon: Phone, title: "Direct Line", detail: "+256 783 676 313", color: "bg-emerald-500" },
+                  { icon: Mail, title: "Email Support", detail: "reverencetechnology1@gmail.com", color: "bg-indigo-500" }
+                ].map((item, idx) => (
+                  <div key={idx} className="group flex items-center p-4 bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all">
+                    <div className={`${item.color} p-3 rounded-xl text-white mr-4`}>
+                      <item.icon size={20} />
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{item.title}</p>
+                      <p className="text-slate-900 font-semibold">{item.detail}</p>
+                    </div>
+                  </div>
+                ))}
               </div>
 
-              <div className="flex items-start gap-4">
-                <div className="bg-[#F2B134]/10 p-3 rounded-lg">
-                  <Phone className="text-[#F2B134]" size={24} />
-                </div>
-                <div>
-                  <h4 className="font-semibold text-[#1C3D5A] mb-1">Call Us</h4>
-                  <p className="text-gray-600">
-                    <a href="tel:+256783676313" className="hover:text-[#F2B134] transition-colors">+256 783 676 313</a>
-                  </p>
-                  <p className="text-gray-600">
-                    <a href="tel:+256745669015" className="hover:text-[#F2B134] transition-colors">+256 745 669 015</a>
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-4">
-                <div className="bg-[#1C3D5A]/10 p-3 rounded-lg">
-                  <Mail className="text-[#1C3D5A]" size={24} />
-                </div>
-                <div>
-                  <h4 className="font-semibold text-[#1C3D5A] mb-1">Email Us</h4>
-                  <p className="text-gray-600">
-                    <a href="mailto:reverencetechnology1@gmail.com" className="hover:text-[#1C3D5A] transition-colors">reverencetechnology1@gmail.com</a>
-                  </p>
-
+              {/* Office Hours / Trust Badge */}
+              <div className="bg-slate-900 rounded-[2rem] p-8 text-white relative overflow-hidden">
+                <ShieldCheck className="absolute -right-4 -bottom-4 text-white/5" size={160} />
+                <div className="relative z-10">
+                  <div className="flex items-center gap-2 mb-4 text-indigo-400">
+                    <Clock size={18} />
+                    <span className="font-bold uppercase tracking-wider text-xs">Availability</span>
+                  </div>
+                  <h4 className="text-xl font-bold mb-4">We're here when you need us.</h4>
+                  <div className="grid grid-cols-2 gap-4 text-sm text-slate-300">
+                    <div>
+                      <p className="text-white font-medium">Mon — Fri</p>
+                      <p>8:00 AM - 6:00 PM</p>
+                    </div>
+                    <div>
+                      <p className="text-white font-medium">Saturday</p>
+                      <p>9:00 AM - 2:00 PM</p>
+                    </div>
+                  </div>
                 </div>
               </div>
-            </div>
-
-            <div className="bg-gradient-to-br from-[#1C3D5A] to-[#152f45] rounded-xl p-8 text-white">
-              <h4 className="text-xl font-bold mb-4">Office Hours</h4>
-              <div className="space-y-2 text-[#E5E8EB]">
-                <p>Monday - Friday: 8:00 AM - 6:00 PM</p>
-                <p>Saturday: 9:00 AM - 2:00 PM</p>
-                <p>Sunday: Closed</p>
-              </div>
-              <div className="mt-6 pt-6 border-t border-white/20">
-                <p className="text-sm">
-                  We also offer 24/7 emergency support for enterprise clients and critical systems.
-                </p>
-              </div>
-            </div>
+            </motion.div>
           </div>
 
-          <div>
-            <div className="bg-[#E5E8EB] rounded-xl p-8">
-              <h3 className="text-2xl font-bold text-[#1C3D5A] mb-6">Send Us a Message</h3>
-
-              {submitted && (
-                <div className="bg-[#2DBE7E]/10 border border-[#2DBE7E] text-[#1C3D5A] p-4 rounded-lg mb-6">
-                  Thank you for your inquiry! We'll get back to you within 24 hours.
-                </div>
-              )}
-
-              {error && (
-                <div className="bg-red-50 border border-red-300 text-red-800 p-4 rounded-lg mb-6">
-                  {error}
-                </div>
-              )}
-
-              <form onSubmit={handleSubmit} className="space-y-6">
-                <div>
-                  <label htmlFor="full_name" className="block text-sm font-semibold text-[#1C3D5A] mb-2">
-                    Full Name *
-                  </label>
-                  <input
-                    type="text"
-                    id="full_name"
-                    name="full_name"
-                    value={formData.full_name}
-                    onChange={handleChange}
-                    required
-                    className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-[#1C3D5A] focus:ring-2 focus:ring-[#1C3D5A]/20 outline-none transition-all"
-                    placeholder="John Doe"
-                  />
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                  <div>
-                    <label htmlFor="email" className="block text-sm font-semibold text-[#1C3D5A] mb-2">
-                      Email Address *
-                    </label>
-                    <input
-                      type="email"
-                      id="email"
-                      name="email"
-                      value={formData.email}
-                      onChange={handleChange}
-                      required
-                      className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-[#1C3D5A] focus:ring-2 focus:ring-[#1C3D5A]/20 outline-none transition-all"
-                      placeholder="john@example.com"
-                    />
-                  </div>
-
-                  <div>
-                    <label htmlFor="phone" className="block text-sm font-semibold text-[#1C3D5A] mb-2">
-                      Phone Number *
-                    </label>
-                    <input
-                      type="tel"
-                      id="phone"
-                      name="phone_number"
-                      value={formData.phone_number}
-                      onChange={handleChange}
-                      required
-                      className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-[#1C3D5A] focus:ring-2 focus:ring-[#1C3D5A]/20 outline-none transition-all"
-                      placeholder="+256 700 000 000"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label htmlFor="company" className="block text-sm font-semibold text-[#1C3D5A] mb-2">
-                    Company/Organization
-                  </label>
-                  <input
-                    type="text"
-                    id="company"
-                    name="company_name"
-                    value={formData.company_name}
-                    onChange={handleChange}
-                    className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-[#1C3D5A] focus:ring-2 focus:ring-[#1C3D5A]/20 outline-none transition-all"
-                    placeholder="Your Company Name"
-                  />
-                </div>
-
-                <div>
-                  <label htmlFor="service_interest" className="block text-sm font-semibold text-[#1C3D5A] mb-2">
-                    Service Interest *
-                  </label>
-                  <select
-                    id="service_interest"
-                    name="interested_package"
-                    value={formData.interested_package}
-                    onChange={handleChange}
-                    required
-                    className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-[#2DBE7E] focus:ring-2 focus:ring-[#2DBE7E]/20 outline-none transition-all"
+          {/* Right Column: The Form */}
+          <div className="lg:col-span-7">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="bg-white rounded-[2.5rem] p-8 md:p-12 shadow-xl shadow-slate-200/60 border border-slate-100 relative overflow-hidden"
+            >
+              <AnimatePresence mode="wait">
+                {submitted ? (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="py-20 text-center"
                   >
-                    <option value="">Select a service</option>
-                    <option value="Starter Web Package">Starter Web Package</option>
-                    <option value="E-Commerce Growth Kit">E-Commerce Growth Kit</option>
-                    <option value="Custom Software Bundle">Custom Software Bundle</option>
-                    <option value="Cloud Migration Pro">Cloud Migration Pro</option>
-                    <option value="Cyber Security Shield">Cyber Security Shield</option>
-                    <option value="Digital Marketing Boost">Digital Marketing Boost</option>
-                    <option value="Networking & Infrastructure Kit">Networking & Infrastructure Kit</option>
-                    <option value="Fintech Compliance Pack">Fintech Compliance Pack</option>
-                    <option value="IT Consulting Enterprise">IT Consulting Enterprise</option>
-                    <option value="Hardware & Repair All-In">Hardware & Repair All-In</option>
-                    <option value="Solar-Powered Tech Hub Kit">Solar-Powered Tech Hub Kit</option>
-                    <option value="E-Learning Pro Suite">E-Learning Pro Suite</option>
-                    <option value="AI Integration & Automation Lab">AI Integration & Automation Lab</option>
-                    <option value="Brand Identity & Design Package">Brand Identity & Design Package</option>
-                    <option value="Community Wi-Fi Access Network">Community Wi-Fi Access Network</option>
-                    <option value="Agri-Digital Connect">Agri-Digital Connect</option>
-                    <option value="Government & NGO Systems Suite">Government & NGO Systems Suite</option>
-                    <option value="General Inquiry">General Inquiry</option>
-                  </select>
-                </div>
+                    <div className="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                      <CheckCircle2 size={40} />
+                    </div>
+                    <h3 className="text-3xl font-black text-slate-900 mb-2">Message Received!</h3>
+                    <p className="text-slate-500 text-lg">We've received your inquiry and will reach out <br /> within 24 business hours.</p>
+                    <button
+                      onClick={() => setSubmitted(false)}
+                      className="mt-8 text-indigo-600 font-bold hover:underline"
+                    >
+                      Send another message
+                    </button>
+                  </motion.div>
+                ) : (
+                  <form onSubmit={handleSubmit} className="space-y-6">
+                    <div className="flex items-center gap-3 mb-8">
+                      <div className="h-10 w-1 bg-indigo-600 rounded-full" />
+                      <h3 className="text-2xl font-bold text-slate-900">Project Inquiry</h3>
+                    </div>
 
-                <div>
-                  <label htmlFor="message" className="block text-sm font-semibold text-[#1C3D5A] mb-2">
-                    Message *
-                  </label>
-                  <textarea
-                    id="message"
-                    name="message"
-                    value={formData.message}
-                    onChange={handleChange}
-                    required
-                    rows={5}
-                    className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-[#1C3D5A] focus:ring-2 focus:ring-[#1C3D5A]/20 outline-none transition-all resize-none"
-                    placeholder="Tell us about your project or inquiry..."
-                  />
-                </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="space-y-2">
+                        <label className="text-sm font-bold text-slate-700 ml-1">Full Name</label>
+                        <input
+                          required
+                          name="full_name"
+                          value={formData.full_name}
+                          onChange={handleChange}
+                          placeholder="E.g. David Okello"
+                          className="w-full px-5 py-4 rounded-xl bg-slate-50 border border-slate-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-sm font-bold text-slate-700 ml-1">Work Email</label>
+                        <input
+                          required
+                          type="email"
+                          name="email"
+                          value={formData.email}
+                          onChange={handleChange}
+                          placeholder="david@company.com"
+                          className="w-full px-5 py-4 rounded-xl bg-slate-50 border border-slate-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all"
+                        />
+                      </div>
+                    </div>
 
-                <button
-                  type="submit"
-                  disabled={submitting}
-                  className="w-full bg-[#F2B134] text-white py-4 rounded-lg hover:bg-[#d89e2d] transition-all duration-300 font-semibold text-lg flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {submitting ? (
-                    'Sending...'
-                  ) : (
-                    <>
-                      Send Message
-                      <Send size={20} />
-                    </>
-                  )}
-                </button>
-              </form>
-            </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="space-y-2">
+                        <label className="text-sm font-bold text-slate-700 ml-1">Phone Number</label>
+                        <input
+                          required
+                          type="tel"
+                          name="phone_number"
+                          value={formData.phone_number}
+                          onChange={handleChange}
+                          placeholder="+256..."
+                          className="w-full px-5 py-4 rounded-xl bg-slate-50 border border-slate-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-sm font-bold text-slate-700 ml-1">Company (Optional)</label>
+                        <input
+                          name="company_name"
+                          value={formData.company_name}
+                          onChange={handleChange}
+                          placeholder="Your Organization"
+                          className="w-full px-5 py-4 rounded-xl bg-slate-50 border border-slate-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-sm font-bold text-slate-700 ml-1">Interested Service</label>
+                      <select
+                        required
+                        name="interested_package"
+                        value={formData.interested_package}
+                        onChange={handleChange}
+                        className="w-full px-5 py-4 rounded-xl bg-slate-50 border border-slate-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all appearance-none cursor-pointer"
+                      >
+                        <option value="">Select a service category</option>
+                        <optgroup label="Web & Software">
+                          <option value="Starter Web Package">Starter Web Package</option>
+                          <option value="E-Commerce Growth Kit">E-Commerce Growth Kit</option>
+                          <option value="Custom Software Bundle">Custom Software Bundle</option>
+                        </optgroup>
+                        <optgroup label="Enterprise">
+                          <option value="Cyber Security Shield">Cyber Security Shield</option>
+                          <option value="Cloud Migration Pro">Cloud Migration Pro</option>
+                          <option value="AI Integration">AI Integration & Automation</option>
+                        </optgroup>
+                        <option value="General Inquiry">General Inquiry</option>
+                      </select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-sm font-bold text-slate-700 ml-1">Your Message</label>
+                      <textarea
+                        required
+                        name="message"
+                        value={formData.message}
+                        onChange={handleChange}
+                        rows={4}
+                        placeholder="Tell us about your goals..."
+                        className="w-full px-5 py-4 rounded-xl bg-slate-50 border border-slate-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all resize-none"
+                      />
+                    </div>
+
+                    {error && (
+                      <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-red-500 text-sm font-medium">
+                        {error}
+                      </motion.p>
+                    )}
+
+                    <button
+                      type="submit"
+                      disabled={submitting}
+                      className="group w-full bg-slate-900 text-white py-5 rounded-2xl font-bold text-lg flex items-center justify-center gap-3 hover:bg-indigo-600 transition-all duration-300 disabled:opacity-50 shadow-lg shadow-indigo-200"
+                    >
+                      {submitting ? "Processing..." : "Send Message"}
+                      <Send size={20} className="group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
+                    </button>
+
+                    <p className="text-center text-xs text-slate-400">
+                      By submitting, you agree to our privacy policy and terms of service.
+                    </p>
+                  </form>
+                )}
+              </AnimatePresence>
+            </motion.div>
           </div>
         </div>
       </div>

@@ -12,7 +12,8 @@ import {
   LogOut, 
   Menu, 
   X,
-  User
+  User,
+  FolderOpen
 } from 'lucide-react';
 
 export default function AdminLayout() {
@@ -33,6 +34,7 @@ export default function AdminLayout() {
     { name: 'Services', href: '/admin/services', icon: Package },
     { name: 'Hero Images', href: '/admin/hero-images', icon: Image },
     { name: 'Testimonials', href: '/admin/testimonials', icon: MessageCircle },
+    { name: 'Projects', href: '/admin/projects', icon: FolderOpen },
     { name: 'Careers', href: '/admin/careers', icon: Briefcase },
     { name: 'Blog', href: '/admin/blog', icon: BookOpen },
     { name: 'Users', href: '/admin/users', icon: Users },
@@ -102,21 +104,11 @@ export default function AdminLayout() {
         </div>
       </div>
 
-      {/* Overlay for mobile */}
-      {sidebarOpen && (
-        <div 
-          className="fixed inset-0 z-10 bg-black bg-opacity-50 md:hidden"
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
-
       {/* Main content */}
       <div className="md:ml-64 pt-16 md:pt-0">
-        <main>
-          <div key={location.pathname}>
-            <Outlet />
-          </div>
-        </main>
+        <div className="p-4 md:p-8">
+          <Outlet />
+        </div>
       </div>
     </div>
   );

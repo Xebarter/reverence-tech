@@ -4,6 +4,7 @@ import { createClient } from '@supabase/supabase-js';
 // Validate that environment variables are set
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const supabaseServiceRoleKey = import.meta.env.VITE_SUPABASE_SERVICE_ROLE_KEY;
 
 if (!supabaseUrl) {
   console.error('VITE_SUPABASE_URL is not set. Please add it to your .env file.');
@@ -15,7 +16,20 @@ if (!supabaseAnonKey) {
   throw new Error('VITE_SUPABASE_ANON_KEY is not set');
 }
 
+if (!supabaseServiceRoleKey) {
+  console.error('VITE_SUPABASE_SERVICE_ROLE_KEY is not set. Please add it to your .env file.');
+  throw new Error('VITE_SUPABASE_SERVICE_ROLE_KEY is not set');
+}
+
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+// Admin client with service role key (bypasses RLS)
+export const adminSupabase = createClient(supabaseUrl, supabaseServiceRoleKey, {
+  auth: {
+    persistSession: false,
+    autoRefreshToken: false,
+  },
+});
 
 export interface Service {
   id: string;

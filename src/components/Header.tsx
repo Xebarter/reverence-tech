@@ -1,180 +1,179 @@
-import { Menu, X, ChevronRight, Phone, Mail } from 'lucide-react';
-import { useState } from 'react';
+import { Menu, X, ChevronRight, Phone, Mail, ArrowRight } from 'lucide-react';
+import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
   const location = useLocation();
 
-  const scrollToSection = (id: string) => {
-    const element = document.getElementById(id);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
-      setIsMenuOpen(false);
-    }
-  };
+  // Handle glass effect and height transition on scroll
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 20);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const navigateToSection = (sectionId: string) => {
     if (location.pathname === '/') {
-      scrollToSection(sectionId);
+      const element = document.getElementById(sectionId);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth' });
+        setIsMenuOpen(false);
+      }
     } else {
       window.location.href = `/#${sectionId}`;
     }
   };
 
-  const closeMenu = () => setIsMenuOpen(false);
-
   return (
-    <header className="fixed top-0 left-0 right-0 bg-primary-500 z-50 shadow-lg">
-      {/* Contact Strip */}
-      <div className="bg-yellow-400 text-primary-800 py-1 px-4">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:justify-between md:items-center text-xs md:text-sm">
-          <div className="flex flex-wrap justify-center md:justify-start gap-2 md:gap-4 mb-1 md:mb-0">
-            <span className="flex items-center"><Phone size={14} className="mr-1" /> +256 783 676 313</span>
-          </div>
-          <div className="flex justify-center md:justify-start">
-            <span className="flex items-center"><Mail size={14} className="mr-1" /> reverencetechnology1@gmail.com</span>
+    <header
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled
+          ? 'bg-white/90 backdrop-blur-md shadow-md py-2'
+          : 'bg-[#1C3D5A] py-4'
+        }`}
+    >
+      {/* Contact Strip - Hidden on Scroll for a focused UI */}
+      {!isScrolled && (
+        <div className="hidden md:block border-b border-white/10 pb-3 mb-3">
+          <div className="max-w-7xl mx-auto px-6 flex justify-between items-center text-[13px] font-medium text-slate-300">
+            <div className="flex gap-6">
+              <a href="tel:+256783676313" className="flex items-center gap-2 hover:text-yellow-400 transition-colors">
+                <Phone size={14} className="text-yellow-400" /> +256 783 676 313
+              </a>
+              <a href="mailto:reverencetechnology1@gmail.com" className="flex items-center gap-2 hover:text-yellow-400 transition-colors">
+                <Mail size={14} className="text-yellow-400" /> reverencetechnology1@gmail.com
+              </a>
+            </div>
+            <div className="text-yellow-400/80 tracking-widest uppercase text-[10px]">
+              Innovating from Kampala, Uganda
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
-      <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
-          <div className="flex-shrink-0 flex items-center">
-            <Link to="/" className="flex items-center">
-              <img 
-                src="/logo.svg" 
-                alt="Reverence Technology Logo" 
-                className="h-8 w-auto mr-3"
-              />
-              <div className="text-base md:text-xl font-bold text-white flex flex-col md:flex-row items-start md:items-center">
-                <span>Reverence</span>
-                <span className="text-yellow-400 md:ml-2 mt-0.5 md:mt-0 text-xs md:text-sm">Technology</span>
-              </div>
-            </Link>
-          </div>
+      <nav className="max-w-7xl mx-auto px-6">
+        <div className="flex justify-between items-center h-12">
+          {/* Restored Original Logo Branding */}
+          <Link to="/" className="flex items-center gap-3 group">
+            <img
+              src="/logo.svg"
+              alt="Reverence Technology Logo"
+              className={`transition-all duration-300 ${isScrolled ? 'h-8' : 'h-10'} w-auto`}
+            />
+            <div className="flex flex-col">
+              <span className={`text-lg md:text-xl font-black tracking-tight leading-none transition-colors ${isScrolled ? 'text-[#1C3D5A]' : 'text-white'}`}>
+                Reverence
+              </span>
+              <span className="text-[10px] md:text-xs font-bold tracking-[0.2em] uppercase text-yellow-400 mt-0.5">
+                Technology
+              </span>
+            </div>
+          </Link>
 
-          {/* Desktop Nav */}
-          <div className="hidden md:flex space-x-6 items-center">
-            <button
-              onClick={() => navigateToSection('home')}
-              className="text-white hover:text-yellow-400 transition-colors duration-300 font-medium text-sm h-10 flex items-center border-b-2 border-transparent hover:border-yellow-400/50"
-            >
-              Home
-            </button>
-            <button
-              onClick={() => navigateToSection('services')}
-              className="text-white hover:text-yellow-400 transition-colors duration-300 font-medium text-sm h-10 flex items-center border-b-2 border-transparent hover:border-yellow-400/50"
-            >
-              Services
-            </button>
-            <Link
-              to="/blog"
-              className="text-white hover:text-yellow-400 transition-colors duration-300 font-medium text-sm h-10 flex items-center border-b-2 border-transparent hover:border-yellow-400/50"
-            >
-              Blog
-            </Link>
-            <Link
-              to="/careers"
-              className="text-white hover:text-yellow-400 transition-colors duration-300 font-medium text-sm h-10 flex items-center border-b-2 border-transparent hover:border-yellow-400/50"
-            >
-              Careers
-            </Link>
+          {/* Desktop Navigation */}
+          <div className="hidden md:flex items-center gap-8">
+            {['Home', 'Services', 'Blog', 'Careers'].map((item) => (
+              <button
+                key={item}
+                onClick={() => {
+                  if (item === 'Blog' || item === 'Careers') {
+                    // Actual navigation for separate pages
+                    window.location.href = `/${item.toLowerCase()}`;
+                  } else {
+                    navigateToSection(item.toLowerCase());
+                  }
+                }}
+                className={`text-sm font-bold transition-all hover:text-yellow-500 relative group ${isScrolled ? 'text-slate-600' : 'text-slate-200'
+                  }`}
+              >
+                {item}
+                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-yellow-500 transition-all group-hover:w-full" />
+              </button>
+            ))}
+
             <button
               onClick={() => navigateToSection('contact')}
-              className="bg-yellow-400 text-primary-700 px-4 py-1.5 rounded-lg hover:bg-yellow-500 transition-all duration-300 font-medium text-sm h-10 flex items-center shadow-md hover:shadow-lg"
+              className={`px-6 py-2.5 rounded-xl font-bold text-sm transition-all duration-300 shadow-md flex items-center gap-2 ${isScrolled
+                  ? 'bg-[#1C3D5A] text-white hover:bg-yellow-500 hover:text-[#1C3D5A]'
+                  : 'bg-yellow-400 text-[#1C3D5A] hover:bg-white hover:text-[#1C3D5A]'
+                }`}
             >
-              Get Started
+              Get Started <ArrowRight size={16} />
             </button>
           </div>
 
-          {/* Mobile Menu Trigger */}
-          <div className="md:hidden">
-            <button
-              onClick={() => setIsMenuOpen(true)}
-              className="text-white hover:text-yellow-400 transition-colors h-10 w-10 flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-yellow-400 rounded-md"
-              aria-label="Open menu"
-            >
-              <Menu size={20} />
-            </button>
-          </div>
+          {/* Mobile Menu Toggle */}
+          <button
+            onClick={() => setIsMenuOpen(true)}
+            className={`md:hidden p-2 rounded-lg transition-colors ${isScrolled ? 'text-[#1C3D5A] bg-slate-100' : 'text-white bg-white/10'
+              }`}
+          >
+            <Menu size={24} />
+          </button>
         </div>
       </nav>
 
-      {/* Mobile Menu Overlay */}
-      {isMenuOpen && (
-        <div 
-          className="fixed inset-0 bg-black bg-opacity-50 z-40 transition-opacity duration-300"
-          onClick={closeMenu}
-        />
-      )}
+      {/* Mobile Drawer */}
+      <AnimatePresence>
+        {isMenuOpen && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsMenuOpen(false)}
+              className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[60]"
+            />
+            <motion.div
+              initial={{ x: '100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '100%' }}
+              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+              className="fixed top-0 right-0 h-full w-[85%] max-w-sm bg-white z-[70] shadow-2xl p-8 flex flex-col"
+            >
+              <div className="flex justify-between items-center mb-10">
+                <img src="/logo.svg" alt="Logo" className="h-8 w-auto" />
+                <button onClick={() => setIsMenuOpen(false)} className="p-2 bg-slate-100 rounded-full text-slate-900">
+                  <X size={20} />
+                </button>
+              </div>
 
-      {/* Mobile Menu Drawer - Slides in from right */}
-      <div
-        className={`fixed top-0 right-0 h-full w-80 bg-primary-500 z-50 shadow-2xl transform transition-transform duration-300 ease-in-out ${
-          isMenuOpen ? 'translate-x-0' : 'translate-x-full'
-        }`}
-      >
-        {/* Close Button */}
-        <div className="flex justify-end p-4 border-b border-gray-700">
-          <button
-            onClick={closeMenu}
-            className="text-white hover:text-yellow-400 transition-colors p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-400"
-            aria-label="Close menu"
-          >
-            <X size={20} />
-          </button>
-        </div>
+              <div className="space-y-6 flex-1">
+                {['Home', 'Services', 'Blog', 'Careers'].map((item) => (
+                  <button
+                    key={item}
+                    onClick={() => {
+                      if (item === 'Blog' || item === 'Careers') {
+                        window.location.href = `/${item.toLowerCase()}`;
+                      } else {
+                        navigateToSection(item.toLowerCase());
+                      }
+                      setIsMenuOpen(false);
+                    }}
+                    className="flex items-center justify-between w-full text-2xl font-bold text-slate-900 hover:text-yellow-500 transition-colors group"
+                  >
+                    {item}
+                    <ChevronRight className="text-slate-300 group-hover:translate-x-1 transition-transform" />
+                  </button>
+                ))}
+              </div>
 
-        {/* Menu Items */}
-        <div className="px-4 py-6 space-y-3">
-          <button
-            onClick={() => { 
-              navigateToSection('home');
-              closeMenu(); 
-            }}
-            className="flex w-full justify-between items-center text-white hover:text-yellow-400 transition-colors py-3 font-medium text-base border-b border-primary-400"
-          >
-            <span>Home</span>
-            <ChevronRight size={18} className="text-gray-500" />
-          </button>
-          <button
-            onClick={() => { 
-              navigateToSection('services');
-              closeMenu(); 
-            }}
-            className="flex w-full justify-between items-center text-white hover:text-yellow-400 transition-colors py-3 font-medium text-base border-b border-primary-400"
-          >
-            <span>Services</span>
-            <ChevronRight size={18} className="text-gray-500" />
-          </button>
-          <Link
-            to="/blog"
-            className="flex w-full justify-between items-center text-white hover:text-yellow-400 transition-colors py-3 font-medium text-base border-b border-primary-400"
-            onClick={closeMenu}
-          >
-            <span>Blog</span>
-            <ChevronRight size={18} className="text-gray-500" />
-          </Link>
-          <Link
-            to="/careers"
-            className="flex w-full justify-between items-center text-white hover:text-yellow-400 transition-colors py-3 font-medium text-base border-b border-primary-400"
-            onClick={closeMenu}
-          >
-            <span>Careers</span>
-            <ChevronRight size={18} className="text-gray-500" />
-          </Link>
-          <button
-            onClick={() => { 
-              navigateToSection('contact');
-              closeMenu(); 
-            }}
-            className="w-full bg-yellow-400 text-primary-700 px-4 py-3 rounded-lg hover:bg-yellow-500 transition-all font-medium text-base mt-4 shadow-md hover:shadow-lg flex items-center justify-center"
-          >
-            Get Started
-          </button>
-        </div>
-      </div>
+              <div className="mt-auto pt-8 border-t border-slate-100">
+                <button
+                  onClick={() => { navigateToSection('contact'); setIsMenuOpen(false); }}
+                  className="w-full bg-[#1C3D5A] text-white py-4 rounded-2xl font-bold text-lg flex items-center justify-center gap-3 shadow-xl"
+                >
+                  Start a Project <ArrowRight size={20} />
+                </button>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </header>
   );
 }
