@@ -8,7 +8,7 @@ const Footer = () => {
   };
 
   return (
-    <footer className="bg-[#0B1221] text-white pt-20 pb-10 relative overflow-hidden">
+    <footer className="bg-[#0B1221] text-white pt-20 pb-10 relative">
       {/* Subtle Background Pattern for a premium feel */}
       <div className="absolute top-0 left-0 w-full h-full opacity-[0.02] pointer-events-none">
         <svg width="100%" height="100%">
@@ -20,7 +20,7 @@ const Footer = () => {
       </div>
 
       <div className="container mx-auto px-6 relative z-10">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-16 justify-items-start">
 
           {/* Brand Column */}
           <div>
@@ -74,15 +74,15 @@ const Footer = () => {
             <ul className="space-y-4">
               <li className="flex items-start">
                 <MapPin className="w-5 h-5 mr-3 mt-1 text-indigo-500 flex-shrink-0" />
-                <span className="text-slate-400">123 Tech Street, Digital City, DC 10001</span>
+                <span className="text-slate-400">Mutungo, Zone 1, Kampala</span>
               </li>
               <li className="flex items-center">
                 <Phone className="w-5 h-5 mr-3 text-indigo-500 flex-shrink-0" />
-                <span className="text-slate-400">+1 (555) 123-4567</span>
+                <span className="text-slate-400">+256 783 676 313</span>
               </li>
               <li className="flex items-center">
                 <Mail className="w-5 h-5 mr-3 text-indigo-500 flex-shrink-0" />
-                <span className="text-slate-400">info@reverencetechnology.com</span>
+                <span className="text-slate-400 text-xs">reverencetechnology1@gmail.com</span>
               </li>
               <li className="flex items-start">
                 <Clock className="w-5 h-5 mr-3 mt-1 text-indigo-500 flex-shrink-0" />
