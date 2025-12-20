@@ -45,8 +45,8 @@ export default function Header() {
               <a href="tel:+256783676313" className="flex items-center gap-2 hover:text-yellow-400 transition-colors">
                 <Phone size={14} className="text-yellow-400" /> +256 783 676 313
               </a>
-              <a href="mailto:info@reverence.tech" className="flex items-center gap-2 hover:text-yellow-400 transition-colors">
-                <Mail size={14} className="text-yellow-400" /> info@reverence.tech
+              <a href="mailto:reverence101@gmail.com" className="flex items-center gap-2 hover:text-yellow-400 transition-colors">
+                <Mail size={14} className="text-yellow-400" /> reverence101@gmail.com
               </a>
             </div>
             <div className="text-yellow-400/80 tracking-widest uppercase text-[10px] font-bold">
@@ -175,11 +175,11 @@ export default function Header() {
                       </div>
                       <span className="font-bold text-sm">+256 783 676 313</span>
                     </a>
-                    <a href="mailto:info@reverence.tech" className="flex items-center gap-4 text-slate-700 hover:text-blue-600 transition-colors">
+                    <a href="mailto:reverence101@gmail.com" className="flex items-center gap-4 text-slate-700 hover:text-blue-600 transition-colors">
                       <div className="w-10 h-10 rounded-xl bg-white shadow-sm flex items-center justify-center text-blue-600">
                         <Mail size={18} />
                       </div>
-                      <span className="font-bold text-sm">info@reverence.tech</span>
+                      <span className="font-bold text-sm">reverence101@gmail.com</span>
                     </a>
                     <div className="flex items-center gap-4 text-slate-700">
                       <div className="w-10 h-10 rounded-xl bg-white shadow-sm flex items-center justify-center text-yellow-500">
