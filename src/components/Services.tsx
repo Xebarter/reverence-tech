@@ -4,8 +4,6 @@ import { useState, useEffect } from 'react';
 import {
   ChevronRight,
   Check,
-  X,
-  Send,
   Sparkles,
   ShieldCheck,
   Zap,
@@ -41,7 +39,6 @@ interface Inquiry {
 export default function Services() {
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedService, setSelectedService] = useState<Service | null>(null);
   const [showContactForm, setShowContactForm] = useState(false);
   const [showAllServices, setShowAllServices] = useState(false);
 
@@ -82,7 +79,6 @@ export default function Services() {
 
   const handleGetStarted = (service?: Service | null) => {
     const next = service ?? null;
-    setSelectedService(next);
     setFormData(prev => ({
       ...prev,
       service_interest: next?.package_name ?? '',

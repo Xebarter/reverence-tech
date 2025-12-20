@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { format } from 'date-fns';
-import { ArrowLeft, Calendar, User, Share2, Bookmark, Clock, ChevronRight } from 'lucide-react';
+import { ArrowLeft, Calendar, Share2, Bookmark, Clock, ChevronRight } from 'lucide-react';
 import { motion, useScroll, useSpring } from 'framer-motion';
 import SEO from './SEO';
 import { supabase } from '../lib/supabase';
@@ -137,9 +137,9 @@ export default function BlogPost() {
             <aside className="hidden lg:block sticky top-48 h-fit">
               <div className="flex flex-col gap-4">
                 <div className="text-[10px] font-black uppercase text-slate-400 tracking-tighter mb-2">Share</div>
-                <ShareButton platform="linkedin" url={window.location.href} />
-                <ShareButton platform="twitter" url={window.location.href} />
-                <ShareButton platform="whatsapp" url={window.location.href} />
+                <ShareButton platform="linkedin" />
+                <ShareButton platform="twitter" />
+                <ShareButton platform="whatsapp" />
               </div>
             </aside>
 
@@ -179,7 +179,7 @@ export default function BlogPost() {
 }
 
 // Simple internal component for the sidebar
-function ShareButton({ platform, url }: { platform: string, url: string }) {
+function ShareButton({ platform }: { platform: string }) {
   const icons: any = {
     linkedin: <Share2 size={18} />,
     twitter: <span className="font-bold text-xs">X</span>,

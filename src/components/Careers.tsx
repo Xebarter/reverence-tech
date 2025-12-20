@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { MapPin, Clock, DollarSign, ArrowRight, Briefcase, Zap, Globe, Heart, Search } from 'lucide-react';
+import { MapPin, DollarSign, ArrowRight, Briefcase, Zap, Globe, Heart, Search } from 'lucide-react';
 import { motion } from 'framer-motion';
 import SEO from './SEO';
 import { useNavigate } from 'react-router-dom';
