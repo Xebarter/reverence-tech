@@ -152,21 +152,23 @@ const Projects: React.FC = () => {
                   </div>
 
                   {/* Content Body */}
-                  <div className="p-5 flex-grow flex flex-col">
+                  <div className="p-5 flex flex-col flex-1">
                     <div className="flex items-center justify-between mb-2">
                       <h3 className="text-lg font-bold text-slate-900 group-hover:text-indigo-600 transition-colors">
                         {project.title}
                       </h3>
                     </div>
 
-                    <div
-                      className="text-slate-600 text-sm mb-4 flex-grow project-card-description line-clamp-2"
-                      dangerouslySetInnerHTML={{ __html: project.description }}
-                    />
+                    <div className="flex-1 min-h-0">
+                      <div
+                        className="text-slate-600 text-sm mb-4 project-card-description line-clamp-2"
+                        dangerouslySetInnerHTML={{ __html: project.description }}
+                      />
+                    </div>
 
-                    <div className="mt-auto space-y-4">
+                    <div className="pt-2">
                       {/* Tech Badges */}
-                      <div className="flex flex-wrap gap-1">
+                      <div className="flex flex-wrap gap-1 mb-4 min-h-[28px]">
                         {project.technologies.slice(0, 2).map((tech, index) => (
                           <span
                             key={index}
