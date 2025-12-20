@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { ArrowRight, Star, Quote, CheckCircle2, Rocket } from 'lucide-react';
+import { ArrowRight, Star, CheckCircle2, Rocket } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../lib/supabase';
 
@@ -12,17 +12,6 @@ const getOptimizedImageUrl = (url: string, width: number): string => {
   }
   if (url.includes('supabase.co')) {
     return `${url}?width=${width}&quality=${quality}&resize=cover&format=webp`;
-  }
-  return url;
-};
-
-const getThumbnailUrl = (url: string): string => {
-  if (!url) return url;
-  if (url.includes('unsplash.com')) {
-    return `${url}&w=20&h=20&q=10&blur=2&auto=format&fm=webp`;
-  }
-  if (url.includes('supabase.co')) {
-    return `${url}?width=20&height=20&quality=10&resize=cover&format=webp`;
   }
   return url;
 };

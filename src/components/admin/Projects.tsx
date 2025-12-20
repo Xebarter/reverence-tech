@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
-import { Plus, Edit, Trash2, Loader2, Upload } from 'lucide-react';
+import { Plus, Edit, Trash2, Loader2 } from 'lucide-react';
 import { supabase, adminSupabase } from '../../lib/supabase';
 
 interface Project {
@@ -120,47 +120,6 @@ const ProjectsManagement: React.FC = () => {
       if (editingProject?.image_url) {
         setImageUrl(null);
       }
-    }
-  };
-
-  const uploadImage = async (file: File, prefix: string) => {
-    try {
-      // Validate file type and size (max 10MB)
-      if (!file.type.match('image.*')) {
-        throw new Error('Please select a valid image file (JPEG, PNG, GIF)');
-      }
-      if (file.size > 10 * 1024 * 1024) {
-        throw new Error('Image size must be less than 10MB');
-      }
-
-      // Generate unique file name
-      const fileExt = file.name.split('.').pop()?.toLowerCase();
-      const fileName = `${prefix}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}.${fileExt}`;
-      const filePath = `${fileName}`;
-
-      // Upload to Supabase storage
-      const { error: uploadError } = await supabase.storage
-        .from('projects')
-        .upload(filePath, file, {
-          cacheControl: '3600',
-          upsert: false
-        });
-
-      if (uploadError) throw uploadError;
-
-      // Get public URL
-      const { data: { publicUrl } } = supabase.storage
-        .from('projects')
-        .getPublicUrl(filePath);
-
-      if (!publicUrl) {
-        throw new Error('Failed to generate public URL');
-      }
-
-      return publicUrl;
-    } catch (err) {
-      console.error('Error uploading image:', err);
-      throw new Error(err instanceof Error ? err.message : 'Failed to upload image');
     }
   };
 

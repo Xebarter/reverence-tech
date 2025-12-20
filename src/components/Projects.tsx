@@ -26,7 +26,6 @@ interface Project {
 const Projects: React.FC = () => {
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -44,9 +43,8 @@ const Projects: React.FC = () => {
 
       if (error) throw error;
       setProjects(data || []);
-    } catch (error) {
-      console.error('Error fetching projects:', error);
-      setError('Failed to load projects');
+    } catch (_error) {
+      console.error('Error fetching projects');
     } finally {
       setLoading(false);
     }
