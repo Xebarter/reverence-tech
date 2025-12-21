@@ -96,7 +96,7 @@ const ProjectDetails: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] pb-20">
+    <div className="min-h-screen bg-[#F8FAFC] pb-20 pt-24">
       {/* CSS for rich text content from Supabase */}
       <style>{`
         .prose-content h1, .prose-content h2, .prose-content h3 { color: #0F172A; font-weight: 700; margin-top: 2rem; margin-bottom: 1rem; }

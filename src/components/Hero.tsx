@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { ArrowRight, Star, CheckCircle2, Rocket, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ArrowRight, Star, CheckCircle2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../lib/supabase';
 
@@ -229,22 +229,6 @@ export default function Hero() {
                   />
                 )}
               </AnimatePresence>
-
-              <div className="absolute bottom-5 left-5 right-5 bg-white/90 backdrop-blur-md rounded-2xl p-4 border border-slate-200 shadow-sm">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-indigo-600 text-white">
-                    <Rocket size={18} />
-                  </div>
-                  <div>
-                    <p className="text-[11px] uppercase tracking-wider text-slate-500 font-semibold">
-                      Proven Capability
-                    </p>
-                    <p className="text-sm font-semibold text-slate-900">
-                      Delivering dependable digital outcomes
-                    </p>
-                  </div>
-                </div>
-              </div>
             </motion.div>
           </div>
         </div>
