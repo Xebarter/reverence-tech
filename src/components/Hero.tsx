@@ -22,7 +22,6 @@ export default function Hero() {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [currentValueIndex, setCurrentValueIndex] = useState(0);
   const [testimonials, setTestimonials] = useState<any[]>([]);
-  const [testimonialsVisible, setTestimonialsVisible] = useState(false);
   const [currentTestimonialIndex, setCurrentTestimonialIndex] = useState(0);
   const testimonialsRef = useRef<HTMLDivElement>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -133,7 +132,7 @@ export default function Hero() {
 
   useEffect(() => {
     const observer = new IntersectionObserver(
-      ([entry]) => entry.isIntersecting && setTestimonialsVisible(true),
+      ([entry]) => entry.isIntersecting,
       { threshold: 0.15 }
     );
 
