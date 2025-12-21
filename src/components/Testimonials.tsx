@@ -1,6 +1,13 @@
 import { useEffect, useState, useRef } from 'react';
 import { supabase } from '../lib/supabase';
-import { Star, Quote, ChevronLeft, ChevronRight, MessageSquarePlus, User } from 'lucide-react';
+import {
+  Star,
+  Quote,
+  ChevronLeft,
+  ChevronRight,
+  MessageSquarePlus,
+  User
+} from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface Testimonial {
@@ -15,11 +22,15 @@ interface Testimonial {
   is_active: boolean;
 }
 
-export default function Testimonials({ onShowTestimonialForm }: { onShowTestimonialForm: () => void }) {
+export default function Testimonials({
+  onShowTestimonialForm
+}: {
+  onShowTestimonialForm: () => void;
+}) {
   const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [direction, setDirection] = useState(0); // For Framer Motion slide direction
+  const [direction, setDirection] = useState(0);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
@@ -27,9 +38,7 @@ export default function Testimonials({ onShowTestimonialForm }: { onShowTestimon
   }, []);
 
   useEffect(() => {
-    if (testimonials.length > 1) {
-      startCarousel();
-    }
+    if (testimonials.length > 1) startCarousel();
     return () => stopCarousel();
   }, [testimonials]);
 
@@ -44,8 +53,8 @@ export default function Testimonials({ onShowTestimonialForm }: { onShowTestimon
 
       if (error) throw error;
       setTestimonials(data || []);
-    } catch (error) {
-      console.error('Error fetching testimonials:', error);
+    } catch (err) {
+      console.error('Failed to load testimonials', err);
     } finally {
       setLoading(false);
     }
@@ -56,108 +65,88 @@ export default function Testimonials({ onShowTestimonialForm }: { onShowTestimon
     intervalRef.current = setInterval(() => {
       setDirection(1);
       setCurrentIndex((prev) => (prev + 1) % testimonials.length);
-    }, 8000);
+    }, 9000);
   };
 
   const stopCarousel = () => {
     if (intervalRef.current) clearInterval(intervalRef.current);
   };
 
-  const handleNavigate = (newDirection: number) => {
+  const navigate = (dir: number) => {
     stopCarousel();
-    setDirection(newDirection);
-    if (newDirection === 1) {
-      setCurrentIndex((prev) => (prev + 1) % testimonials.length);
-    } else {
-      setCurrentIndex((prev) => (prev === 0 ? testimonials.length - 1 : prev - 1));
-    }
-    startCarousel();
-  };
-
-  const goToTestimonial = (index: number) => {
-    stopCarousel();
-    setDirection(index > currentIndex ? 1 : -1);
-    setCurrentIndex(index);
+    setDirection(dir);
+    setCurrentIndex((prev) =>
+      dir === 1
+        ? (prev + 1) % testimonials.length
+        : prev === 0
+          ? testimonials.length - 1
+          : prev - 1
+    );
     startCarousel();
   };
 
   const variants = {
-    enter: (direction: number) => ({
-      x: direction > 0 ? 100 : -100,
-      opacity: 0,
+    enter: (dir: number) => ({
+      x: dir > 0 ? 120 : -120,
+      opacity: 0
     }),
-    center: {
-      zIndex: 1,
-      x: 0,
-      opacity: 1,
-    },
-    exit: (direction: number) => ({
-      zIndex: 0,
-      x: direction < 0 ? 100 : -100,
-      opacity: 0,
-    }),
+    center: { x: 0, opacity: 1 },
+    exit: (dir: number) => ({
+      x: dir < 0 ? 120 : -120,
+      opacity: 0
+    })
   };
 
   if (loading) {
     return (
-      <section className="py-24 bg-white flex justify-center">
-        <div className="w-full max-w-4xl px-4">
-          <div className="h-10 w-48 bg-slate-100 animate-pulse rounded-lg mx-auto mb-4" />
-          <div className="h-64 w-full bg-slate-50 animate-pulse rounded-[2rem]" />
+      <section className="py-24 bg-white">
+        <div className="max-w-4xl mx-auto px-4 animate-pulse">
+          <div className="h-8 w-48 bg-slate-200 rounded mb-6 mx-auto" />
+          <div className="h-48 bg-slate-100 rounded-3xl" />
         </div>
       </section>
     );
   }
 
   return (
-    <section className="py-24 px-4 sm:px-6 lg:px-8 bg-white relative overflow-hidden">
-      {/* Abstract background Trust Elements */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full pointer-events-none opacity-[0.03]">
-        <svg width="100%" height="100%"><pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M 40 0 L 0 0 0 40" fill="none" stroke="currentColor" strokeWidth="1" /></pattern><rect width="100%" height="100%" fill="url(#grid)" /></svg>
-      </div>
-
-      <div className="max-w-5xl mx-auto relative z-10">
-        <div className="text-center mb-16">
-          <motion.span
-            initial={{ opacity: 0, y: 10 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            className="text-indigo-600 font-black tracking-[0.2em] text-xs uppercase mb-4 block"
-          >
-            Success Stories
-          </motion.span>
-          <motion.h2
-            initial={{ opacity: 0, y: 10 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="text-4xl md:text-5xl font-extrabold text-slate-900 mb-6 tracking-tight"
-          >
-            Voices of <span className="text-indigo-600">Trust</span>
-          </motion.h2>
-          <motion.p
-            initial={{ opacity: 0, y: 10 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="text-lg text-slate-500 max-w-2xl mx-auto"
-          >
-            We pride ourselves on delivering excellence. Here is what our partners across East Africa have to say about our impact.
-          </motion.p>
+    <section className="py-24 px-4 sm:px-6 lg:px-8 bg-white relative">
+      <div className="max-w-5xl mx-auto">
+        {/* Header */}
+        <div className="text-center mb-20">
+          <span className="text-indigo-600 text-xs font-black tracking-[0.25em] uppercase">
+            Client Testimonials
+          </span>
+          <h2 className="text-4xl md:text-5xl font-extrabold text-slate-900 mt-4 mb-6 tracking-tight">
+            Trusted by Organizations Across the Region
+          </h2>
+          <p className="text-lg text-slate-500 max-w-2xl mx-auto">
+            Our clients trust us to deliver secure, reliable, and impactful
+            digital solutions. Here is what they say.
+          </p>
         </div>
 
+        {/* Empty State */}
         {testimonials.length === 0 ? (
-          <div className="text-center py-20 bg-slate-50 rounded-[3rem] border-2 border-dashed border-slate-200">
-            <User className="mx-auto text-slate-300 mb-4" size={48} />
-            <h3 className="text-xl font-bold text-slate-900">Be the first to share!</h3>
-            <p className="text-slate-500 mb-8">We value your feedback and partnership.</p>
+          <div className="bg-slate-50 border border-dashed border-slate-200 rounded-3xl py-20 text-center">
+            <User size={48} className="mx-auto text-slate-300 mb-4" />
+            <h3 className="text-xl font-bold text-slate-900 mb-2">
+              No testimonials yet
+            </h3>
+            <p className="text-slate-500 mb-8">
+              Be the first to share your experience working with us.
+            </p>
             <button
               onClick={onShowTestimonialForm}
-              className="px-8 py-3 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition-all flex items-center gap-2 mx-auto"
+              className="inline-flex items-center gap-2 px-8 py-3 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition"
             >
-              <MessageSquarePlus size={20} /> Submit Testimonial
+              <MessageSquarePlus size={18} />
+              Submit Testimonial
             </button>
           </div>
         ) : (
-          <div className="relative group">
-            <div className="relative h-[450px] sm:h-[380px] md:h-[320px]">
+          <div className="relative">
+            {/* Testimonial Card */}
+            <div className="relative h-[260px]">
               <AnimatePresence initial={false} custom={direction}>
                 <motion.div
                   key={currentIndex}
@@ -166,48 +155,54 @@ export default function Testimonials({ onShowTestimonialForm }: { onShowTestimon
                   initial="enter"
                   animate="center"
                   exit="exit"
-                  transition={{ x: { type: "spring", stiffness: 300, damping: 30 }, opacity: { duration: 0.4 } }}
+                  transition={{ duration: 0.45, ease: 'easeOut' }}
                   className="absolute inset-0"
                 >
-                  <div className="bg-slate-50 border border-slate-100 rounded-[2.5rem] p-8 md:p-12 shadow-sm h-full flex flex-col justify-center">
-                    <Quote className="text-indigo-200 absolute top-8 right-12" size={80} strokeWidth={1} />
+                  <div className="bg-slate-50 border border-slate-100 rounded-3xl p-8 md:p-10 shadow-sm h-full flex flex-col justify-between">
+                    <Quote className="absolute top-6 right-6 text-indigo-100" size={48} />
 
-                    <div className="flex flex-col md:flex-row items-center md:items-start gap-8 relative z-10">
-                      <div className="relative">
-                        <div className="w-20 h-20 rounded-full overflow-hidden border-4 border-white shadow-lg ring-1 ring-slate-200">
-                          <img
-                            src={testimonials[currentIndex].avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(testimonials[currentIndex].name)}&background=4f46e5&color=fff`}
-                            alt={testimonials[currentIndex].name}
-                            className="w-full h-full object-cover"
+                    <div>
+                      <div className="flex gap-1 mb-4">
+                        {[...Array(5)].map((_, i) => (
+                          <Star
+                            key={i}
+                            size={16}
+                            className={
+                              i < testimonials[currentIndex].rating
+                                ? 'fill-amber-400 text-amber-400'
+                                : 'text-slate-200'
+                            }
                           />
-                        </div>
-                        <div className="absolute -bottom-2 -right-2 bg-amber-400 p-1.5 rounded-full shadow-md">
-                          <Star size={14} className="fill-slate-900 text-slate-900" />
-                        </div>
+                        ))}
                       </div>
 
-                      <div className="flex-1 text-center md:text-left">
-                        <div className="flex justify-center md:justify-start gap-1 mb-4">
-                          {[...Array(5)].map((_, i) => (
-                            <Star
-                              key={i}
-                              size={18}
-                              className={i < testimonials[currentIndex].rating ? "fill-amber-400 text-amber-400" : "text-slate-200"}
-                            />
-                          ))}
-                        </div>
+                      <p className="text-slate-700 text-lg leading-relaxed italic mb-8">
+                        “{testimonials[currentIndex].content}”
+                      </p>
+                    </div>
 
-                        <p className="text-xl md:text-2xl text-slate-700 font-medium italic leading-relaxed mb-6">
-                          "{testimonials[currentIndex].content}"
+                    <div className="flex items-center gap-4">
+                      <img
+                        src={
+                          testimonials[currentIndex].avatar_url ||
+                          `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                            testimonials[currentIndex].name
+                          )}&background=4f46e5&color=fff`
+                        }
+                        alt={testimonials[currentIndex].name}
+                        className="w-14 h-14 rounded-full object-cover border border-white shadow"
+                      />
+                      <div>
+                        <p className="font-bold text-slate-900">
+                          {testimonials[currentIndex].name}
                         </p>
-
-                        <div>
-                          <h4 className="text-lg font-black text-slate-900">{testimonials[currentIndex].name}</h4>
-                          <p className="text-slate-500 font-medium">
-                            {testimonials[currentIndex].role && `${testimonials[currentIndex].role} @ `}
-                            <span className="text-indigo-600 font-bold">{testimonials[currentIndex].company}</span>
-                          </p>
-                        </div>
+                        <p className="text-sm text-slate-500">
+                          {testimonials[currentIndex].role &&
+                            `${testimonials[currentIndex].role}, `}
+                          <span className="text-indigo-600 font-medium">
+                            {testimonials[currentIndex].company}
+                          </span>
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -215,42 +210,29 @@ export default function Testimonials({ onShowTestimonialForm }: { onShowTestimon
               </AnimatePresence>
             </div>
 
-            {/* Navigation Controls */}
-            <div className="flex flex-col sm:flex-row items-center justify-between mt-12 gap-8">
+            {/* Controls */}
+            <div className="flex flex-col sm:flex-row items-center justify-between mt-10 gap-6">
               <button
                 onClick={onShowTestimonialForm}
-                className="order-2 sm:order-1 text-slate-500 hover:text-indigo-600 font-bold text-sm flex items-center gap-2 transition-colors"
+                className="text-slate-500 hover:text-indigo-600 font-bold text-sm flex items-center gap-2 transition"
               >
-                <MessageSquarePlus size={18} /> Add Your Own Story
+                <MessageSquarePlus size={18} />
+                Share your experience
               </button>
 
-              <div className="order-1 sm:order-2 flex items-center gap-4">
+              <div className="flex items-center gap-4">
                 <button
-                  onClick={() => handleNavigate(-1)}
-                  className="p-3 rounded-full bg-white border border-slate-200 text-slate-600 hover:bg-slate-900 hover:text-white hover:border-slate-900 transition-all shadow-sm"
-                  aria-label="Previous"
+                  onClick={() => navigate(-1)}
+                  className="p-2 rounded-full border border-slate-200 hover:bg-slate-900 hover:text-white transition"
                 >
-                  <ChevronLeft size={24} />
+                  <ChevronLeft size={20} />
                 </button>
 
-                <div className="flex gap-2">
-                  {testimonials.map((_, index) => (
-                    <button
-                      key={index}
-                      onClick={() => goToTestimonial(index)}
-                      className={`h-2 transition-all duration-300 rounded-full ${index === currentIndex ? 'w-8 bg-indigo-600' : 'w-2 bg-slate-200 hover:bg-slate-300'
-                        }`}
-                      aria-label={`Go to slide ${index + 1}`}
-                    />
-                  ))}
-                </div>
-
                 <button
-                  onClick={() => handleNavigate(1)}
-                  className="p-3 rounded-full bg-white border border-slate-200 text-slate-600 hover:bg-slate-900 hover:text-white hover:border-slate-900 transition-all shadow-sm"
-                  aria-label="Next"
+                  onClick={() => navigate(1)}
+                  className="p-2 rounded-full border border-slate-200 hover:bg-slate-900 hover:text-white transition"
                 >
-                  <ChevronRight size={24} />
+                  <ChevronRight size={20} />
                 </button>
               </div>
             </div>

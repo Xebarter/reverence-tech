@@ -17,14 +17,79 @@ export default function Header() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // Check if we need to scroll to a section after page load
+  useEffect(() => {
+    const scrollToSection = () => {
+      // First check localStorage for section to scroll to
+      const storedSectionId = localStorage.getItem('scrollToSection');
+      if (storedSectionId) {
+        localStorage.removeItem('scrollToSection'); // Remove it so we don't scroll again
+        attemptScroll(storedSectionId);
+        return;
+      }
+      
+      // If no stored section, check for hash in URL
+      const hash = window.location.hash;
+      if (hash && location.pathname === '/') {
+        const sectionId = hash.substring(1); // Remove the #
+        attemptScroll(sectionId);
+      }
+    };
+
+    const attemptScroll = (sectionId: string) => {
+      const element = document.getElementById(sectionId);
+      if (element) {
+        // Try immediately first
+        scrollToElement(element);
+      } else {
+        // If element not found, wait a bit and try again
+        setTimeout(() => {
+          const element = document.getElementById(sectionId);
+          if (element) {
+            scrollToElement(element);
+          }
+        }, 500);
+      }
+    };
+
+    const scrollToElement = (element: HTMLElement) => {
+      const header = document.querySelector('header');
+      const headerHeight = header ? header.offsetHeight : 0;
+      const elementPosition = element.getBoundingClientRect().top;
+      const offsetPosition = elementPosition + window.pageYOffset - headerHeight;
+
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth'
+      });
+    };
+
+    // Only scroll if we're on the home page
+    if (location.pathname === '/') {
+      scrollToSection();
+    }
+  }, [location]);
+
   const navigateToSection = (sectionId: string) => {
+    const scrollToElement = (element: HTMLElement) => {
+      const header = document.querySelector('header');
+      const headerHeight = header ? header.offsetHeight : 0;
+      const offsetPosition = element.getBoundingClientRect().top + window.pageYOffset - headerHeight;
+
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth'
+      });
+    };
+
     if (location.pathname === '/') {
       const element = document.getElementById(sectionId);
       if (element) {
-        element.scrollIntoView({ behavior: 'smooth' });
-        setIsMenuOpen(false);
+        scrollToElement(element);
       }
+      setIsMenuOpen(false);
     } else {
+      localStorage.setItem('scrollToSection', sectionId);
       window.location.href = `/#${sectionId}`;
     }
   };
@@ -45,8 +110,8 @@ export default function Header() {
               <a href="tel:+256783676313" className="flex items-center gap-2 hover:text-yellow-400 transition-colors">
                 <Phone size={14} className="text-yellow-400" /> +256 783 676 313
               </a>
-              <a href="mailto:reverence101@gmail.com" className="flex items-center gap-2 hover:text-yellow-400 transition-colors">
-                <Mail size={14} className="text-yellow-400" /> reverence101@gmail.com
+              <a href="mailto:reverencetech1@gmail.com" className="flex items-center gap-2 hover:text-yellow-400 transition-colors">
+                <Mail size={14} className="text-yellow-400" /> reverencetech1@gmail.com
               </a>
             </div>
             <div className="text-yellow-400/80 tracking-widest uppercase text-[10px] font-bold">
@@ -90,6 +155,14 @@ export default function Header() {
                   <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-yellow-500 transition-all group-hover:w-full" />
                 </button>
               ))}
+              <button
+                onClick={() => navigateToSection('projects')}
+                className={`text-sm font-bold transition-all hover:text-yellow-500 relative group ${isScrolled ? 'text-slate-700' : 'text-slate-200'
+                  }`}
+              >
+                Portfolio
+                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-yellow-500 transition-all group-hover:w-full" />
+              </button>
               <button
                 onClick={() => navigateToSection('contact')}
                 className={`px-6 py-2.5 rounded-xl font-black text-sm transition-all duration-300 shadow-lg ${isScrolled ? 'bg-[#1C3D5A] text-white hover:bg-yellow-500' : 'bg-yellow-400 text-[#1C3D5A] hover:bg-white'
@@ -162,6 +235,16 @@ export default function Header() {
                     <ChevronRight size={18} className="text-slate-300 group-hover:text-yellow-600 transition-colors" />
                   </button>
                 ))}
+                <button
+                  onClick={() => {
+                    navigateToSection('projects');
+                    setIsMenuOpen(false);
+                  }}
+                  className="flex items-center justify-between w-full p-4 text-lg font-black text-[#1C3D5A] bg-slate-50 rounded-2xl hover:bg-yellow-50 transition-all group"
+                >
+                  Portfolio
+                  <ChevronRight size={18} className="text-slate-300 group-hover:text-yellow-600 transition-colors" />
+                </button>
               </div>
 
               {/* Contact Information (Brought from Desktop Header) */}
@@ -175,11 +258,11 @@ export default function Header() {
                       </div>
                       <span className="font-bold text-sm">+256 783 676 313</span>
                     </a>
-                    <a href="mailto:reverence101@gmail.com" className="flex items-center gap-4 text-slate-700 hover:text-blue-600 transition-colors">
+                    <a href="mailto:reverencetech1@gmail.com" className="flex items-center gap-4 text-slate-700 hover:text-blue-600 transition-colors">
                       <div className="w-10 h-10 rounded-xl bg-white shadow-sm flex items-center justify-center text-blue-600">
                         <Mail size={18} />
                       </div>
-                      <span className="font-bold text-sm">reverence101@gmail.com</span>
+                      <span className="font-bold text-sm">reverencetech1@gmail.com</span>
                     </a>
                     <div className="flex items-center gap-4 text-slate-700">
                       <div className="w-10 h-10 rounded-xl bg-white shadow-sm flex items-center justify-center text-yellow-500">

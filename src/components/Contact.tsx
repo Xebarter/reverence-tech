@@ -74,7 +74,7 @@ export default function Contact() {
                 {[
                   { icon: MapPin, title: "Our Headquarters", detail: "Mutungo, Zone 1, Kampala, Uganda", color: "bg-blue-500" },
                   { icon: Phone, title: "Direct Line", detail: "+256 783 676 313", color: "bg-emerald-500" },
-                  { icon: Mail, title: "Email Support", detail: "reverencetechnology1@gmail.com", color: "bg-indigo-500" }
+                  { icon: Mail, title: "Email Support", detail: "reverencetech1@gmail.com", color: "bg-indigo-500" }
                 ].map((item, idx) => (
                   <div key={idx} className="group flex items-center p-4 bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all">
                     <div className={`${item.color} p-3 rounded-xl text-white mr-4`}>

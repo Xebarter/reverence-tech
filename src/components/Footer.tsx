@@ -7,6 +7,28 @@ const Footer = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const navigateToSection = (sectionId: string) => {
+    // Check if we're on the home page
+    if (window.location.pathname === '/') {
+      // We're on the home page, scroll to the section
+      const element = document.getElementById(sectionId);
+      if (element) {
+        const header = document.querySelector('header');
+        const headerHeight = header ? header.offsetHeight : 0;
+        const offsetPosition = element.getBoundingClientRect().top + window.pageYOffset - headerHeight;
+        
+        window.scrollTo({
+          top: offsetPosition,
+          behavior: 'smooth'
+        });
+      }
+    } else {
+      // We're on another page, store the section ID and navigate to home
+      localStorage.setItem('scrollToSection', sectionId);
+      window.location.href = `/#${sectionId}`;
+    }
+  };
+
   return (
     <footer className="bg-[#0B1221] text-white pt-20 pb-10 relative">
       {/* Subtle Background Pattern for a premium feel */}
@@ -47,12 +69,13 @@ const Footer = () => {
           <div>
             <h4 className="text-lg font-semibold mb-6">Quick Links</h4>
             <ul className="space-y-3">
-              <li><a href="/" className="text-slate-400 hover:text-white transition-colors">Home</a></li>
-              <li><a href="/#about" className="text-slate-400 hover:text-white transition-colors">About Us</a></li>
-              <li><a href="/#services" className="text-slate-400 hover:text-white transition-colors">Services</a></li>
-              <li><a href="/blog" className="text-slate-400 hover:text-white transition-colors">Blog</a></li>
-              <li><a href="/careers" className="text-slate-400 hover:text-white transition-colors">Careers</a></li>
-              <li><a href="/#contact" className="text-slate-400 hover:text-white transition-colors">Contact</a></li>
+              <li><a href="/" className="text-slate-400 hover:text-white transition-all duration-300 border-b-2 border-transparent hover:border-indigo-500 pb-1">Home</a></li>
+              <li><a href="/#about" className="text-slate-400 hover:text-white transition-all duration-300 border-b-2 border-transparent hover:border-indigo-500 pb-1">About Us</a></li>
+              <li><button onClick={() => navigateToSection('services')} className="text-slate-400 hover:text-white transition-all duration-300 border-b-2 border-transparent hover:border-indigo-500 pb-1 text-left">Services</button></li>
+              <li><button onClick={() => navigateToSection('projects')} className="text-slate-400 hover:text-white transition-all duration-300 border-b-2 border-transparent hover:border-indigo-500 pb-1 text-left">Portfolio</button></li>
+              <li><a href="/blog" className="text-slate-400 hover:text-white transition-all duration-300 border-b-2 border-transparent hover:border-indigo-500 pb-1">Blog</a></li>
+              <li><a href="/careers" className="text-slate-400 hover:text-white transition-all duration-300 border-b-2 border-transparent hover:border-indigo-500 pb-1">Careers</a></li>
+              <li><a href="/#contact" className="text-slate-400 hover:text-white transition-all duration-300 border-b-2 border-transparent hover:border-indigo-500 pb-1">Contact</a></li>
             </ul>
           </div>
 
@@ -60,11 +83,12 @@ const Footer = () => {
           <div>
             <h4 className="text-lg font-semibold mb-6">Services</h4>
             <ul className="space-y-3">
-              <li><a href="/#services" className="text-slate-400 hover:text-white transition-colors">Web Development</a></li>
-              <li><a href="/#services" className="text-slate-400 hover:text-white transition-colors">Mobile Apps</a></li>
-              <li><a href="/#services" className="text-slate-400 hover:text-white transition-colors">Cloud Solutions</a></li>
-              <li><a href="/#services" className="text-slate-400 hover:text-white transition-colors">UI/UX Design</a></li>
-              <li><a href="/#services" className="text-slate-400 hover:text-white transition-colors">Consulting</a></li>
+              <li><button onClick={() => navigateToSection('services')} className="text-slate-400 hover:text-white transition-all duration-300 border-b-2 border-transparent hover:border-indigo-500 pb-1 text-left">Web Development</button></li>
+              <li><button onClick={() => navigateToSection('services')} className="text-slate-400 hover:text-white transition-all duration-300 border-b-2 border-transparent hover:border-indigo-500 pb-1 text-left">Mobile Apps</button></li>
+              <li><button onClick={() => navigateToSection('services')} className="text-slate-400 hover:text-white transition-all duration-300 border-b-2 border-transparent hover:border-indigo-500 pb-1 text-left">Cloud Solutions</button></li>
+              <li><button onClick={() => navigateToSection('services')} className="text-slate-400 hover:text-white transition-all duration-300 border-b-2 border-transparent hover:border-indigo-500 pb-1 text-left">UI/UX Design</button></li>
+              <li><button onClick={() => navigateToSection('services')} className="text-slate-400 hover:text-white transition-all duration-300 border-b-2 border-transparent hover:border-indigo-500 pb-1 text-left">Consulting</button></li>
+              <li><button onClick={() => navigateToSection('projects')} className="text-slate-400 hover:text-white transition-all duration-300 border-b-2 border-transparent hover:border-indigo-500 pb-1 text-left">Our Projects</button></li>
             </ul>
           </div>
 
@@ -82,7 +106,7 @@ const Footer = () => {
               </li>
               <li className="flex items-center">
                 <Mail className="w-5 h-5 mr-3 text-indigo-500 flex-shrink-0" />
-                <span className="text-slate-400 text-xs">reverence101@gmail.com</span>
+                <span className="text-slate-400 text-xs">reverencetech1@gmail.com</span>
               </li>
               <li className="flex items-start">
                 <Clock className="w-5 h-5 mr-3 mt-1 text-indigo-500 flex-shrink-0" />

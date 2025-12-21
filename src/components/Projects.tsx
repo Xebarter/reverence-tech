@@ -74,7 +74,7 @@ const Projects: React.FC = () => {
   }
 
   return (
-    <section className="py-16 px-4 sm:px-6 lg:px-8 bg-[#F8FAFC] min-h-screen">
+    <section id="projects" className="py-16 px-4 sm:px-6 lg:px-8 bg-[#F8FAFC] min-h-screen">
       {/* Scope description styling for cards */}
       <style>{`
         .project-card-description p {
