@@ -38,6 +38,9 @@ export default function BlogPost() {
       }
     };
     if (slug) fetchPost();
+    
+    // Scroll to top when component mounts
+    window.scrollTo(0, 0);
   }, [slug]);
 
   if (loading) {

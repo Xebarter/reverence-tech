@@ -29,6 +29,8 @@ export default function JobDetails() {
 
   useEffect(() => {
     if (id) fetchJobDetails(id);
+    // Scroll to top when component mounts
+    window.scrollTo(0, 0);
   }, [id]);
 
   const fetchJobDetails = async (jobId: string) => {

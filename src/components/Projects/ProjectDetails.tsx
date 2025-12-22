@@ -1,17 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
+import { supabase } from '../../lib/supabase';
 import {
   ArrowLeft,
   ExternalLink,
-  Globe,
   Monitor,
   Smartphone,
   Cpu,
   Calendar,
-  ChevronRight,
-  ShieldCheck
+  Globe,
+  ShieldCheck,
+  ChevronRight
 } from 'lucide-react';
-import { supabase } from '../../lib/supabase';
+import { Link } from 'react-router-dom';
 
 interface Project {
   id: string;
@@ -38,6 +39,8 @@ const ProjectDetails: React.FC = () => {
       fetchProject(id);
       fetchRelatedProjects();
     }
+    // Scroll to top when component mounts
+    window.scrollTo(0, 0);
   }, [id]);
 
   const fetchProject = async (projectId: string) => {

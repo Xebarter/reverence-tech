@@ -70,12 +70,12 @@ const Footer = () => {
             <h4 className="text-lg font-semibold mb-6">Quick Links</h4>
             <ul className="space-y-3">
               <li><a href="/" className="text-slate-400 hover:text-white transition-all duration-300 border-b-2 border-transparent hover:border-indigo-500 pb-1">Home</a></li>
-              <li><a href="/#about" className="text-slate-400 hover:text-white transition-all duration-300 border-b-2 border-transparent hover:border-indigo-500 pb-1">About Us</a></li>
+              <li><button onClick={() => navigateToSection('about')} className="text-slate-400 hover:text-white transition-all duration-300 border-b-2 border-transparent hover:border-indigo-500 pb-1 text-left">About Us</button></li>
               <li><button onClick={() => navigateToSection('services')} className="text-slate-400 hover:text-white transition-all duration-300 border-b-2 border-transparent hover:border-indigo-500 pb-1 text-left">Services</button></li>
               <li><button onClick={() => navigateToSection('projects')} className="text-slate-400 hover:text-white transition-all duration-300 border-b-2 border-transparent hover:border-indigo-500 pb-1 text-left">Portfolio</button></li>
               <li><a href="/blog" className="text-slate-400 hover:text-white transition-all duration-300 border-b-2 border-transparent hover:border-indigo-500 pb-1">Blog</a></li>
               <li><a href="/careers" className="text-slate-400 hover:text-white transition-all duration-300 border-b-2 border-transparent hover:border-indigo-500 pb-1">Careers</a></li>
-              <li><a href="/#contact" className="text-slate-400 hover:text-white transition-all duration-300 border-b-2 border-transparent hover:border-indigo-500 pb-1">Contact</a></li>
+              <li><button onClick={() => navigateToSection('contact')} className="text-slate-400 hover:text-white transition-all duration-300 border-b-2 border-transparent hover:border-indigo-500 pb-1 text-left">Contact</button></li>
             </ul>
           </div>
 
@@ -100,34 +100,45 @@ const Footer = () => {
                 <MapPin className="w-5 h-5 mr-3 mt-1 text-indigo-500 flex-shrink-0" />
                 <span className="text-slate-400">Mutungo, Zone 1, Kampala</span>
               </li>
-              <li className="flex items-center">
-                <Phone className="w-5 h-5 mr-3 text-indigo-500 flex-shrink-0" />
-                <span className="text-slate-400">+256 783 676 313</span>
+              <li className="flex items-start">
+                <Phone className="w-5 h-5 mr-3 mt-1 text-indigo-500 flex-shrink-0" />
+                <a href="tel:+256783676313" className="text-slate-400 hover:text-white transition-colors">
+                  +256 783 676 313
+                </a>
               </li>
-              <li className="flex items-center">
-                <Mail className="w-5 h-5 mr-3 text-indigo-500 flex-shrink-0" />
-                <span className="text-slate-400">reverencetech1@gmail.com</span>
+              <li className="flex items-start">
+                <Mail className="w-5 h-5 mr-3 mt-1 text-indigo-500 flex-shrink-0" />
+                <a href="mailto:reverencetech1@gmail.com" className="text-slate-400 hover:text-white transition-colors">
+                  reverencetech1@gmail.com
+                </a>
               </li>
               <li className="flex items-start">
                 <Clock className="w-5 h-5 mr-3 mt-1 text-indigo-500 flex-shrink-0" />
-                <span className="text-slate-400">Mon-Fri: 9AM - 6PM<br />Sat-Sun: Closed</span>
+                <div>
+                  <p className="text-slate-400">Mon-Fri: 9AM - 5PM</p>
+                  <p className="text-slate-400">Sat-Sun: Closed</p>
+                </div>
               </li>
             </ul>
           </div>
         </div>
 
-        {/* Bottom Bar */}
-        <div className="pt-8 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-6">
-          <p className="text-slate-500 text-sm text-center md:text-left">
+        <div className="border-t border-slate-800/50 pt-8 flex flex-col md:flex-row justify-between items-center">
+          <p className="text-slate-500 text-sm mb-4 md:mb-0">
             &copy; {currentYear} Reverence Technology. All rights reserved.
           </p>
-          <button
-            onClick={scrollToTop}
-            className="bg-slate-800 w-10 h-10 rounded-full flex items-center justify-center hover:bg-indigo-600 transition-all group shadow-lg"
-            aria-label="Scroll to top"
-          >
-            <ArrowUp size={18} className="group-hover:-translate-y-1 transition-transform" />
-          </button>
+          <div className="flex items-center gap-6">
+            <button 
+              onClick={scrollToTop}
+              className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors text-sm font-medium"
+            >
+              Back to top <ArrowUp size={16} />
+            </button>
+            <div className="flex gap-4">
+              <a href="#" className="text-slate-500 hover:text-white text-sm transition-colors">Privacy Policy</a>
+              <a href="#" className="text-slate-500 hover:text-white text-sm transition-colors">Terms of Service</a>
+            </div>
+          </div>
         </div>
       </div>
     </footer>

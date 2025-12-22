@@ -30,7 +30,7 @@ export default function Header() {
       
       // If no stored section, check for hash in URL
       const hash = window.location.hash;
-      if (hash && location.pathname === '/') {
+      if (hash) {
         const sectionId = hash.substring(1); // Remove the #
         attemptScroll(sectionId);
       }
@@ -64,7 +64,7 @@ export default function Header() {
       });
     };
 
-    // Only scroll if we're on the home page
+    // Scroll to section if we're on the home page
     if (location.pathname === '/') {
       scrollToSection();
     }
