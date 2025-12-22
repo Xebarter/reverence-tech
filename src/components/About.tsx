@@ -4,8 +4,8 @@ import { motion } from 'framer-motion';
 export default function About() {
   const stats = [
     { icon: Award, value: "5+", label: "Years Experience", color: "text-blue-600", bg: "bg-blue-50" },
-    { icon: Users, value: "200+", label: "Satisfied Clients", color: "text-yellow-600", bg: "bg-yellow-50" },
-    { icon: TrendingUp, value: "350+", label: "Projects Completed", color: "text-emerald-600", bg: "bg-emerald-50" },
+    { icon: Users, value: "75+", label: "Satisfied Clients", color: "text-yellow-600", bg: "bg-yellow-50" },
+    { icon: TrendingUp, value: "50+", label: "Projects Completed", color: "text-emerald-600", bg: "bg-emerald-50" },
     { icon: Heart, value: "98%", label: "Client Retention", color: "text-rose-600", bg: "bg-rose-50" },
   ];
 
