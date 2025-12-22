@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { format } from 'date-fns';
-import { ArrowLeft, Calendar, Share2, Bookmark, Clock, ChevronRight } from 'lucide-react';
+import { ArrowLeft, Calendar, Bookmark, Clock, ChevronRight, Linkedin, Twitter, MessageCircle } from 'lucide-react';
 import { motion, useScroll, useSpring } from 'framer-motion';
 import SEO from './SEO';
 import { supabase } from '../lib/supabase';
@@ -184,13 +184,60 @@ export default function BlogPost() {
 // Simple internal component for the sidebar
 function ShareButton({ platform }: { platform: string }) {
   const icons: any = {
-    linkedin: <Share2 size={18} />,
-    twitter: <span className="font-bold text-xs">X</span>,
-    whatsapp: <span className="font-bold text-xs">WA</span>
+    linkedin: <Linkedin size={18} />,
+    twitter: <Twitter size={18} />,
+    whatsapp: <MessageCircle size={18} />
+  };
+
+  const handleShare = () => {
+    const url = window.location.href;
+    const title = document.title.split(' | ')[0]; // Extract title without site name
+    
+    switch (platform) {
+      case 'linkedin':
+        window.open(
+          `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`,
+          '_blank',
+          'width=600,height=400'
+        );
+        break;
+        
+      case 'twitter':
+        window.open(
+          `https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}&text=${encodeURIComponent(title)}`,
+          '_blank',
+          'width=600,height=400'
+        );
+        break;
+        
+      case 'whatsapp':
+        window.open(
+          `https://wa.me/?text=${encodeURIComponent(`${title}: ${url}`)}`,
+          '_blank'
+        );
+        break;
+        
+      default:
+        // If navigator.share is available, use it as fallback
+        if (navigator.share) {
+          navigator.share({
+            title: title,
+            url: url
+          }).catch(console.error);
+        } else {
+          // Fallback: copy to clipboard
+          navigator.clipboard.writeText(url).then(() => {
+            alert('Link copied to clipboard!');
+          }).catch(console.error);
+        }
+    }
   };
 
   return (
-    <button className="w-10 h-10 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-400 hover:bg-[#1C3D5A] hover:text-white hover:border-[#1C3D5A] transition-all">
+    <button 
+      onClick={handleShare}
+      className="w-10 h-10 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-400 hover:bg-[#1C3D5A] hover:text-white hover:border-[#1C3D5A] transition-all"
+    >
       {icons[platform]}
     </button>
   );
