@@ -1,5 +1,4 @@
 import { Award, Users, TrendingUp, Heart, Lightbulb, Shield, Handshake } from 'lucide-react';
-import React from 'react';
 import { motion } from 'framer-motion';
 
 export default function About() {
