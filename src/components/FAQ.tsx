@@ -97,7 +97,7 @@ export default function FAQ() {
                 <p className="text-xs uppercase tracking-[0.3em] text-indigo-300">Need clarity fast?</p>
                 <h3 className="mt-3 text-2xl font-extrabold">Book a 20-minute discovery call</h3>
                 <p className="mt-3 text-sm text-slate-200">
-                  Share your goals and we’ll map the quickest path to value—no obligation, just strategic insight.
+                  Share your goals and we’ll map the quickest path to value.
                 </p>
                 <a
                   href="#contact"
