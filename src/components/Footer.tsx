@@ -72,6 +72,7 @@ const Footer = () => {
               <li><a href="/" className="text-slate-400 hover:text-white transition-all duration-300 border-b-2 border-transparent hover:border-indigo-500 pb-1">Home</a></li>
               <li><button onClick={() => navigateToSection('about')} className="text-slate-400 hover:text-white transition-all duration-300 border-b-2 border-transparent hover:border-indigo-500 pb-1 text-left">About Us</button></li>
               <li><button onClick={() => navigateToSection('services')} className="text-slate-400 hover:text-white transition-all duration-300 border-b-2 border-transparent hover:border-indigo-500 pb-1 text-left">Services</button></li>
+              <li><button onClick={() => navigateToSection('faq')} className="text-slate-400 hover:text-white transition-all duration-300 border-b-2 border-transparent hover:border-indigo-500 pb-1 text-left">FAQ</button></li>
               <li><button onClick={() => navigateToSection('projects')} className="text-slate-400 hover:text-white transition-all duration-300 border-b-2 border-transparent hover:border-indigo-500 pb-1 text-left">Portfolio</button></li>
               <li><a href="/blog" className="text-slate-400 hover:text-white transition-all duration-300 border-b-2 border-transparent hover:border-indigo-500 pb-1">Blog</a></li>
               <li><a href="/careers" className="text-slate-400 hover:text-white transition-all duration-300 border-b-2 border-transparent hover:border-indigo-500 pb-1">Careers</a></li>

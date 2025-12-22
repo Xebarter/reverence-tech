@@ -104,6 +104,20 @@ export default function Services() {
       const { error } = await supabase.from('inquiries').insert([formData]);
       if (error) throw error;
 
+      const emailPayload = {
+        ...formData,
+        source: 'services-modal',
+        submitted_at: new Date().toISOString(),
+      };
+
+      const { error: emailError } = await supabase.functions.invoke('send-inquiry-email', {
+        body: emailPayload,
+      });
+
+      if (emailError) {
+        console.error('Failed to trigger inquiry email notification', emailError);
+      }
+
       setSubmitted(true);
       setTimeout(() => {
         setShowContactForm(false);

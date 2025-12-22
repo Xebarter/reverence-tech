@@ -138,7 +138,7 @@ export default function Header() {
 
             {/* Desktop Nav */}
             <div className="hidden md:flex items-center gap-8">
-              {['Home', 'Services', 'Blog', 'Careers'].map((item) => (
+              {['Home', 'Services', 'FAQ', 'Blog', 'Careers'].map((item) => (
                 <button
                   key={item}
                   onClick={() => {
@@ -218,7 +218,7 @@ export default function Header() {
               {/* Navigation Links */}
               <div className="p-8 space-y-3">
                 <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-4">Menu</p>
-                {['Home', 'Services', 'Blog', 'Careers'].map((item) => (
+                {['Home', 'Services', 'FAQ', 'Blog', 'Careers'].map((item) => (
                   <button
                     key={item}
                     onClick={() => {

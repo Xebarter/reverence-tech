@@ -7,6 +7,7 @@ import Services from './components/Services';
 import Testimonials from './components/Testimonials';
 import SubmitTestimonial from './components/SubmitTestimonial';
 import Contact from './components/Contact';
+import FAQ from './components/FAQ';
 import Footer from './components/Footer';
 import AdminLayout from './components/admin/AdminLayout';
 import AdminDashboard from './components/admin/AdminDashboard';
@@ -62,6 +63,7 @@ function App() {
                   onClose={handleCloseTestimonialForm} 
                 />
                 <Contact />
+                <FAQ />
               </main>
               <Footer />
             </div>

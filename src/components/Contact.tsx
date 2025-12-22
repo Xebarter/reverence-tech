@@ -22,11 +22,34 @@ export default function Contact() {
     setError('');
 
     try {
+      const dbPayload = {
+        full_name: formData.full_name,
+        email: formData.email,
+        message: formData.message,
+        phone: formData.phone_number,
+        company: formData.company_name,
+        service_interest: formData.interested_package,
+      };
+
       const { error: submitError } = await supabase
         .from('inquiries')
-        .insert([formData]);
+        .insert([dbPayload]);
 
       if (submitError) throw submitError;
+
+      const emailPayload = {
+        ...formData,
+        source: 'contact-form',
+        submitted_at: new Date().toISOString(),
+      };
+
+      const { error: emailError } = await supabase.functions.invoke('send-inquiry-email', {
+        body: emailPayload,
+      });
+
+      if (emailError) {
+        console.error('Failed to trigger inquiry email notification', emailError);
+      }
 
       setSubmitted(true);
       setFormData({
