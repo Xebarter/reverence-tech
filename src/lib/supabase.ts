@@ -21,11 +21,18 @@ if (!supabaseServiceRoleKey) {
   throw new Error('VITE_SUPABASE_SERVICE_ROLE_KEY is not set');
 }
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    storageKey: 'supabase_auth',
+    persistSession: true,
+    autoRefreshToken: true,
+  }
+});
 
 // Admin client with service role key (bypasses RLS)
 export const adminSupabase = createClient(supabaseUrl, supabaseServiceRoleKey, {
   auth: {
+    storageKey: 'supabase_admin_auth',
     persistSession: false,
     autoRefreshToken: false,
   },
@@ -136,4 +143,20 @@ export interface BlogPost {
 export interface BlogPostsTags {
   blog_post_id: string;
   tag_id: string;
+}
+
+export interface ScheduledCall {
+  id: string;
+  full_name: string;
+  email: string;
+  phone?: string;
+  company?: string;
+  preferred_date?: string; // ISO date string
+  preferred_time?: string;
+  call_reason?: string;
+  status: 'new' | 'scheduled' | 'completed' | 'cancelled';
+  notes?: string;
+  scheduled_at?: string; // ISO date string
+  created_at: string;
+  updated_at: string;
 }

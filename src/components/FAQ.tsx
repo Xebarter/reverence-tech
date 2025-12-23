@@ -1,148 +1,455 @@
 import { useState } from 'react';
-import { HelpCircle, MessageCircle, ShieldCheck, Zap, Clock, ChevronDown } from 'lucide-react';
+import {
+  HelpCircle, MessageCircle, ShieldCheck, Zap,
+  Clock, ChevronDown, Code2, Scale, Phone
+} from 'lucide-react';
 
-const primaryFaqs = [
+import { motion, AnimatePresence } from 'framer-motion';
+import { supabase } from '../lib/supabase';
+
+const faqs = [
   {
-    question: 'What services does Reverence Technology specialize in?',
-    answer:
-      'We deliver end-to-end digital solutions including custom web applications, mobile app development, UI/UX design, cloud infrastructure, cybersecurity hardening, and strategic technology consulting tailored to your business goals.'
+    category: 'Process & Partnership',
+    icon: Zap,
+    items: [
+      {
+        question: 'How quickly can you kick off a new project?',
+        answer: 'Discovery typically starts within 3 business days of signing. Once aligned, we assemble your dedicated engineering squad and launch the first sprint within 10 business days.'
+      },
+      {
+        question: 'What does collaboration look like?',
+        answer: 'We operate in 2-week sprints. You receive weekly demos, transparent progress reports via our Project Hub, and direct Slack/Discord access to your lead architect.'
+      }
+    ]
   },
   {
-    question: 'How quickly can you kick off a new project?',
-    answer:
-      'Discovery starts within 3 business days once we align on the scope. From there we assemble a dedicated squad and share a milestone roadmap, usually launching the first sprint within 10 business days.'
+    category: 'Technology & Security',
+    icon: Code2,
+    items: [
+      {
+        question: 'Can you integrate with legacy systems?',
+        answer: 'Yes. We specialize in building secure bridge layers (APIs) for ERPs like SAP and Oracle, ensuring your modern frontend works seamlessly with established backends.'
+      },
+      {
+        question: 'How do you ensure data security?',
+        answer: 'Our workflow includes automated dependency scanning, peer-reviewed pull requests, and SOC 2 aligned infrastructure hardening on AWS/Azure/GCP.'
+      }
+    ]
   },
   {
-    question: 'Do you support clients beyond the initial launch?',
-    answer:
-      'Absolutely. We offer flexible retainers for feature enhancements, managed cloud operations, reliability monitoring, and on-call engineering so your product keeps evolving without hiring new staff.'
-  },
-  {
-    question: 'Can you integrate with our existing tools and legacy systems?',
-    answer:
-      'Yes. We routinely connect to ERPs, CRMs, payment providers, data warehouses, and proprietary APIs. Our architects assess your stack, design secure integration layers, and document the handover.'
-  },
-  {
-    question: 'What does collaboration look like during an engagement?',
-    answer:
-      'You get a dedicated product lead, weekly demos, transparent sprint reports, and access to our project hub. We co-create solutions with your stakeholders through workshops and rapid iteration.'
-  },
-  {
-    question: 'How do you ensure quality and security?',
-    answer:
-      'Every release goes through automated testing, peer reviews, threat modelling, and infrastructure hardening. We follow OWASP best practices, maintain SOC 2 aligned controls, and provide documentation for audits.'
+    category: 'Legal & Ownership',
+    icon: Scale,
+    items: [
+      {
+        question: 'Who owns the final source code?',
+        answer: 'You do. We provide a full IP transfer upon project completion. You own 100% of the code, assets, and documentation we produce.'
+      }
+    ]
   }
 ];
 
 const quickFacts = [
-  {
-    icon: ShieldCheck,
-    title: 'Trusted Delivery',
-    description: 'ISO-aligned workflows with built-in compliance checkpoints.'
-  },
-  {
-    icon: Zap,
-    title: 'Agile Velocity',
-    description: 'Launch a usable prototype in as little as six weeks.'
-  },
-  {
-    icon: Clock,
-    title: 'Ongoing Support',
-    description: '24/5 engineering coverage and incident response add-ons.'
-  }
+  { icon: ShieldCheck, title: 'Compliance', desc: 'ISO-aligned workflows.' },
+  { icon: Clock, title: 'Support', desc: '24/7 reliability monitoring.' }
 ];
 
 export default function FAQ() {
-  const [openIndex, setOpenIndex] = useState<number | null>(0);
+  const [activeId, setActiveId] = useState<string | null>("0-0");
+  const [showCallForm, setShowCallForm] = useState(false);
+  const [callForm, setCallForm] = useState({
+    fullName: '',
+    email: '',
+    phone: '',
+    company: '',
+    preferredDate: '',
+    preferredTime: '',
+    callReason: ''
+  });
+  const [formStatus, setFormStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle');
+
+  const handleCallFormSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setFormStatus('submitting');
+
+    try {
+      const { error } = await supabase
+        .from('scheduled_calls')
+        .insert([{
+          full_name: callForm.fullName,
+          email: callForm.email,
+          phone: callForm.phone,
+          company: callForm.company,
+          preferred_date: callForm.preferredDate ? new Date(callForm.preferredDate).toISOString() : null,
+          preferred_time: callForm.preferredTime,
+          call_reason: callForm.callReason || 'General FAQ inquiry'
+        }]);
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      setFormStatus('success');
+      // Reset form after successful submission
+      setCallForm({
+        fullName: '',
+        email: '',
+        phone: '',
+        company: '',
+        preferredDate: '',
+        preferredTime: '',
+        callReason: ''
+      });
+      // Hide form after 3 seconds
+      setTimeout(() => {
+        setShowCallForm(false);
+        setFormStatus('idle');
+      }, 3000);
+    } catch (err) {
+      console.error('Error submitting call request:', err);
+      setFormStatus('error');
+    }
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setCallForm(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
 
   return (
-    <section id="faq" className="relative py-24 bg-gradient-to-b from-white via-slate-50 to-white overflow-hidden">
-      <div className="absolute inset-y-0 right-0 w-[42%] bg-gradient-to-br from-indigo-500/10 via-transparent to-transparent blur-3xl pointer-events-none" />
-      <div className="absolute -left-48 top-1/2 -translate-y-1/2 w-80 h-80 rounded-full bg-yellow-200/20 blur-3xl" />
+    <section id="faq" className="py-20 md:py-32 bg-slate-50/30 overflow-hidden px-4 md:px-6">
+      <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-16">
 
-      <div className="relative z-10 max-w-7xl mx-auto px-6">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 items-start">
-          <div className="lg:col-span-5 space-y-10">
-            <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-white shadow-sm border border-slate-200 text-indigo-600 text-xs font-semibold uppercase tracking-[0.3em]">
-              <HelpCircle size={16} /> FAQs
+        {/* Left Side: Text and Stats */}
+        <div className="lg:col-span-5 space-y-10">
+          <div>
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-50 text-indigo-600 text-[10px] font-bold uppercase tracking-widest mb-6">
+              <HelpCircle size={14} /> Knowledge Base
             </div>
-
-            <div>
-              <h2 className="text-4xl md:text-5xl font-black text-slate-900 leading-tight">
-                Answers to the questions teams ask before building with us.
-              </h2>
-              <p className="mt-6 text-lg text-slate-600 leading-relaxed">
-                Explore how we partner with ambitious organisations—from start-ups to enterprises—to ship resilient technology.
-                Can’t find what you need? Reach out and we’ll tailor a response within a business day.
-              </p>
-            </div>
-
-            <div className="space-y-5">
-              {quickFacts.map((fact, idx) => (
-                <div key={idx} className="flex items-start gap-4 bg-white border border-slate-200 rounded-3xl px-5 py-6 shadow-sm hover:shadow-md transition-shadow">
-                  <div className="p-3 rounded-2xl bg-indigo-500/10 text-indigo-600">
-                    <fact.icon size={22} />
-                  </div>
-                  <div>
-                    <h3 className="text-sm font-bold uppercase tracking-[0.2em] text-slate-400">{fact.title}</h3>
-                    <p className="mt-1 text-slate-700 font-semibold leading-relaxed">{fact.description}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <div className="bg-slate-900 text-white rounded-[2rem] p-8 relative overflow-hidden">
-              <MessageCircle className="absolute -right-10 -bottom-10 text-white/5" size={180} />
-              <div className="relative z-10">
-                <p className="text-xs uppercase tracking-[0.3em] text-indigo-300">Need clarity fast?</p>
-                <h3 className="mt-3 text-2xl font-extrabold">Book a 20-minute discovery call</h3>
-                <p className="mt-3 text-sm text-slate-200">
-                  Share your goals and we’ll map the quickest path to value.
-                </p>
-                <a
-                  href="#contact"
-                  className="mt-6 inline-flex items-center gap-3 px-6 py-3 rounded-xl bg-white text-slate-900 font-semibold shadow-lg hover:bg-yellow-300 transition-colors"
-                >
-                  Talk to the team
-                </a>
-              </div>
-            </div>
+            <h2 className="text-4xl md:text-6xl font-black text-slate-900 leading-[1.1] mb-6">
+              Everything you need to <span className="text-indigo-600">know.</span>
+            </h2>
+            <p className="text-lg text-slate-600 max-w-md">
+              Answers to the technical and business questions teams ask before building with Reverence.
+            </p>
           </div>
 
-          <div className="lg:col-span-7">
-            <div className="bg-white border border-slate-200 rounded-[2.5rem] p-6 md:p-10 shadow-xl shadow-indigo-200/40">
-              <ul className="space-y-4">
-                {primaryFaqs.map((faq, index) => {
-                  const isOpen = openIndex === index;
-                  return (
-                    <li key={faq.question} className="border border-slate-200 rounded-3xl overflow-hidden bg-slate-50/60">
-                      <button
-                        onClick={() => setOpenIndex(isOpen ? null : index)}
-                        className="w-full flex items-center justify-between gap-6 px-6 py-5 text-left"
-                        aria-expanded={isOpen}
-                        aria-controls={`faq-panel-${index}`}
-                      >
-                        <span className="text-lg font-semibold text-slate-900">{faq.question}</span>
-                        <ChevronDown
-                          size={22}
-                          className={`text-indigo-600 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-4">
+            {quickFacts.map((fact, i) => (
+              <div key={i} className="flex items-center gap-4 bg-white p-5 rounded-2xl border border-slate-100 shadow-sm">
+                <div className="p-3 rounded-xl bg-indigo-600 text-white"><fact.icon size={20} /></div>
+                <div>
+                  <h4 className="text-xs font-bold text-slate-400 uppercase">{fact.title}</h4>
+                  <p className="font-bold text-slate-800">{fact.desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="hidden md:block p-8 rounded-[2.5rem] bg-slate-900 text-white relative overflow-hidden">
+            {showCallForm ? (
+              <div className="relative z-10">
+                <h3 className="text-2xl font-bold mb-6">Schedule a Call</h3>
+                {formStatus === 'success' ? (
+                  <div className="text-center py-6">
+                    <p className="text-green-400 mb-4">Request submitted successfully!</p>
+                    <p className="text-slate-300">We'll contact you soon to confirm your appointment.</p>
+                  </div>
+                ) : (
+                  <form onSubmit={handleCallFormSubmit} className="space-y-4">
+                    <div>
+                      <label className="text-xs text-slate-400 uppercase">Full Name *</label>
+                      <div className="relative mt-1">
+                        <input
+                          type="text"
+                          name="fullName"
+                          value={callForm.fullName}
+                          onChange={handleInputChange}
+                          required
+                          className="w-full bg-slate-800 border border-slate-700 rounded-xl py-3 px-4 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                          placeholder="John Doe"
                         />
-                      </button>
-                      <div
-                        id={`faq-panel-${index}`}
-                        className={`grid transition-[grid-template-rows] duration-300 ease-in-out ${isOpen ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'}`}
-                      >
-                        <div className="overflow-hidden">
-                          <p className="px-6 pb-6 text-base text-slate-600 leading-relaxed">
-                            {faq.answer}
-                          </p>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="text-xs text-slate-400 uppercase">Email *</label>
+                      <div className="relative mt-1">
+                        <input
+                          type="email"
+                          name="email"
+                          value={callForm.email}
+                          onChange={handleInputChange}
+                          required
+                          className="w-full bg-slate-800 border border-slate-700 rounded-xl py-3 px-4 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                          placeholder="john@example.com"
+                        />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="text-xs text-slate-400 uppercase">Phone</label>
+                        <div className="relative mt-1">
+                          <input
+                            type="tel"
+                            name="phone"
+                            value={callForm.phone}
+                            onChange={handleInputChange}
+                            className="w-full bg-slate-800 border border-slate-700 rounded-xl py-3 px-4 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                            placeholder="+1234567890"
+                          />
                         </div>
                       </div>
-                    </li>
+                      <div>
+                        <label className="text-xs text-slate-400 uppercase">Company</label>
+                        <div className="relative mt-1">
+                          <input
+                            type="text"
+                            name="company"
+                            value={callForm.company}
+                            onChange={handleInputChange}
+                            className="w-full bg-slate-800 border border-slate-700 rounded-xl py-3 px-4 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                            placeholder="Your company"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="text-xs text-slate-400 uppercase">Preferred Date</label>
+                        <div className="relative mt-1">
+                          <input
+                            type="date"
+                            name="preferredDate"
+                            value={callForm.preferredDate}
+                            onChange={handleInputChange}
+                            className="w-full bg-slate-800 border border-slate-700 rounded-xl py-3 px-4 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <label className="text-xs text-slate-400 uppercase">Preferred Time</label>
+                        <div className="relative mt-1">
+                          <input
+                            type="time"
+                            name="preferredTime"
+                            value={callForm.preferredTime}
+                            onChange={handleInputChange}
+                            className="w-full bg-slate-800 border border-slate-700 rounded-xl py-3 px-4 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="text-xs text-slate-400 uppercase">Reason for Call</label>
+                      <div className="relative mt-1">
+                        <input
+                          type="text"
+                          name="callReason"
+                          value={callForm.callReason}
+                          onChange={handleInputChange}
+                          className="w-full bg-slate-800 border border-slate-700 rounded-xl py-3 px-4 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                          placeholder="Specific question or topic"
+                        />
+                      </div>
+                    </div>
+                    <div className="pt-4 flex gap-3">
+                      <button
+                        type="submit"
+                        disabled={formStatus === 'submitting'}
+                        className="flex-1 py-3 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 transition-colors disabled:opacity-50"
+                      >
+                        {formStatus === 'submitting' ? 'Submitting...' : 'Schedule Call'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setShowCallForm(false)}
+                        className="py-3 px-4 bg-slate-700 text-white font-bold rounded-xl hover:bg-slate-600 transition-colors"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </form>
+                )}
+              </div>
+            ) : (
+              <>
+                <MessageCircle className="absolute -right-8 -bottom-8 text-white/5" size={160} />
+                <h3 className="text-2xl font-bold mb-2">Still curious?</h3>
+                <p className="text-slate-400 text-sm mb-6">Book a 15-minute technical audit with our team.</p>
+                <button 
+                  onClick={() => setShowCallForm(true)}
+                  className="w-full py-4 bg-white text-slate-900 font-bold rounded-xl hover:bg-indigo-400 transition-colors flex items-center justify-center gap-2"
+                >
+                  <Phone size={20} /> Schedule Call
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+
+        {/* Right Side: Accordion */}
+        <div className="lg:col-span-7 space-y-10">
+          {faqs.map((group, gIdx) => (
+            <div key={gIdx} className="space-y-4">
+              <h3 className="flex items-center gap-2 text-xs font-black uppercase text-slate-400 tracking-widest ml-2">
+                <group.icon size={14} /> {group.category}
+              </h3>
+              <div className="space-y-3">
+                {group.items.map((item, iIdx) => {
+                  const id = `${gIdx}-${iIdx}`;
+                  const isOpen = activeId === id;
+                  return (
+                    <div key={id} className={`rounded-2xl border transition-all duration-300 ${isOpen ? 'bg-white border-indigo-200 shadow-lg' : 'bg-slate-50 border-slate-200'}`}>
+                      <button
+                        onClick={() => setActiveId(isOpen ? null : id)}
+                        className="w-full flex items-center justify-between px-6 py-5 text-left"
+                      >
+                        <span className={`font-bold text-lg ${isOpen ? 'text-indigo-600' : 'text-slate-900'}`}>{item.question}</span>
+                        <ChevronDown size={20} className={`transition-transform duration-300 ${isOpen ? 'rotate-180 text-indigo-600' : 'text-slate-400'}`} />
+                      </button>
+                      <AnimatePresence>
+                        {isOpen && (
+                          <motion.div
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: 'auto', opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            className="overflow-hidden"
+                          >
+                            <div className="px-6 pb-6 text-slate-600 leading-relaxed border-t border-slate-50 pt-4">
+                              {item.answer}
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
                   );
                 })}
-              </ul>
+              </div>
             </div>
+          ))}
+          <div className="md:hidden">
+            {showCallForm ? (
+              <div className="p-6 rounded-2xl bg-white border border-slate-200 shadow-lg">
+                <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
+                  <Phone size={20} /> Schedule a Call
+                </h3>
+                {formStatus === 'success' ? (
+                  <div className="text-center py-4">
+                    <p className="text-green-600 mb-2 font-medium">Request submitted successfully!</p>
+                    <p className="text-slate-600">We'll contact you soon to confirm your appointment.</p>
+                  </div>
+                ) : (
+                  <form onSubmit={handleCallFormSubmit} className="space-y-4">
+                    <div>
+                      <label className="text-xs text-slate-500 uppercase tracking-wider block mb-1">Full Name *</label>
+                      <input
+                        type="text"
+                        name="fullName"
+                        value={callForm.fullName}
+                        onChange={handleInputChange}
+                        required
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                        placeholder="John Doe"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs text-slate-500 uppercase tracking-wider block mb-1">Email *</label>
+                      <input
+                        type="email"
+                        name="email"
+                        value={callForm.email}
+                        onChange={handleInputChange}
+                        required
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                        placeholder="john@example.com"
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="text-xs text-slate-500 uppercase tracking-wider block mb-1">Phone</label>
+                        <input
+                          type="tel"
+                          name="phone"
+                          value={callForm.phone}
+                          onChange={handleInputChange}
+                          className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                          placeholder="+1234567890"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-xs text-slate-500 uppercase tracking-wider block mb-1">Company</label>
+                        <input
+                          type="text"
+                          name="company"
+                          value={callForm.company}
+                          onChange={handleInputChange}
+                          className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                          placeholder="Your company"
+                        />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="text-xs text-slate-500 uppercase tracking-wider block mb-1">Preferred Date</label>
+                        <input
+                          type="date"
+                          name="preferredDate"
+                          value={callForm.preferredDate}
+                          onChange={handleInputChange}
+                          className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-xs text-slate-500 uppercase tracking-wider block mb-1">Preferred Time</label>
+                        <input
+                          type="time"
+                          name="preferredTime"
+                          value={callForm.preferredTime}
+                          onChange={handleInputChange}
+                          className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="text-xs text-slate-500 uppercase tracking-wider block mb-1">Reason for Call</label>
+                      <input
+                        type="text"
+                        name="callReason"
+                        value={callForm.callReason}
+                        onChange={handleInputChange}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                        placeholder="Specific question or topic"
+                      />
+                    </div>
+                    <div className="pt-4 flex gap-3">
+                      <button
+                        type="submit"
+                        disabled={formStatus === 'submitting'}
+                        className="flex-1 py-3 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 transition-colors disabled:opacity-50"
+                      >
+                        {formStatus === 'submitting' ? 'Submitting...' : 'Schedule Call'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setShowCallForm(false)}
+                        className="py-3 px-4 bg-slate-200 text-slate-800 font-bold rounded-xl hover:bg-slate-300 transition-colors"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </form>
+                )}
+              </div>
+            ) : (
+              <button 
+                onClick={() => setShowCallForm(true)}
+                className="w-full py-4 bg-indigo-600 text-white font-bold rounded-2xl shadow-xl flex items-center justify-center gap-2"
+              >
+                <Phone size={20} /> Talk to an Expert
+              </button>
+            )}
           </div>
         </div>
       </div>

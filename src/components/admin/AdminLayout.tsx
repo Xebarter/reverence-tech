@@ -13,7 +13,8 @@ import {
   Menu, 
   X,
   User,
-  FolderOpen
+  FolderOpen,
+  Phone
 } from 'lucide-react';
 
 export default function AdminLayout() {
@@ -31,6 +32,7 @@ export default function AdminLayout() {
   const navigation = [
     { name: 'Dashboard', href: '/admin', icon: LayoutDashboard },
     { name: 'Messages', href: '/admin/messages', icon: Mail },
+    { name: 'Scheduled Calls', href: '/admin/scheduled-calls', icon: Phone },
     { name: 'Services', href: '/admin/services', icon: Package },
     { name: 'Hero Images', href: '/admin/hero-images', icon: Image },
     { name: 'Testimonials', href: '/admin/testimonials', icon: MessageCircle },

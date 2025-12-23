@@ -31,6 +31,7 @@ import ProjectDetails from './components/Projects/ProjectDetails';
 import ProjectsList from './components/Projects/ProjectsList';
 import SEO from './components/SEO';
 import { UserProvider } from './UserContext';
+import ScheduledCalls from './components/admin/ScheduledCalls';
 
 function App() {
   const [isTestimonialFormOpen, setIsTestimonialFormOpen] = useState(false);
@@ -78,8 +79,7 @@ function App() {
               <Footer />
             </div>
           } />
-          
-          <Route path="/project/:id" element={
+          <Route path="/projects/:id" element={
             <div className="min-h-screen">
               <Header />
               <main className="pt-20">
@@ -139,8 +139,9 @@ function App() {
             <Route path="users" element={<UserManagement />} />
             <Route path="careers" element={<CareersManagement />} />
             <Route path="test-admin-users" element={<TestAdminUsers />} />
+            <Route path="scheduled-calls" element={<ScheduledCalls />} />
           </Route>
-
+          
           {/* Temporary admin route for testing without admin checks */}
           <Route path="/admin-temp" element={
             <div className="min-h-screen">
@@ -155,6 +156,7 @@ function App() {
             <Route path="careers" element={<CareersManagement />} />
             <Route path="blog" element={<BlogManagement />} />
             <Route path="users" element={<UserManagement />} />
+            <Route path="scheduled-calls" element={<ScheduledCalls />} />
           </Route>
           
           <Route path="/admin/auth" element={<AdminAuth />} />
