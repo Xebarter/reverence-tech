@@ -21,6 +21,7 @@ if (!supabaseServiceRoleKey) {
   throw new Error('VITE_SUPABASE_SERVICE_ROLE_KEY is not set');
 }
 
+// Create a single instance of the Supabase client
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
     storageKey: 'supabase_auth',
