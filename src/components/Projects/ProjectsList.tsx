@@ -50,7 +50,7 @@ const ProjectsList: React.FC = () => {
   };
 
   const handleProjectClick = (projectId: string) => {
-    navigate(`/project/${projectId}`);
+    navigate(`/projects/${projectId}`);
   };
 
   if (loading) {

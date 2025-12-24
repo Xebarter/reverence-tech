@@ -277,7 +277,7 @@ const ProjectDetails: React.FC = () => {
                 .slice(0, 2)
                 .map((rp) => (
                   <Link
-                    to={`/project/${rp.id}`}
+                    to={`/projects/${rp.id}`}
                     key={rp.id}
                     onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
                     className="group bg-white rounded-2xl border border-slate-200 overflow-hidden hover:shadow-xl transition-all duration-300 flex flex-col"
