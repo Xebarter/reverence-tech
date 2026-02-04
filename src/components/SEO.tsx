@@ -35,11 +35,11 @@ export default function SEO({
 }: SEOProps) {
   const siteTitle = title 
     ? `${title} | Reverence Technology` 
-    : 'Reverence Technology - Empowering East Africa Through Digital Innovation';
+    : 'Web Design & Software Development Company in Uganda | Reverence Technology';
     
-  const siteDescription = description || 'Leading technology solutions provider in Uganda offering web development, e-commerce, cloud migration, cybersecurity, and digital transformation services.';
+  const siteDescription = description || 'Leading web design & software development company in Kampala, Uganda. Custom websites, mobile apps & IT solutions for East Africa. 5+ years experience. Get free quote today!';
   
-  const siteKeywords = keywords || 'technology, digital innovation, Uganda, East Africa, web development, e-commerce, cloud migration, cybersecurity';
+  const siteKeywords = keywords || 'web design companies in Uganda, software development companies in Uganda, website developers Kampala, mobile app development Uganda, custom software developers East Africa, tech companies Uganda, IT companies Kampala, affordable web design Uganda, best software company Kampala';
   
   const siteOgTitle = ogTitle || siteTitle;
   const siteOgDescription = ogDescription || siteDescription;

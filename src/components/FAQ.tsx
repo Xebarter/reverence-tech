@@ -6,6 +6,7 @@ import {
 
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../lib/supabase';
+import FAQSchema from './FAQSchema';
 
 const faqs = [
   {
@@ -118,9 +119,19 @@ export default function FAQ() {
     }));
   };
 
+  // Flatten all FAQ items for schema
+  const allFaqItems = faqs.flatMap(category => 
+    category.items.map(item => ({
+      question: item.question,
+      answer: item.answer
+    }))
+  );
+
   return (
-    <section id="faq" className="py-20 md:py-32 bg-slate-50/30 overflow-hidden px-4 md:px-6">
-      <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-16">
+    <>
+      <FAQSchema faqs={allFaqItems} />
+      <section id="faq" className="py-20 md:py-32 bg-slate-50/30 overflow-hidden px-4 md:px-6">
+        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-16">
 
         {/* Left Side: Text and Stats */}
         <div className="lg:col-span-5 space-y-10">
@@ -452,7 +463,8 @@ export default function FAQ() {
             )}
           </div>
         </div>
-      </div>
-    </section>
+        </div>
+      </section>
+    </>
   );
 }

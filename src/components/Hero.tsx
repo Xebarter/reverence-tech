@@ -27,9 +27,10 @@ export default function Hero() {
 
   /* ---------------- SINGLE VALUE PROPOSITION ---------------- */
   const valueProposition = {
-    headline: 'Professional digital solutions that build trust and drive growth.',
+    headline: 'Leading Web Design & Software Development Company in Uganda',
+    subheadline: 'Custom Websites, Mobile Apps & IT Solutions for East Africa',
     copy:
-      'We design and develop reliable websites and applications that strengthen your brand, improve efficiency, and support long-term business success.'
+      'Professional web design, software development, and mobile app solutions in Kampala, Uganda. We help businesses across East Africa build powerful digital platforms that drive growth. 5+ years experience, 75+ satisfied clients.'
   };
 
   /* ---------------- DATA FETCHING ---------------- */
@@ -155,7 +156,7 @@ export default function Hero() {
               className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white border border-slate-200 text-slate-700 text-sm font-medium shadow-sm"
             >
               <CheckCircle2 size={16} className="text-indigo-600" />
-              Trusted Digital Solutions Partner
+              🇺🇬 Based in Kampala, Uganda | Serving East Africa
             </motion.div>
 
             <motion.div
@@ -166,6 +167,9 @@ export default function Hero() {
               <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-slate-900 leading-tight tracking-tight">
                 {valueProposition.headline}
               </h1>
+              <h2 className="mt-4 text-xl sm:text-2xl font-semibold text-indigo-600">
+                {valueProposition.subheadline}
+              </h2>
               <p className="mt-6 text-lg text-slate-600 max-w-xl leading-relaxed">
                 {valueProposition.copy}
               </p>
@@ -208,7 +212,7 @@ export default function Hero() {
                     exit={{ opacity: 0 }}
                     transition={{ duration: 0.8 }}
                     className="absolute inset-0 w-full h-full object-cover"
-                    alt="Professional digital solutions"
+                    alt="Web design and software development company in Kampala Uganda - Reverence Technology"
                   />
                 )}
               </AnimatePresence>
