@@ -135,9 +135,10 @@ const Footer = () => {
             >
               Back to top <ArrowUp size={16} />
             </button>
-            <div className="flex gap-4">
-              <a href="#" className="text-slate-500 hover:text-white text-sm transition-colors">Privacy Policy</a>
-              <a href="#" className="text-slate-500 hover:text-white text-sm transition-colors">Terms of Service</a>
+            <div className="flex gap-4 text-sm">
+              <a href="/terms#privacy-policy" className="text-slate-500 hover:text-white transition-colors">Privacy Policy</a>
+              <a href="/terms" className="text-slate-500 hover:text-white transition-colors">Terms & Conditions</a>
+              <a href="/refund-policy" className="text-slate-500 hover:text-white transition-colors">Refund & Cancellation</a>
             </div>
           </div>
         </div>

@@ -30,6 +30,8 @@ import Projects from './components/Projects';
 import ProjectDetails from './components/Projects/ProjectDetails';
 import ProjectsList from './components/Projects/ProjectsList';
 import SEO from './components/SEO';
+import TermsAndConditions from './components/TermsAndConditions';
+import RefundPolicy from './components/RefundPolicy';
 import { UserProvider } from './UserContext';
 import ScheduledCalls from './components/admin/ScheduledCalls';
 
@@ -121,6 +123,24 @@ function App() {
               <Header />
               <main className="pt-20">
                 <JobDetails />
+              </main>
+              <Footer />
+            </div>
+          } />
+          <Route path="/terms" element={
+            <div className="min-h-screen">
+              <Header />
+              <main className="pt-20">
+                <TermsAndConditions />
+              </main>
+              <Footer />
+            </div>
+          } />
+          <Route path="/refund-policy" element={
+            <div className="min-h-screen">
+              <Header />
+              <main className="pt-20">
+                <RefundPolicy />
               </main>
               <Footer />
             </div>

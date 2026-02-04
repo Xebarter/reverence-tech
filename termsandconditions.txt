@@ -1,0 +1,679 @@
+Terms and Conditions
+Last updated: February 4, 2026
+These Terms and Conditions ("Terms") govern the provision of services by Reverence Technology ("we", "us", "our", or "Reverence Technology") to you ("you", "Client", or "Customer"). Reverence Technology is a business based in Kampala, Central Region, Uganda, specializing in website design and development, mobile application development, and custom software solutions.
+By engaging our services, signing a proposal/quote, making a payment, or otherwise accepting our services (including via email confirmation), you agree to be bound by these Terms. If you do not agree, do not proceed with our services.
+Please read these Terms carefully.
+
+1. Services
+Reverence Technology provides professional digital development and technology services tailored to businesses, startups, organizations, and individuals seeking to establish or enhance their online and mobile presence. Our core expertise lies in creating high-quality, scalable, and user-centric digital solutions that drive business growth, improve efficiency, and deliver measurable value.
+All services are delivered based on a specific Project Agreement (which may be in the form of a written proposal, quote, statement of work, email confirmation, signed contract, or invoice description — collectively referred to as the "Project Agreement"). The Project Agreement defines the exact scope, deliverables, timelines, fees, milestones, and any special requirements for your project. This Terms and Conditions document, together with the Project Agreement, forms the complete agreement between you and Reverence Technology.
+1.1 Core Services
+We offer the following primary services (as specified and agreed in your Project Agreement):
+
+Website Design and Development
+Custom website creation, including static, dynamic, and responsive websites.
+E-commerce platforms (using technologies like WordPress/WooCommerce, custom PHP/Laravel, React/Next.js, or other modern frameworks).
+Corporate, portfolio, landing page, blog, membership, and informational websites.
+Integration with third-party tools (e.g., payment gateways like MTN MoMo, Airtel Money, Stripe, PayPal; CRM systems; analytics; email marketing).
+SEO-friendly structure, mobile optimization, accessibility compliance (where requested), and performance optimization.
+
+Mobile Application Development
+Native iOS (Swift/Objective-C) and Android (Kotlin/Java) app development.
+Cross-platform / hybrid apps (using Flutter, React Native, or Ionic for faster delivery and cost efficiency).
+Consumer-facing apps, business apps, on-demand services, fintech solutions, educational apps, health & wellness, logistics/tracking, and internal enterprise mobile tools.
+App deployment to Google Play Store, Apple App Store, and Huawei AppGallery (where applicable).
+Integration with backend APIs, push notifications, offline capabilities, geolocation, camera/scanner features, and secure authentication.
+
+Custom Software Development
+Bespoke desktop, web-based, or cloud applications tailored to unique business processes.
+Enterprise Resource Planning (ERP) modules, Management Information Systems (MIS), inventory & supply chain systems, HR/payroll software, CRM customizations, accounting tools, and workflow automation.
+Database-driven solutions (MySQL, PostgreSQL, MongoDB, Firebase, etc.).
+API development and integration (RESTful APIs, GraphQL).
+Automation scripts, data migration tools, reporting dashboards, and business intelligence features.
+
+
+1.2 Related and Ancillary Services
+Depending on project needs (and as detailed in the Project Agreement), we may also provide:
+
+UI/UX Design & Prototyping — Wireframing, user flows, high-fidelity mockups (using tools like Figma, Adobe XD).
+Consulting & Strategy — Digital transformation advice, technology audits, feasibility studies, tech stack recommendations.
+Maintenance & Support — Post-launch bug fixes, updates, security patches, performance monitoring (often under a separate maintenance agreement).
+Hosting, Domain & Infrastructure Setup — Assistance with domain registration, cloud hosting (AWS, Google Cloud, DigitalOcean, local providers), SSL certificates, server configuration.
+Training & Handover — User training sessions, documentation, source code handover (upon full payment), and knowledge transfer for your team to manage the solution.
+Ongoing Enhancements — Feature additions, scalability improvements, or version upgrades after initial launch.
+
+1.3 Project-Specific Scope
+
+The precise description of what is included (and excluded) in your project is defined exclusively in the Project Agreement.
+Any services not explicitly listed in the Project Agreement are considered out of scope and may require a separate Change Order (written amendment) with adjusted fees and timelines.
+We reserve the right to refuse or charge extra for requests that materially change the original scope (e.g., adding new major features mid-project, switching platforms, or requiring extensive third-party integrations not anticipated).
+Services are performed using industry-standard practices, secure coding, version control (e.g., Git), testing (unit, integration, user acceptance), and deployment best practices.
+
+1.4 Limitations and Exclusions
+Unless expressly agreed otherwise in the Project Agreement, our services do not include:
+
+Ongoing server/hosting fees after initial setup (you are responsible for third-party hosting/domain renewals).
+Third-party licenses, premium plugins, stock images, or paid APIs (unless we procure them on your behalf and invoice accordingly).
+Marketing, SEO promotion, content creation (beyond basic placeholder text), or social media management.
+Legal, regulatory, or compliance certification (e.g., data protection audits under Uganda's Data Protection Act).
+Physical hardware supply or on-site installation (unless specified).
+
+We deliver functional, high-quality digital products in line with the agreed specifications, but final performance may depend on factors outside our control (e.g., third-party API availability, client-provided content quality, or end-user devices).
+If you have any questions about the scope of your specific project, contact us before proceeding. We are committed to transparency and will clarify any details to ensure alignment.
+
+2. Project Process and Responsibilities
+Reverence Technology follows a structured, collaborative project process to ensure high-quality outcomes, clear communication, and timely delivery. The process is agile-inspired where appropriate (with iterative reviews) or milestone-based, as detailed in your Project Agreement. We use tools like project management platforms (e.g., Trello, Jira, or email/Slack updates), version control, and regular check-ins to keep you informed.
+The exact process, milestones, deliverables, and timelines are defined in the Project Agreement. Any significant deviations require a written Change Order (email acceptable) signed by both parties, which may adjust fees, timelines, or scope.
+2.1 Our Responsibilities (Reverence Technology)
+We commit to performing the Services professionally, competently, and in accordance with industry standards, Ugandan laws, and the specifications in the Project Agreement. Specifically, we will:
+
+Develop a detailed project plan, including milestones, deliverables, and estimated timelines, shared with you at kick-off or as updated in the Project Agreement.
+Provide regular progress updates (at least bi-weekly or at each milestone, via email, call, or shared dashboard).
+Deliver work products and milestones on or before agreed dates, subject to your timely performance of responsibilities (see below).
+Seek your feedback and approvals at key stages (e.g., discovery/requirements sign-off, wireframes/UI designs, prototypes, beta versions, final testing).
+Incorporate your reasonable feedback within agreed revision rounds (typically 2–3 per major deliverable, unless otherwise specified in the Project Agreement).
+Conduct internal testing (unit, integration, basic usability) before presenting deliverables for your review.
+Fix verifiable bugs or defects in deliverables reported during the agreed acceptance/warranty period at no additional cost (excluding scope changes or client-introduced issues).
+Hand over final deliverables (e.g., source code, admin credentials, documentation, training) upon full payment and final acceptance.
+Maintain confidentiality of your information and comply with data protection principles under Ugandan law.
+
+2.2 Your Responsibilities (Client)
+Your active participation is essential for project success. Delays in fulfilling these responsibilities may extend timelines, shift milestones, or result in additional fees (billed at our standard hourly rate or as a Change Order). You agree to:
+
+Provide complete, accurate, and timely information, materials, and access required for the project, including:
+Brand guidelines, logos, content (text, images, videos), existing assets, login credentials (hosting, domains, APIs, third-party accounts).
+Business requirements, user stories, reference examples, target audience details, and functional/technical specifications.
+
+Respond to our requests for feedback, approvals, content, or decisions within 5–7 business days (or the timeframe specified in the Project Agreement). If no response is received within this period, we may proceed based on the last approved version or pause work (with notice), and any resulting delays will not be our responsibility.
+Review and provide written approval (or rejection with specific reasons) for each milestone/deliverable presented. Approval is deemed given if no written feedback is received within the review period.
+Participate in scheduled meetings, calls, demos, or testing sessions as reasonably requested.
+Ensure all materials you provide do not infringe third-party intellectual property rights, copyrights, trademarks, or privacy laws. You indemnify us against any claims arising from your content.
+Make payments according to the agreed schedule (see Section 3). Overdue payments may result in work suspension until resolved.
+Notify us promptly of any changes to requirements, priorities, or project constraints.
+
+2.3 Milestones and Approval Process
+Projects typically progress through phases such as:
+
+Discovery/Planning — Requirements gathering, scope finalization, proposal refinement.
+Design/Prototyping — Wireframes, UI/UX designs, mockups.
+Development — Coding, integration, backend/frontend build.
+Testing & QA — Internal testing, client UAT (User Acceptance Testing).
+Deployment & Handover — Launch, training, documentation transfer.
+Post-Launch Support (if included) — Bug fixes during warranty period.
+
+Each milestone includes:
+
+Defined deliverables (e.g., design files, beta app, live site).
+A review/approval window (usually 5–7 business days).
+Acceptance criteria outlined in the Project Agreement.
+
+Upon milestone completion, we submit deliverables for your review. You must test and provide feedback in writing. If issues are reported and verified as defects (not new features), we correct them promptly. Once approved or deemed accepted (no timely rejection), the milestone is complete, triggering any associated payment.
+2.4 Delays and Extensions
+
+Timelines in the Project Agreement are estimates based on your timely cooperation. We are not liable for delays caused by:
+Late or incomplete client inputs/approvals.
+Changes in scope or requirements.
+Force majeure events (e.g., internet outages, government actions, natural disasters).
+Third-party issues outside our control (e.g., API downtime, app store reviews).
+
+If delays occur due to your actions/inactions, we may:
+Extend deadlines accordingly.
+Charge reasonable fees for idle time or re-mobilization (e.g., if project pauses >30 days).
+
+We will notify you promptly of any anticipated delays and propose solutions.
+
+2.5 Change Requests
+Any request to add, modify, or remove features, timelines, or deliverables after the Project Agreement is signed constitutes a change. Changes must be:
+
+Submitted in writing (email or form).
+Reviewed for impact on scope, cost, and timeline.
+Documented in a Change Order with adjusted fees/timelines, signed by both parties before work begins.
+
+We reserve the right to decline changes that are infeasible or outside our expertise.
+This collaborative approach ensures transparency, reduces risks, and delivers the best possible results. If anything is unclear about your project's process, contact us early—we're here to align expectations from day one.
+
+3. Payments
+All fees, expenses, and payment schedules for the Services are outlined in the Project Agreement (proposal, quote, statement of work, or signed contract). Payments are a fundamental obligation under these Terms. By engaging our services, you agree to the payment terms specified.
+3.1 Payment Structure
+We use a milestone-based payment model to align payments with project progress and deliverables. This ensures transparency, reduces risk for both parties, and ties compensation to verifiable achievements. Unless otherwise stated in your Project Agreement, a typical structure includes:
+
+Initial Deposit — 30–50% of the total project fee (commonly 40%).
+Due upon acceptance of the Project Agreement and before any work begins.
+This deposit is non-refundable (except in limited cases under Section 4 or your statutory rights) as it secures resources, covers initial planning, research, setup, and commitment on our part.
+
+Milestone Payments — Remaining balance split across key project phases.
+Examples of common milestones (as defined in your Project Agreement):
+20–30% upon approval of designs, wireframes, UI/UX mockups, or prototypes.
+20–30% upon completion and approval of core development (e.g., beta version, functional backend/frontend, integrations).
+10–20% upon successful User Acceptance Testing (UAT), final revisions, and pre-launch staging.
+
+Each milestone payment is due within 7 business days of invoice issuance after milestone approval or delivery (or the timeframe stated in the Project Agreement).
+
+Final Payment — Balance (typically 10–20%) due before final handover, launch/deployment to live environment, source code/files transfer, or project closure.
+Final payment triggers full ownership/license transfer (per Section 5) and any post-launch handover activities.
+
+
+Exact percentages, milestones, and amounts are project-specific and detailed in the Project Agreement. For fixed-price projects, we invoice based on milestones; for time-and-materials or retainer-based work, we invoice monthly or as agreed.
+3.2 Invoicing and Payment Methods
+
+Invoices are issued electronically (via email or client portal) and include a breakdown of the milestone, amount due, VAT (if applicable), and payment instructions.
+All fees are quoted in Ugandan Shillings (UGX) or United States Dollars (USD) as specified in the Project Agreement.
+Accepted payment methods include:
+Bank transfer (preferred for larger amounts)
+Mobile money (e.g., MTN MoMo, Airtel Money)
+Other secure methods as mutually agreed (e.g., PayPal for international clients, where feasible).
+
+You are responsible for any bank/transaction fees or currency conversion costs.
+Payments must be made in full without set-off, deduction, or withholding unless required by law (and with prior notice).
+
+3.3 Taxes and Additional Charges
+
+All fees are exclusive of taxes unless explicitly stated otherwise.
+Value Added Tax (VAT) — If applicable under Ugandan law (currently 18% standard rate for taxable services, including software development and digital services), VAT will be added to invoices and clearly itemized. You are responsible for paying any applicable VAT.
+Other taxes, duties, levies, or government charges (e.g., withholding tax on international payments) are your responsibility unless agreed otherwise.
+Additional charges may apply for:
+Out-of-scope work or changes (via Change Order).
+Third-party costs we incur on your behalf (e.g., premium plugins, stock assets, domain/hosting fees) — reimbursed with proof.
+Rush/expedited work or overtime requested by you.
+
+
+3.4 Late Payments
+Timely payment is essential. If any invoice remains unpaid after the due date:
+
+We may charge interest on overdue amounts at 1.5% per month (or the maximum rate permitted under Ugandan law, whichever is lower), calculated daily from the due date until paid in full.
+We reserve the right to suspend or pause work on your project (with written notice) until all overdue amounts are cleared. Any resulting delays, additional costs, or impacts are not our liability.
+Continued non-payment after notice may constitute material breach, allowing us to terminate the agreement (see Section 8) and pursue recovery of all outstanding fees, interest, and reasonable collection costs (including legal fees).
+
+3.5 Refunds and Cancellations
+Payments are generally non-refundable, reflecting work performed, resources committed, and opportunity costs. Refer to our separate Refund Policy and Cancellation Policy for details. In summary:
+
+Deposits cover initial commitment and are non-refundable.
+Milestone payments for completed/approved work are non-refundable.
+Refunds (if any) are at our discretion or required by law (e.g., material non-performance on our part).
+In case of termination, you remain liable for all work completed up to termination plus reasonable wind-down costs.
+
+We aim for fair and transparent billing. If you have questions about an invoice or payment schedule, contact us immediately—we resolve issues promptly to keep your project on track.
+
+4. Refunds and Cancellations
+Due to the custom, project-based nature of our Services (website design/development, mobile app development, custom software solutions, and related work), refunds and cancellations are handled carefully to reflect work performed, resources committed, and opportunity costs. All payments are generally non-refundable except in specific circumstances outlined below or as required by applicable Ugandan law (including the Electronic Transactions Act 2011, Sale of Goods and Supply of Services Act 2018, and general consumer protection principles).
+For full details and examples, refer to our separate Refund Policy and Cancellation Policy pages (linked in the footer or provided upon request). This section summarizes the key rules.
+4.1 General Principles
+
+Non-Refundable Nature — Deposits and payments for completed/approved milestones are non-refundable as they compensate for time, expertise, planning, design, coding, testing, and other irreversible commitments made on your behalf.
+Statutory Rights — Nothing in these Terms affects your non-excludable rights under Ugandan law. For example, if we materially fail to deliver Services as agreed (e.g., fundamental breach), you may be entitled to remedies including partial refund, rectification, or termination with compensation for losses.
+Discretion — We may, at our sole discretion, offer partial refunds, credits, or remedies in good faith to maintain positive relationships, even where not strictly required.
+
+4.2 Deposits
+
+The initial deposit (typically 30–50% of total fees, as stated in your Project Agreement) is non-refundable.
+It covers project kick-off, requirements gathering, initial planning, resource allocation, and early work (e.g., research, wireframing setup).
+Exceptions:
+If we are unable to commence or materially fail to perform the Services due to our fault (e.g., we cancel without cause), we will refund the deposit in full.
+Limited statutory rights may apply in cases of misrepresentation or non-performance.
+
+
+4.3 Milestone and Final Payments
+
+Payments for approved/completed milestones are non-refundable, as they reflect delivered and accepted value (e.g., designs signed off, beta version functional).
+If you report verifiable defects during the acceptance period (see Section 6) or warranty phase, we will correct them at no cost. No refund is due for such fixes.
+If the project is terminated early due to our material breach (after reasonable notice to remedy), you may be entitled to a partial refund for undelivered portions, less costs for work completed and expenses incurred.
+
+4.4 Cancellation by You (Client)
+You may cancel the project at any time by providing written notice (email acceptable). Upon cancellation:
+
+You remain liable for:
+All completed and approved milestones (non-refundable).
+Work in progress up to the date of notice (billed at agreed rates or pro-rated).
+Reasonable termination costs (e.g., third-party expenses incurred, committed resources).
+
+Any remaining balance for undelivered work is waived (no further payments due).
+If cancellation occurs before any milestones are approved:
+Deposit remains non-refundable.
+We may refund a portion of any advance payments beyond the deposit, at our discretion, minus actual costs incurred (typically 0–50% depending on progress).
+
+No refunds for digital deliverables already transferred or accessed (e.g., source code, designs, prototypes).
+
+4.5 Cancellation by Us (Reverence Technology)
+We may cancel or suspend the project for reasons including:
+
+Material breach by you (e.g., non-payment, failure to provide required materials/approvals after notice).
+Force majeure or impossibility of performance.
+Mutual agreement.
+
+In such cases:
+
+You pay for all work completed up to cancellation.
+We may retain deliverables until full payment.
+If we cancel without cause or due to our fault, we will refund any prepaid amounts for undelivered work (less costs incurred).
+
+4.6 Refund Process (If Applicable)
+
+Requests must be submitted in writing (email to [your support email]) with details: project reference, reason, evidence (e.g., screenshots of issues).
+We review within 7–14 business days.
+Approved refunds are issued to the original payment method (or agreed alternative) within 10–30 business days after approval.
+Refunds exclude transaction fees, taxes, or third-party costs.
+Partial refunds may be issued as store credit/project credit at our option.
+
+4.7 No Refunds For
+
+Changes in mind after milestone approval.
+Delays caused by your late inputs/approvals.
+Third-party issues (e.g., hosting, APIs) unless we directly provide them.
+Completed work that meets specifications but no longer suits your needs.
+
+We strive for client satisfaction through clear communication, revisions, and quality delivery. If you're dissatisfied, contact us early—we prefer to resolve issues collaboratively rather than through refunds. For questions or to discuss your specific situation, reach out via the Contact Us section.
+
+
+5. Intellectual Property and Ownership
+Intellectual property rights ("IP Rights") are central to our Services and this agreement. This section defines ownership, licensing, and usage rights for all materials, code, designs, and other deliverables created or used in connection with your project. It is governed by Ugandan law, including the Copyright and Neighbouring Rights Act, 2006, which protects computer programs, designs, and other original works as literary or artistic works with automatic protection upon creation.
+5.1 Definitions
+
+Deliverables — The final, project-specific outputs we create for you under the Project Agreement, including custom source code, compiled software, websites, mobile apps, databases, UI/UX designs, wireframes, prototypes, documentation, graphics (excluding stock/third-party assets), and any other custom work product explicitly identified as such in the Project Agreement.
+Background IP — Our pre-existing intellectual property, including:
+General frameworks, templates, libraries, code snippets, tools, methodologies, reusable components, plugins, open-source integrations (with their licenses respected), and know-how developed prior to or independently of your project.
+Any improvements or derivatives of Background IP created during your project that are not uniquely tailored to your specific requirements.
+
+Client Materials — Any content, data, logos, trademarks, images, text, specifications, or other materials you provide to us for incorporation into the Deliverables.
+
+5.2 Ownership of Deliverables
+Subject to full payment of all fees due under the Project Agreement:
+
+Upon final payment and project completion (or as otherwise agreed), we hereby assign, transfer, and convey to you all right, title, and interest in and to the Deliverables, including all copyrights, moral rights (to the extent waivable under Ugandan law), and other IP Rights therein.
+This assignment is effective immediately upon full payment and constitutes a present grant of ownership (no further documents required, though we will execute any reasonable additional assignments or confirmations if needed for registration or enforcement).
+You become the sole owner of the Deliverables and may use, modify, sell, license, or otherwise exploit them for your business purposes without further payment or permission from us.
+This ownership transfer applies only to custom elements uniquely created for your project and does not include Background IP (see below).
+
+5.3 Background IP and License Grant
+
+We retain full ownership of all Background IP at all times.
+Upon full payment and project completion, we grant you a perpetual, worldwide, non-exclusive, royalty-free, irrevocable license to use, reproduce, modify, and incorporate the Background IP to the extent it is embedded in or necessary for the operation, maintenance, or modification of the Deliverables.
+This license is for your internal business use or the intended purpose of the Deliverables only. You may not:
+Extract, reuse, or commercialize the Background IP separately from the Deliverables.
+Distribute or sublicense the Background IP as standalone components.
+
+We warrant that our use of Background IP in the Deliverables does not infringe third-party rights (subject to your indemnity below).
+
+5.4 Client Materials
+
+You retain full ownership of all Client Materials you provide.
+By providing Client Materials, you grant us a limited, non-exclusive, royalty-free license to use, reproduce, modify, and incorporate them solely for the purpose of performing the Services and delivering the Deliverables.
+You warrant and represent that:
+You own or have all necessary rights, licenses, and permissions for the Client Materials.
+They do not infringe any third-party IP Rights, privacy rights, or applicable laws (including Ugandan copyright or data protection laws).
+
+You indemnify and hold us harmless from any claims, losses, damages, or expenses (including legal fees) arising from infringement or alleged infringement related to Client Materials.
+
+5.5 Third-Party Materials and Open Source
+
+Any third-party software, libraries, APIs, plugins, stock images, fonts, or other components incorporated into the Deliverables ("Third-Party Materials") remain subject to their original licenses (e.g., MIT, GPL, proprietary).
+We will identify major Third-Party Materials in the Project Agreement or documentation where practical.
+You are responsible for complying with those licenses post-handover (e.g., attribution, restrictions on modification). We make no warranties regarding Third-Party Materials beyond passing through any available warranties.
+
+5.6 Moral Rights and Further Assurances
+
+To the extent permitted by Ugandan law (Copyright and Neighbouring Rights Act, 2006), you waive any moral rights in the Deliverables that may accrue to us or our personnel.
+We (and our employees/contractors) agree to waive moral rights in the Deliverables in your favor.
+Both parties agree to execute any further documents reasonably requested to perfect, register, or enforce the IP assignments and licenses herein (at the requesting party's expense, unless due to the other party's fault).
+
+5.7 No Other Rights Granted
+Except as expressly provided in this section or the Project Agreement:
+
+No license, assignment, or other rights to any IP are granted by either party.
+We do not grant you any rights to our trademarks, trade names, or branding (you may only use our name/logo to state that we developed your project, with prior approval).
+After handover, we retain the right to reference the project in our portfolio/marketing (anonymized or with your permission) as a non-confidential showcase.
+
+This section ensures clear ownership for you (the client) of your custom-built solution while protecting our ability to reuse general tools and expertise across projects — a standard and fair approach in custom software development. If you have specific concerns about IP for your project, discuss them during scoping or consult a Ugandan IP lawyer.
+
+
+
+6. Warranties and Acceptance
+We stand behind the quality of our work and want you to be fully satisfied with the Deliverables. This section outlines the limited warranties we provide, the process for testing and accepting work, and the remedies available for any issues.
+6.1 Limited Warranty on Services
+We warrant and represent that:
+
+The Services will be performed with reasonable care, skill, and diligence in accordance with industry standards prevailing in Uganda for similar digital development projects.
+The Deliverables will substantially conform to the specifications and requirements set out in the Project Agreement at the time of delivery/acceptance.
+We will use qualified personnel and appropriate tools/methods to complete the work.
+To the best of our knowledge, the Deliverables (excluding Client Materials and Third-Party Materials) will not infringe any third-party intellectual property rights when used as intended.
+
+This warranty is limited to the above and is given for a period of 30 days from the date of final acceptance (or the longer warranty period expressly stated in your Project Agreement, if any). After this period, all warranties are disclaimed to the maximum extent permitted by law.
+6.2 No Other Warranties – Disclaimer
+Except as expressly stated in this section or the Project Agreement:
+
+All other warranties, conditions, representations, or terms (whether express, implied, statutory, or otherwise) are excluded to the fullest extent permitted by Ugandan law.
+In particular, we do not warrant:
+That the Deliverables will be error-free, uninterrupted, or meet your specific business objectives, profitability goals, or performance expectations beyond the agreed specifications.
+Compatibility with future technologies, platforms, browsers, devices, or third-party updates (unless explicitly included in scope).
+Fitness for a particular purpose not expressly stated in the Project Agreement.
+Results from third-party hosting, APIs, payment gateways, app stores, or other external services.
+
+Services and Deliverables are provided on an "as is" and "as available" basis after the warranty period expires.
+
+6.3 Acceptance Process
+Clear acceptance helps both parties confirm that milestones and final Deliverables meet expectations.
+
+Review Period — Upon delivery of any milestone Deliverable (e.g., designs, prototypes, beta versions, staging site/app, final build), we will notify you and provide access for review. You have 7 business days from the date of notification (or the period stated in the Project Agreement) to test and evaluate the Deliverable ("Review Period").
+Testing — You are responsible for conducting thorough User Acceptance Testing (UAT), including functionality, usability, performance on intended devices/browsers, and compliance with specifications. Provide access to test environments if needed.
+Notice of Defects — Any non-conformities, bugs, or defects must be reported to us in writing (email or project management tool) during the Review Period, with reasonable detail (e.g., screenshots, steps to reproduce, expected vs. actual behavior). Vague or late notices may be disregarded.
+Deemed Acceptance — If we receive no written notice of defects within the Review Period, the Deliverable is deemed accepted by you. This triggers:
+Invoice for the associated milestone payment (if not already paid).
+Progression to the next phase.
+Start of any applicable warranty period for that Deliverable.
+
+Revisions / Fixes — For valid, verifiable defects reported timely:
+We will correct them at no additional charge and provide a revised version within a reasonable timeframe (typically 5–10 business days, depending on severity).
+You then have a new 7-business-day Review Period for the revised version.
+This cycle continues until acceptance or the warranty period ends.
+
+
+6.4 Post-Acceptance Warranty (Bug Fixing)
+
+For a period of 30 days after final acceptance of the entire project (or longer if specified in your Project Agreement, e.g., 60–90 days for larger projects), we will, at no extra cost:
+Investigate and correct verifiable bugs or defects that cause the Deliverables to materially deviate from the agreed specifications.
+Provide reasonable support via email or calls to address such issues.
+
+This warranty covers only defects existing at the time of acceptance — not new features, enhancements, changes in requirements, misuse, unauthorized modifications, third-party interference, or normal wear/maintenance.
+After the warranty period, any further support, fixes, or updates are provided under a separate maintenance/support agreement (billed at our then-current rates).
+
+6.5 Remedies for Breach of Warranty
+If we breach the limited warranty above and you notify us in writing within the applicable period:
+
+Our sole obligation and your exclusive remedy is, at our option:
+To correct or re-perform the defective Services/Deliverables at no cost to you, or
+To refund a reasonable portion of the fees paid for the defective portion (pro-rated based on value delivered).
+
+We are not liable for any other damages, losses, or costs arising from the breach (see Section 7 – Limitation of Liability).
+
+We are committed to delivering high-quality work and resolving issues quickly. Prompt, detailed feedback during review periods helps us achieve that. If you encounter any concerns, contact us immediately so we can address them collaboratively.
+
+
+
+7. Limitation of Liability
+To the maximum extent permitted by applicable law (including Ugandan law), Reverence Technology, its owners, directors, employees, contractors, affiliates, and agents (collectively, “we”, “us”, or “our”) shall not be liable for any losses, damages, or expenses arising from or in connection with the Services, Deliverables, or these Terms, except as expressly provided below.
+7.1 Exclusion of Certain Damages
+In no event shall we be liable for any:
+
+Indirect, incidental, special, exemplary, punitive, or consequential damages of any kind, including (but not limited to):
+Loss of profits, revenue, anticipated savings, business opportunities, or goodwill
+Loss of data, corruption of data, or recovery costs
+Business interruption, downtime, or loss of use
+Damage to reputation or third-party claims
+Costs of substitute goods or services
+
+
+even if we have been advised of the possibility of such damages and regardless of the legal theory (contract, tort, negligence, strict liability, breach of statutory duty, or otherwise).
+7.2 Cap on Liability
+Our total aggregate liability to you arising out of or in connection with these Terms, the Project Agreement, the Services, or the Deliverables — whether in contract, tort (including negligence), breach of statutory duty, misrepresentation, or otherwise — shall be limited to the total fees actually paid by you to us under the relevant Project Agreement in the twelve (12) months immediately preceding the event giving rise to the claim.
+If no fees have been paid (e.g., free consultation or pilot phase), our total liability is limited to UGX 1,000,000 (one million Ugandan Shillings) or the equivalent in the currency of payment.
+7.3 Exceptions to Limitation
+The limitations and exclusions in this Section 7 do not apply to liability arising from:
+
+Our willful misconduct, fraud, or fraudulent misrepresentation
+Death or personal injury caused by our negligence
+Any liability that cannot be excluded or limited by applicable law (e.g., under Ugandan consumer protection laws where you qualify as a consumer and the limitation would be deemed unfair)
+Our obligations under Section 5 (Intellectual Property indemnity for our own infringement, if any)
+Your indemnity obligations under Section 5 (Client Materials) or any other express indemnity in these Terms
+
+7.4 Time Limit for Claims
+Any claim or cause of action against us must be brought within one (1) year after the date the cause of action accrues (e.g., date of final acceptance, discovery of defect, or alleged breach), or the maximum period allowed under Ugandan law, whichever is shorter. After this period, the claim is time-barred.
+7.5 Allocation of Risk
+You acknowledge that the fees charged for the Services reflect the allocation of risk between the parties, including these limitations of liability. The limitations are an essential basis of the bargain and would not have been agreed without them. If any part of this Section is held unenforceable, the remainder remains in full force.
+7.6 Third-Party Claims and Indemnity
+
+We are not liable for claims arising from your use of the Deliverables in violation of these Terms, applicable law, or third-party rights (except as covered by our limited IP warranty in Section 6).
+You agree to indemnify, defend, and hold us harmless from any third-party claims, losses, damages, liabilities, costs, and expenses (including reasonable legal fees) arising from:
+Your breach of these Terms
+Your misuse of the Deliverables
+Any Client Materials infringing third-party rights
+Your instructions or specifications that lead to infringement or defect
+
+
+This Section survives termination or expiration of the agreement.
+We take pride in delivering reliable, high-quality work and resolve issues through collaboration whenever possible. These limitations exist to keep our services affordable and sustainable while protecting both parties from disproportionate risk.
+
+
+7. Limitation of Liability
+To the maximum extent permitted by applicable law (including Ugandan law), Reverence Technology, its owners, directors, employees, contractors, affiliates, and agents (collectively, “we”, “us”, or “our”) shall not be liable for any losses, damages, or expenses arising from or in connection with the Services, Deliverables, or these Terms, except as expressly provided below.
+7.1 Exclusion of Certain Damages
+In no event shall we be liable for any:
+
+Indirect, incidental, special, exemplary, punitive, or consequential damages of any kind, including (but not limited to):
+Loss of profits, revenue, anticipated savings, business opportunities, or goodwill
+Loss of data, corruption of data, or recovery costs
+Business interruption, downtime, or loss of use
+Damage to reputation or third-party claims
+Costs of substitute goods or services
+
+
+even if we have been advised of the possibility of such damages and regardless of the legal theory (contract, tort, negligence, strict liability, breach of statutory duty, or otherwise).
+7.2 Cap on Liability
+Our total aggregate liability to you arising out of or in connection with these Terms, the Project Agreement, the Services, or the Deliverables — whether in contract, tort (including negligence), breach of statutory duty, misrepresentation, or otherwise — shall be limited to the total fees actually paid by you to us under the relevant Project Agreement in the twelve (12) months immediately preceding the event giving rise to the claim.
+If no fees have been paid (e.g., free consultation or pilot phase), our total liability is limited to UGX 1,000,000 (one million Ugandan Shillings) or the equivalent in the currency of payment.
+7.3 Exceptions to Limitation
+The limitations and exclusions in this Section 7 do not apply to liability arising from:
+
+Our willful misconduct, fraud, or fraudulent misrepresentation
+Death or personal injury caused by our negligence
+Any liability that cannot be excluded or limited by applicable law (e.g., under Ugandan consumer protection laws where you qualify as a consumer and the limitation would be deemed unfair)
+Our obligations under Section 5 (Intellectual Property indemnity for our own infringement, if any)
+Your indemnity obligations under Section 5 (Client Materials) or any other express indemnity in these Terms
+
+7.4 Time Limit for Claims
+Any claim or cause of action against us must be brought within one (1) year after the date the cause of action accrues (e.g., date of final acceptance, discovery of defect, or alleged breach), or the maximum period allowed under Ugandan law, whichever is shorter. After this period, the claim is time-barred.
+7.5 Allocation of Risk
+You acknowledge that the fees charged for the Services reflect the allocation of risk between the parties, including these limitations of liability. The limitations are an essential basis of the bargain and would not have been agreed without them. If any part of this Section is held unenforceable, the remainder remains in full force.
+7.6 Third-Party Claims and Indemnity
+
+We are not liable for claims arising from your use of the Deliverables in violation of these Terms, applicable law, or third-party rights (except as covered by our limited IP warranty in Section 6).
+You agree to indemnify, defend, and hold us harmless from any third-party claims, losses, damages, liabilities, costs, and expenses (including reasonable legal fees) arising from:
+Your breach of these Terms
+Your misuse of the Deliverables
+Any Client Materials infringing third-party rights
+Your instructions or specifications that lead to infringement or defect
+
+
+This Section survives termination or expiration of the agreement.
+We take pride in delivering reliable, high-quality work and resolve issues through collaboration whenever possible. These limitations exist to keep our services affordable and sustainable while protecting both parties from disproportionate risk.
+
+This is one of the most protective sections in the document — common and expected in tech service agreements. It caps exposure (critical for small/medium businesses like yours in Kampala), excludes high-risk damages, and includes clear exceptions to avoid being struck down as unfair.
+If you'd like adjustments (e.g., higher/lower cap amount, different time limit, or stronger/weaker tone), let me know. When ready, prompt with the next item (e.g., "8. Termination")!1.4sFast8.
+TerminationHere is comprehensive, ready-to-use content for Section 8. Termination in your Terms and Conditions page for Reverence Technology. This section is designed to clearly outline the rights and consequences of ending the agreement, protecting both parties while giving you strong safeguards (e.g., right to suspend for non-payment, payment for work done, retention of deliverables until paid). It uses standard language suitable for custom software, website, and mobile app development services in Uganda.
+8. Termination
+This agreement (comprising these Terms and the Project Agreement) may be terminated in the circumstances described below. Termination does not affect any rights, obligations, or liabilities that have accrued before the termination date, including payment obligations for work performed.
+8.1 Termination by Either Party for Cause (Material Breach)
+Either party may terminate this agreement immediately upon written notice (email acceptable) if the other party:
+
+Commits a material breach of any provision of these Terms or the Project Agreement and (if the breach is capable of remedy) fails to remedy it within 14 business days after receiving written notice specifying the breach and requiring its remedy;
+Becomes insolvent, enters bankruptcy, liquidation, administration, or any arrangement with creditors, or ceases business operations;
+Suspends, or threatens to suspend, payment of its debts or is unable to pay its debts as they fall due (within the meaning of the Insolvency Act of Uganda).
+
+Examples of material breach by you (Client) include:
+
+Failure to make any payment when due after a 7-business-day grace period following reminder notice
+Prolonged failure to provide required materials, approvals, or feedback (more than 30 calendar days after repeated requests)
+Misuse of Deliverables or breach of confidentiality obligations
+
+Examples of material breach by us include:
+
+Material failure to deliver agreed Deliverables within a reasonable extended timeframe after notice
+Persistent failure to correct verifiable defects during the warranty period
+
+8.2 Termination for Convenience by Client
+You may terminate the Project Agreement at any time for convenience by providing written notice (email acceptable) to us.
+Upon such termination:
+
+You remain liable for:
+Payment in full for all completed and approved milestones
+All work in progress up to the date of termination, calculated on a pro-rata basis or at our standard hourly rate (whichever is specified in the Project Agreement)
+Reasonable termination costs, including committed third-party expenses, cancellation fees, and demobilisation costs
+
+Any prepaid amounts exceeding the above will be refunded within 30 business days (subject to deduction of the above liabilities)
+We will deliver to you any partially completed Deliverables in their current state (subject to full payment of amounts due)
+All licenses and assignments of IP rights granted under Section 5 remain conditional on full payment of amounts due
+
+8.3 Termination by Reverence Technology for Convenience
+We reserve the right to terminate this agreement for convenience by providing 30 calendar days' written notice to you, in which case:
+
+We will complete any paid-for milestones in progress
+You will pay for all work performed up to termination
+We will refund any prepaid amounts for work not yet performed (after deducting costs incurred)
+This right is rarely exercised and would only be used in exceptional circumstances (e.g., prolonged project dormancy or irreconcilable business changes)
+
+8.4 Suspension Rights
+Without prejudice to our termination rights:
+
+We may suspend performance of the Services (with written notice) if you fail to make any payment when due, or materially fail to meet your responsibilities under Section 2, until the issue is remedied
+Any suspension period caused by your default extends project timelines and does not constitute a breach by us
+Suspension does not relieve you of payment obligations
+
+8.5 Consequences of Termination
+Upon termination or expiry of the agreement, regardless of cause:
+
+All rights and licenses granted to you under Section 5 (Intellectual Property) remain conditional upon full payment of all amounts due
+We may retain possession of Deliverables, source code, access credentials, and other project materials until all outstanding payments (including termination-related amounts) are received in full
+You must immediately cease using any Deliverables or materials for which payment is outstanding
+Each party must promptly return or destroy (and certify destruction of) the other party's Confidential Information (subject to any surviving rights)
+Accrued rights to payment, indemnity, limitation of liability, governing law, and any other provisions intended to survive termination shall continue in full force (including Sections 4, 5, 7, 9, 10, and this Section 8)
+
+8.6 Project Dormancy
+If the project becomes inactive (no substantive communication or progress for 60 consecutive calendar days due to your delay in providing feedback, content, approvals, or payments), we may treat the project as terminated for convenience by you, with the consequences outlined in Section 8.2 applying. We will provide written notice before taking this action.
+We aim to maintain long-term, successful partnerships. Termination is a last resort — if issues arise, we encourage open discussion to find mutually acceptable solutions before formal termination.
+
+
+9. Confidentiality
+During the course of our engagement and in connection with the Services, each party may disclose or have access to Confidential Information belonging to the other party. Both parties agree to protect such information with the same degree of care used to protect their own confidential information of a similar nature, but in no event less than reasonable care.
+9.1 Definition of Confidential Information
+“Confidential Information” means any non-public information disclosed by one party (“Disclosing Party”) to the other party (“Receiving Party”), whether orally, in writing, electronically, or by inspection, that is designated as confidential or that reasonably should be understood to be confidential given the nature of the information and the circumstances of disclosure. Confidential Information includes, but is not limited to:
+
+Business plans, strategies, financial data, customer lists, pricing, marketing plans, and operational processes
+Technical information, source code, algorithms, designs, prototypes, wireframes, specifications, APIs, database structures, and development methodologies
+Trade secrets, know-how, inventions, research, and product development details
+Personal data of individuals (subject also to applicable data protection laws)
+Any other proprietary or sensitive information marked as “Confidential” or disclosed under circumstances where confidentiality is reasonably expected
+
+Confidential Information does not include information that:
+
+Is or becomes publicly available through no fault of the Receiving Party
+Was rightfully known to the Receiving Party prior to disclosure by the Disclosing Party (as evidenced by written records)
+Is independently developed by the Receiving Party without use of or reference to the Disclosing Party’s Confidential Information
+Is lawfully received from a third party without restriction on disclosure
+Is required to be disclosed by law, court order, or government regulation (provided the Receiving Party gives prompt notice to the Disclosing Party to allow it to seek a protective order or other remedy, unless prohibited by law)
+
+9.2 Obligations of the Receiving Party
+The Receiving Party agrees to:
+
+Use the Confidential Information solely for the purpose of performing its obligations or exercising its rights under these Terms and the Project Agreement
+Not disclose, copy, reproduce, or transmit the Confidential Information to any third party without the prior written consent of the Disclosing Party
+Restrict access to Confidential Information to its employees, contractors, agents, or subcontractors who:
+Have a legitimate need to know for the purposes of the project
+Are bound by confidentiality obligations at least as protective as those in this section
+
+Take reasonable security measures to prevent unauthorized access, use, or disclosure (including industry-standard technical, physical, and administrative safeguards)
+Promptly notify the Disclosing Party in writing of any actual or suspected unauthorized access, use, disclosure, or loss of Confidential Information and cooperate fully in any investigation or remediation
+
+9.3 Return or Destruction of Confidential Information
+Upon termination or expiration of the agreement, or at the Disclosing Party’s earlier written request:
+
+The Receiving Party shall, at the Disclosing Party’s option, promptly return or destroy all copies of Confidential Information (including any derivatives or extracts) in its possession or control
+The Receiving Party shall certify in writing (within 10 business days) that such return or destruction has been completed
+The Receiving Party may retain one archival copy solely for legal, regulatory, or audit purposes, provided it remains subject to the confidentiality obligations herein
+
+9.4 Duration of Obligations
+The obligations of confidentiality in this section shall survive termination or expiration of the agreement for a period of five (5) years thereafter, except for information qualifying as a trade secret under Ugandan law, which shall remain confidential for as long as it retains trade secret status.
+9.5 Permitted Disclosures
+A Receiving Party may disclose Confidential Information:
+
+To the extent required by applicable law, regulation, or court/governmental order (subject to the notice requirements above)
+To professional advisors (e.g., lawyers, accountants, insurers) bound by confidentiality duties
+As necessary to enforce its rights under this agreement or defend against claims
+
+9.6 Injunctive Relief
+Each party acknowledges that any unauthorized disclosure or use of Confidential Information may cause irreparable harm to the Disclosing Party for which monetary damages alone would be inadequate. Accordingly, the Disclosing Party shall be entitled to seek immediate injunctive relief or other equitable remedies in addition to any other remedies available at law, without the need to post a bond or prove actual damages.
+9.7 No License Granted
+Nothing in this section or these Terms grants any license, right, or interest in or to the Confidential Information except as expressly necessary to perform the Services or as otherwise stated in Section 5 (Intellectual Property).
+This confidentiality provision is mutual and applies equally to both Reverence Technology and the Client. We take your privacy and business confidentiality seriously and expect the same in return.
+
+
+10. Governing Law and Dispute Resolution
+10.1 Governing Law
+These Terms, the Project Agreement, and any dispute or claim arising out of or in connection with them (including non-contractual disputes or claims) shall be governed by and construed in accordance with the laws of the Republic of Uganda, without regard to its conflict of laws principles.
+The parties expressly agree that Ugandan law provides the most appropriate and closely connected legal framework for their relationship, given that Reverence Technology is based in Kampala, Uganda, and the Services are primarily performed and delivered within Uganda (or tailored to Ugandan/East African business needs).
+10.2 Dispute Resolution Process
+The parties are committed to resolving disputes amicably and efficiently. Any dispute, controversy, or claim arising out of or relating to these Terms, the Project Agreement, the Services, or the Deliverables (a “Dispute”) shall be resolved through the following stepped process:
+
+Good-Faith Negotiation
+The parties shall first attempt to resolve the Dispute through good-faith negotiations. The aggrieved party shall provide written notice (email acceptable) detailing the nature of the Dispute, relevant facts, and proposed resolution. The other party shall respond within 14 business days. Senior representatives of both parties shall meet (in person, virtually, or by phone) within 30 calendar days of the initial notice to negotiate a resolution.
+Mediation
+If the Dispute is not resolved through negotiation within 60 calendar days of the initial notice (or such longer period as mutually agreed), either party may refer the Dispute to mediation. Mediation shall be conducted in Kampala, Uganda, under the rules of a mutually agreed mediator or, failing agreement, under the mediation procedures of a recognized Ugandan institution (such as the Judiciary’s Court-Annexed Mediation or an equivalent service). The mediator shall be neutral and appointed by agreement or by the chosen institution. Mediation is confidential, without prejudice, and costs shared equally unless otherwise agreed. The mediation process shall conclude within 60 calendar days unless extended by mutual consent.
+Arbitration
+If mediation fails to resolve the Dispute within the above timeframe (or if mediation is not pursued), the Dispute shall be finally settled by binding arbitration. Arbitration shall be conducted in Kampala, Uganda, in English, in accordance with the Arbitration and Conciliation Act (Cap 4, as amended) and any applicable rules of the administering institution (if agreed) or UNCITRAL rules (if no institution is specified).
+The arbitral tribunal shall consist of one (1) arbitrator (unless the Dispute value exceeds UGX 500,000,000, in which case three arbitrators may be appointed at the request of either party).
+The arbitrator(s) shall be appointed by agreement of the parties or, failing agreement within 30 calendar days, by the appointing authority under the Act (now functions integrated into the Ministry of Justice and Constitutional Affairs or as directed by the Commercial Court).
+The arbitration award shall be final and binding, enforceable in any court of competent jurisdiction. The prevailing party may recover reasonable costs and legal fees as determined by the arbitrator(s).
+The seat of arbitration is Kampala, Uganda. The language is English.
+
+Litigation (Fallback)
+If arbitration is not pursued or is inapplicable (e.g., due to statutory requirements or waiver), any Dispute shall be subject to the exclusive jurisdiction of the courts of Uganda (specifically, the Commercial Division of the High Court in Kampala, unless otherwise required by law). Each party irrevocably submits to this jurisdiction and waives any objection to venue or inconvenient forum.
+
+10.3 Injunctive Relief
+Notwithstanding the above process, either party may seek interim or urgent injunctive relief, specific performance, or other equitable remedies from any court of competent jurisdiction (including the courts of Uganda) to prevent irreparable harm, such as breach of confidentiality (Section 9), intellectual property infringement (Section 5), or non-payment, without first exhausting negotiation, mediation, or arbitration.
+10.4 No Class Actions or Jury Trial
+To the extent permitted by law, the parties waive any right to participate in a class action lawsuit or class-wide arbitration. Disputes shall be resolved on an individual basis only. The parties also waive any right to a jury trial in any litigation arising from this agreement.
+10.5 Survival
+This Section 10 survives termination or expiration of these Terms and the Project Agreement.
+We believe this structured, multi-tiered approach promotes fair, cost-effective, and timely resolution while respecting Ugandan legal frameworks and commercial realities. If a Dispute arises, contact us promptly—we prefer collaborative solutions over formal proceedings.
+
+
+11. Changes to Terms
+We may update, modify, or replace these Terms (including any referenced policies, such as the Refund Policy or Cancellation Policy) from time to time to reflect changes in our Services, applicable laws, industry practices, or other business needs.
+11.1 How Changes Are Made
+
+We reserve the right to make changes at our sole discretion.
+Minor or non-material changes (e.g., clarifications, formatting improvements, or updates to contact details) may take effect immediately without prior notice.
+Material changes (e.g., changes affecting payment obligations, liability limits, intellectual property rights, termination rights, or dispute resolution) will be communicated to you with reasonable advance notice.
+
+11.2 Notification of Changes
+
+For material changes, we will notify you by:
+Posting the updated Terms on our website (with the new “Last updated” date prominently displayed at the top of the page)
+Sending an email to the primary contact address you provided during project onboarding or in the Project Agreement (where feasible and practical)
+Displaying a prominent notice on our website or client portal for a reasonable period after the change
+
+We will aim to provide at least 30 calendar days' notice before material changes take effect, except where a shorter period is required by law or urgent circumstances (e.g., to comply with new Ugandan regulations or to address a security vulnerability).
+
+11.3 Your Acceptance of Changes
+
+By continuing to use our Services, engage with us for ongoing support/maintenance, access any Deliverables, or place new orders after the effective date of the updated Terms, you agree to be bound by the revised Terms.
+If you do not agree to the updated Terms, your sole remedy is to:
+Stop using our Services immediately, and
+Notify us in writing (email acceptable) of your objection within the notice period (if provided)
+
+In such case, the pre-existing Terms will continue to apply to any ongoing project or active Project Agreement until completion or termination, unless we mutually agree otherwise or termination rights are exercised under Section 8.
+
+11.4 No Retroactive Application
+Unless required by law, changes to these Terms will not apply retroactively to:
+
+Disputes already notified or in progress before the change
+Projects fully completed and paid for prior to the effective date
+
+However, ongoing or future phases of multi-phase projects, maintenance agreements, or new engagements will be governed by the updated Terms.
+11.5 Review Recommendation
+We encourage you to review these Terms periodically (e.g., when renewing support contracts or starting new projects). The most current version is always available on our website at [insert link, e.g., https://www.reverence-technology.com/terms-and-conditions]. The “Last updated” date at the top of the page indicates when changes were last made.
+This mechanism allows us to keep our Terms current and compliant while giving you visibility and reasonable opportunity to review updates. If you have questions about any changes, contact us using the details in Section 12.
+
+
+12. Contact Us
+If you have any questions, concerns, comments, or require clarification about these Terms, your Project Agreement, our Services, payments, intellectual property, or any other aspect of working with us, please do not hesitate to reach out. We value open communication and aim to respond to all inquiries promptly (typically within 1–2 business days).
+Reverence Technology
+Mutungo Zone 1, Kampala
+Central Region, Uganda
+Email: reverencetech1@gmail.com
+Telephone / WhatsApp: +256 783 676 313
+For faster resolution, we recommend including the following details in your message:
+
+Your full name and company/organization (if applicable)
+Project name or reference number (from your quote, invoice, or Project Agreement)
+A clear description of your question, issue, or request
+
+You may also contact us via WhatsApp for quick queries, updates on ongoing projects, or scheduling calls. Business hours are Monday to Friday, 9:00 AM – 6:00 PM EAT (East Africa Time), though we often respond outside these hours for urgent matters.
+Thank you for choosing Reverence Technology. We are committed to delivering exceptional digital solutions and look forward to supporting your success.
