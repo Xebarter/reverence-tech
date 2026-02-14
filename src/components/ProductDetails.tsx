@@ -16,6 +16,17 @@ interface ProductDetailsProps {
     stock_quantity: number;
     is_featured: boolean;
     specifications: Record<string, any>;
+    is_package?: boolean;
+    package_products?: Array<{
+      product_id: string;
+      quantity: number;
+      product: {
+        id: string;
+        name: string;
+        price: number;
+        image_url: string | null;
+      };
+    }>;
   } | null;
   isOpen: boolean;
   onClose: () => void;
@@ -93,22 +104,28 @@ export default function ProductDetails({ product, isOpen, onClose }: ProductDeta
                       <Package size={80} />
                     </div>
                   )}
-                  {product.is_featured && (
-                    <div className="absolute top-4 left-4 bg-gradient-to-r from-amber-400 to-amber-500 text-white px-4 py-2 rounded-full text-xs font-bold flex items-center gap-1.5 shadow-lg">
-                      <Star size={14} className="fill-white" />
-                      Featured Product
+                  {product.is_package && (
+                    <div className="absolute top-4 left-4 bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-4 py-2 rounded-full text-xs font-bold flex items-center gap-1.5 shadow-lg">
+                      <Package size={14} />
+                      Package Deal
                     </div>
                   )}
-                  {product.stock_quantity > 0 ? (
-                    <div className="absolute top-4 right-4 bg-emerald-500 text-white px-4 py-2 rounded-full text-xs font-bold shadow-lg flex items-center gap-1.5">
+                  {product.is_featured && (
+                    <div className="absolute top-4 right-4 bg-gradient-to-r from-amber-400 to-amber-500 text-white px-4 py-2 rounded-full text-xs font-bold flex items-center gap-1.5 shadow-lg">
+                      <Star size={14} className="fill-white" />
+                      Featured
+                    </div>
+                  )}
+                  {!product.is_package && product.stock_quantity > 0 ? (
+                    <div className="absolute bottom-4 right-4 bg-emerald-500 text-white px-4 py-2 rounded-full text-xs font-bold shadow-lg flex items-center gap-1.5">
                       <CheckCircle2 size={14} />
                       {product.stock_quantity} in Stock
                     </div>
-                  ) : (
-                    <div className="absolute top-4 right-4 bg-red-500 text-white px-4 py-2 rounded-full text-xs font-bold shadow-lg">
+                  ) : !product.is_package ? (
+                    <div className="absolute bottom-4 right-4 bg-red-500 text-white px-4 py-2 rounded-full text-xs font-bold shadow-lg">
                       Out of Stock
                     </div>
-                  )}
+                  ) : null}
                 </div>
 
                 {/* Right: Details */}
@@ -125,12 +142,17 @@ export default function ProductDetails({ product, isOpen, onClose }: ProductDeta
                       <div className="text-3xl font-extrabold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
                         {formatPrice(product.price)}
                       </div>
-                      {product.stock_quantity > 0 && (
+                      {product.is_package ? (
+                        <div className="flex items-center gap-1.5 text-purple-600 text-sm font-semibold">
+                          <Package size={16} />
+                          {product.package_products?.length || 0} Items Included
+                        </div>
+                      ) : product.stock_quantity > 0 ? (
                         <div className="flex items-center gap-1.5 text-emerald-600 text-sm font-semibold">
                           <CheckCircle2 size={16} />
                           Available
                         </div>
-                      )}
+                      ) : null}
                     </div>
                   </div>
 
@@ -141,6 +163,58 @@ export default function ProductDetails({ product, isOpen, onClose }: ProductDeta
                       {product.description}
                     </p>
                   </div>
+
+                  {/* Package Contents */}
+                  {product.is_package && product.package_products && product.package_products.length > 0 && (
+                    <div className="mb-6">
+                      <h2 className="text-lg font-bold text-slate-900 mb-3">Package Includes</h2>
+                      <div className="space-y-2">
+                        {product.package_products.map((item, index) => (
+                          <div key={index} className="flex items-center gap-3 bg-purple-50 rounded-lg p-3 border border-purple-200">
+                            {item.product?.image_url ? (
+                              <img
+                                src={item.product.image_url}
+                                alt={item.product.name}
+                                className="w-12 h-12 object-cover rounded-md"
+                              />
+                            ) : (
+                              <div className="w-12 h-12 bg-purple-100 rounded-md flex items-center justify-center">
+                                <Package size={20} className="text-purple-600" />
+                              </div>
+                            )}
+                            <div className="flex-1">
+                              <p className="font-semibold text-slate-900">{item.product?.name}</p>
+                              <p className="text-xs text-slate-600">Quantity: {item.quantity}</p>
+                            </div>
+                            <div className="text-sm font-semibold text-purple-600">
+                              {formatPrice((item.product?.price || 0) * item.quantity)}
+                            </div>
+                          </div>
+                        ))}
+                        <div className="mt-3 pt-3 border-t border-purple-200 bg-purple-50 rounded-lg p-3">
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm text-slate-600">Total Individual Price:</span>
+                            <span className="text-sm line-through text-slate-500">
+                              {formatPrice(product.package_products.reduce((sum, item) => 
+                                sum + ((item.product?.price || 0) * item.quantity), 0))}
+                            </span>
+                          </div>
+                          <div className="flex justify-between items-center mt-2">
+                            <span className="font-bold text-slate-900">Package Price:</span>
+                            <span className="text-lg font-extrabold text-purple-600">
+                              {formatPrice(product.price)}
+                            </span>
+                          </div>
+                          <div className="mt-2 text-center">
+                            <span className="inline-block px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full text-xs font-bold">
+                              Save {formatPrice(product.package_products.reduce((sum, item) => 
+                                sum + ((item.product?.price || 0) * item.quantity), 0) - product.price)}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
 
                   {/* Specifications */}
                   {product.specifications && Object.keys(product.specifications).length > 0 && (
@@ -178,7 +252,7 @@ export default function ProductDetails({ product, isOpen, onClose }: ProductDeta
                   </div>
 
                   {/* Quantity Selector */}
-                  {product.stock_quantity > 0 && (
+                  {(product.is_package || product.stock_quantity > 0) && (
                     <div className="mb-6">
                       <label className="block text-sm font-bold text-slate-700 mb-2">Quantity</label>
                       <div className="flex items-center gap-4">
@@ -195,7 +269,7 @@ export default function ProductDetails({ product, isOpen, onClose }: ProductDeta
                           </span>
                           <button
                             type="button"
-                            onClick={() => setQuantity(Math.min(product.stock_quantity, quantity + 1))}
+                            onClick={() => setQuantity(product.is_package ? quantity + 1 : Math.min(product.stock_quantity, quantity + 1))}
                             className="px-4 py-3 hover:bg-slate-50 transition-colors"
                           >
                             +
@@ -212,7 +286,7 @@ export default function ProductDetails({ product, isOpen, onClose }: ProductDeta
                   )}
 
                   {/* Action Buttons */}
-                  {product.stock_quantity > 0 ? (
+                  {(product.is_package || product.stock_quantity > 0) ? (
                     <div className="space-y-3">
                       <button
                         onClick={handleBuyNow}

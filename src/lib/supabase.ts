@@ -17,8 +17,7 @@ if (!supabaseAnonKey) {
 }
 
 if (!supabaseServiceRoleKey) {
-  console.error('VITE_SUPABASE_SERVICE_ROLE_KEY is not set. Please add it to your .env file.');
-  throw new Error('VITE_SUPABASE_SERVICE_ROLE_KEY is not set');
+  console.warn('VITE_SUPABASE_SERVICE_ROLE_KEY is not set. Admin operations will be limited.');
 }
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
@@ -30,7 +29,7 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
 });
 
 // Admin client with service role key (bypasses RLS)
-export const adminSupabase = createClient(supabaseUrl, supabaseServiceRoleKey, {
+export const adminSupabase = createClient(supabaseUrl, supabaseServiceRoleKey || supabaseAnonKey, {
   auth: {
     storageKey: 'supabase_admin_auth',
     persistSession: false,

@@ -23,6 +23,12 @@ interface ShopProduct {
   display_order: number;
   specifications: Record<string, any>;
   created_at: string;
+  is_package?: boolean;
+  package_products?: Array<{
+    product_id: string;
+    quantity: number;
+    product: ShopProduct;
+  }>;
 }
 
 /* -------------------- Component -------------------- */
@@ -44,20 +50,65 @@ export default function Shop() {
 
   const fetchProducts = async () => {
     try {
-      const { data, error } = await supabase
+      // Fetch regular products
+      const { data: productsData, error: productsError } = await supabase
         .from('shop_products')
         .select('*')
         .eq('is_active', true)
         .order('display_order', { ascending: true })
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (productsError) throw productsError;
+
+      // Fetch packages
+      const { data: packagesData, error: packagesError } = await supabase
+        .from('product_packages')
+        .select('*')
+        .eq('is_active', true)
+        .order('display_order', { ascending: true })
+        .order('created_at', { ascending: false });
+
+      // If the packages table doesn't exist yet or errors, continue with only products
+      if (packagesError) {
+        console.warn('Packages fetch failed or table missing:', packagesError.message || packagesError);
+      }
+
+      // Fetch package products for each package
+      const packagesWithProducts = packagesData ? await Promise.all(
+        (packagesData || []).map(async (pkg) => {
+          const { data: pkgProducts, error: pkgError } = await supabase
+            .from('package_products')
+            .select(`
+              product_id,
+              quantity,
+              product:shop_products(*)
+            `)
+            .eq('package_id', pkg.id);
+
+          if (pkgError) {
+            console.warn('Error fetching package products:', pkgError.message || pkgError);
+            return { ...pkg, is_package: true, package_products: [], stock_quantity: 999 };
+          }
+
+          return {
+            ...pkg,
+            is_package: true,
+            package_products: pkgProducts || [],
+            stock_quantity: 999, // Packages always available
+          };
+        })
+      ) : [];
+
+      // Combine products and packages
+      const allItems = [
+        ...(productsData || []).map(p => ({ ...p, is_package: false })),
+        ...packagesWithProducts
+      ];
+
+      setProducts(allItems);
       
-      const productsData = data || [];
-      setProducts(productsData);
-      
-      // Get featured products
-      const featured = productsData
+      // Get featured items (products + packages)
+      const featured = allItems
         .filter(p => p.is_featured)
         .slice(0, 6);
       setFeaturedProducts(featured);
@@ -244,18 +295,24 @@ export default function Shop() {
                         <Package size={48} />
                       </div>
                     )}
+                    {product.is_package && (
+                      <div className="absolute top-4 left-4 bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-1.5 shadow-lg">
+                        <Package size={12} />
+                        Package
+                      </div>
+                    )}
                     {product.is_featured && (
                       <div className="absolute top-4 right-4 bg-gradient-to-r from-amber-400 to-amber-500 text-white px-4 py-1.5 rounded-full text-xs font-bold flex items-center gap-1.5 shadow-lg">
                         <Star size={12} className="fill-white" />
                         Featured
                       </div>
                     )}
-                    {product.stock_quantity === 0 && (
+                    {!product.is_package && product.stock_quantity === 0 && (
                       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center">
                         <span className="text-white font-bold text-lg">Out of Stock</span>
                       </div>
                     )}
-                    {product.stock_quantity > 0 && (
+                    {!product.is_package && product.stock_quantity > 0 && (
                       <div className="absolute top-4 left-4 bg-emerald-500 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg">
                         In Stock
                       </div>
@@ -277,12 +334,17 @@ export default function Shop() {
                       <span className="text-2xl font-extrabold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
                         {formatPrice(product.price)}
                       </span>
-                      {product.stock_quantity > 0 && (
+                      {product.is_package ? (
+                        <span className="text-xs text-purple-600 font-bold flex items-center gap-1">
+                          <Package size={14} />
+                          {product.package_products?.length || 0} items
+                        </span>
+                      ) : product.stock_quantity > 0 ? (
                         <span className="text-xs text-emerald-600 font-bold flex items-center gap-1">
                           <CheckCircle2 size={14} />
                           {product.stock_quantity} available
                         </span>
-                      )}
+                      ) : null}
                     </div>
                     <div className="flex gap-2">
                       <button
@@ -351,12 +413,18 @@ export default function Shop() {
                         <Package size={48} />
                       </div>
                     )}
-                    {product.stock_quantity === 0 && (
+                    {product.is_package && (
+                      <div className="absolute top-3 left-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-2.5 py-1 rounded-full text-xs font-bold flex items-center gap-1 shadow-lg">
+                        <Package size={12} />
+                        Package
+                      </div>
+                    )}
+                    {!product.is_package && product.stock_quantity === 0 && (
                       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center">
                         <span className="text-white font-bold">Out of Stock</span>
                       </div>
                     )}
-                    {product.stock_quantity > 0 && (
+                    {!product.is_package && product.stock_quantity > 0 && (
                       <div className="absolute top-3 left-3 bg-emerald-500 text-white px-2.5 py-1 rounded-full text-xs font-bold shadow-lg">
                         In Stock
                       </div>
