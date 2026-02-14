@@ -1,28 +1,6 @@
-23:10:21.173 
-src/components/DepositTracking.tsx(2,79): error TS6133: 'TrendingUp' is declared but its value is never read.
-23:10:21.173 
-src/components/OrderTracking.tsx(1,20): error TS6133: 'useEffect' is declared but its value is never read.
-23:10:21.174 
-src/components/OrderTracking.tsx(2,82): error TS6133: 'Mail' is declared but its value is never read.
-23:10:21.174 
-src/components/OrderTracking.tsx(2,88): error TS6133: 'Phone' is declared but its value is never read.
-23:10:21.174 
-src/components/Shop.tsx(4,30): error TS6133: 'ChevronRight' is declared but its value is never read.
-23:10:21.175 
-src/components/admin/Deposits.tsx(2,18): error TS6133: 'Filter' is declared but its value is never read.
-23:10:21.175 
-src/components/admin/Deposits.tsx(2,62): error TS6133: 'Eye' is declared but its value is never read.
-23:10:21.175 
-src/components/admin/Deposits.tsx(2,67): error TS6133: 'TrendingUp' is declared but its value is never read.
-23:10:21.175 
-src/components/admin/Deposits.tsx(2,113): error TS6133: 'Calendar' is declared but its value is never read.
-23:10:21.175 
-src/components/admin/Orders.tsx(2,18): error TS6133: 'Filter' is declared but its value is never read.
-23:10:21.176 
-src/components/admin/Orders.tsx(2,78): error TS6133: 'Eye' is declared but its value is never read.
-23:10:21.176 
-src/components/admin/Orders.tsx(2,108): error TS6133: 'MapPin' is declared but its value is never read.
-23:10:21.176 
-src/components/admin/Orders.tsx(2,116): error TS6133: 'Calendar' is declared but its value is never read.
-23:10:21.391 
-Error: Command "npm run vercel-build" exited with 2
+{
+    "code": "PGRST205",
+    "details": null,
+    "hint": "Perhaps you meant the table 'public.hero_images'",
+    "message": "Could not find the table 'public.product_packages' in the schema cache"
+}

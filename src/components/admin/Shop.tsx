@@ -79,6 +79,7 @@ export default function Shop() {
   const [editingProduct, setEditingProduct] = useState<ShopProduct | null>(null);
   const [editingPackage, setEditingPackage] = useState<ProductPackage | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [showQuickAdd, setShowQuickAdd] = useState(false);
   
   // Product form data
   const [formData, setFormData] = useState<Omit<ShopProduct, 'id' | 'created_at' | 'updated_at'>>({
@@ -118,6 +119,19 @@ export default function Shop() {
     fetchProducts();
     fetchPackages();
   }, []);
+
+  // Auto-calculate package price based on products
+  useEffect(() => {
+    if (packageProducts.length > 0 && products.length > 0) {
+      const totalPrice = packageProducts.reduce((sum, pp) => {
+        const product = products.find(p => p.id === pp.product_id);
+        return sum + (product ? product.price * pp.quantity : 0);
+      }, 0);
+      setPackageFormData(prev => ({ ...prev, price: totalPrice }));
+    } else if (packageProducts.length === 0) {
+      setPackageFormData(prev => ({ ...prev, price: 0 }));
+    }
+  }, [packageProducts, products]);
 
   const fetchProducts = async () => {
     try {
@@ -483,6 +497,104 @@ export default function Shop() {
     }
   };
 
+  // Quick Add Product modal create & attach
+  const [qaName, setQaName] = useState('');
+  const [qaDescription, setQaDescription] = useState('');
+  const [qaPrice, setQaPrice] = useState<number | ''>('');
+  const [qaCategory, setQaCategory] = useState(PRODUCT_CATEGORIES[0]);
+  const [qaImageUrl, setQaImageUrl] = useState<string | null>(null);
+  const [qaStockQuantity, setQaStockQuantity] = useState<number>(0);
+  const [qaDisplayOrder, setQaDisplayOrder] = useState<number>(0);
+  const [qaQuantity, setQaQuantity] = useState<number>(1);
+  const [qaUploading, setQaUploading] = useState(false);
+  const [qaSpecifications, setQaSpecifications] = useState<Record<string, any>>({});
+  const [qaSpecKey, setQaSpecKey] = useState('');
+  const [qaSpecValue, setQaSpecValue] = useState('');
+
+  const handleQuickAddImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setQaUploading(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Math.random()}.${fileExt}`;
+      const filePath = `shop-products/${fileName}`;
+      const { error: uploadError } = await adminSupabase.storage
+        .from('hero-images')
+        .upload(filePath, file);
+      if (uploadError) throw uploadError;
+      const { data } = adminSupabase.storage.from('hero-images').getPublicUrl(filePath);
+      setQaImageUrl(data.publicUrl);
+    } catch (err) {
+      console.error(err);
+      alert('Failed to upload image');
+    } finally {
+      setQaUploading(false);
+    }
+  };
+
+  const handleQuickAddSave = async () => {
+    if (!qaName.trim() || !qaPrice || Number(qaPrice) <= 0) {
+      alert('Please provide a name and valid price');
+      return;
+    }
+    try {
+      const { data, error } = await adminSupabase
+        .from('shop_products')
+        .insert([
+          {
+            name: qaName.trim(),
+            description: qaDescription.trim(),
+            price: Number(qaPrice),
+            category: qaCategory,
+            image_url: qaImageUrl,
+            stock_quantity: qaStockQuantity,
+            is_featured: false,
+            is_active: true,
+            display_order: qaDisplayOrder,
+            specifications: qaSpecifications,
+          },
+        ])
+        .select()
+        .single();
+      if (error) throw error;
+      // Attach to current package selection with specified quantity
+      setProducts((prev) => [data, ...prev]);
+      
+      // Add the new product to the package with the specified quantity
+      const existingIndex = packageProducts.findIndex(pp => pp.product_id === data.id);
+      if (existingIndex >= 0) {
+        // Update quantity if product already in package (unlikely for new product)
+        const updated = [...packageProducts];
+        updated[existingIndex].quantity += qaQuantity;
+        setPackageProducts(updated);
+      } else {
+        // Add new product to package
+        setPackageProducts([
+          ...packageProducts,
+          { product_id: data.id, quantity: qaQuantity }
+        ]);
+      }
+      
+      // Reset the form
+      setShowQuickAdd(false);
+      setQaName('');
+      setQaDescription('');
+      setQaPrice('');
+      setQaCategory(PRODUCT_CATEGORIES[0]);
+      setQaImageUrl(null);
+      setQaStockQuantity(0);
+      setQaDisplayOrder(0);
+      setQaQuantity(1);
+      setQaSpecifications({});
+      setQaSpecKey('');
+      setQaSpecValue('');
+    } catch (err) {
+      console.error('Quick add failed:', err);
+      alert('Failed to create product');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -807,16 +919,25 @@ export default function Shop() {
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Package Price (UGX) *
                   </label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    value={packageFormData.price}
-                    onChange={(e) => setPackageFormData({ ...packageFormData, price: parseFloat(e.target.value) || 0 })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#1C3D5A]/50 focus:border-transparent"
-                    placeholder="0"
-                    required
-                  />
+                  <div className="relative">
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      value={packageFormData.price}
+                      onChange={(e) => setPackageFormData({ ...packageFormData, price: parseFloat(e.target.value) || 0 })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#1C3D5A]/50 focus:border-transparent bg-gray-50"
+                      placeholder="0"
+                      required
+                      readOnly
+                    />
+                    <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                      <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">Auto-calculated</span>
+                    </div>
+                  </div>
+                  <p className="mt-1 text-xs text-gray-500">
+                    Price is automatically calculated from products in the package
+                  </p>
                 </div>
 
                 <div>
@@ -887,20 +1008,33 @@ export default function Shop() {
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Products in Package *
                   </label>
-                  <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-4">
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-3">
-                      <select
-                        value={selectedProductId}
-                        onChange={(e) => setSelectedProductId(e.target.value)}
-                        className="sm:col-span-2 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#1C3D5A]/50 focus:border-transparent"
-                      >
-                        <option value="">Select a product...</option>
-                        {products.map(product => (
-                          <option key={product.id} value={product.id}>
-                            {product.name} - {formatPrice(product.price)}
-                          </option>
-                        ))}
-                      </select>
+                  <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 sm:p-4 mb-4">
+                    {/* Product Selection - Stacked on mobile, side-by-side on larger screens */}
+                    <div className="space-y-2 mb-3">
+                      {/* Select Product & Quick Add Button */}
+                      <div className="flex flex-col sm:flex-row gap-2">
+                        <select
+                          value={selectedProductId}
+                          onChange={(e) => setSelectedProductId(e.target.value)}
+                          className="flex-1 min-w-0 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#1C3D5A]/50 focus:border-transparent text-sm"
+                        >
+                          <option value="">Select a product...</option>
+                          {products.map(product => (
+                            <option key={product.id} value={product.id}>
+                              {product.name} - {formatPrice(product.price)}
+                            </option>
+                          ))}
+                        </select>
+                        <button
+                          type="button"
+                          onClick={() => setShowQuickAdd(true)}
+                          className="px-3 py-2 border border-gray-300 rounded-md hover:bg-gray-50 whitespace-nowrap text-sm sm:w-auto w-full"
+                        >
+                          + New Product
+                        </button>
+                      </div>
+                      
+                      {/* Quantity & Add Button */}
                       <div className="flex gap-2">
                         <input
                           type="number"
@@ -908,41 +1042,43 @@ export default function Shop() {
                           value={selectedProductQuantity}
                           onChange={(e) => setSelectedProductQuantity(parseInt(e.target.value) || 1)}
                           placeholder="Qty"
-                          className="w-20 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#1C3D5A]/50 focus:border-transparent"
+                          className="w-20 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#1C3D5A]/50 focus:border-transparent text-sm"
                         />
                         <button
                           type="button"
                           onClick={addProductToPackage}
-                          className="px-4 py-2 bg-[#1C3D5A] text-white rounded-md hover:bg-[#143040] transition-colors whitespace-nowrap"
+                          className="flex-1 sm:flex-none px-4 py-2 bg-[#1C3D5A] text-white rounded-md hover:bg-[#143040] transition-colors whitespace-nowrap text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                           disabled={!selectedProductId}
                         >
-                          Add
+                          Add to Package
                         </button>
                       </div>
                     </div>
 
+                    {/* Products List */}
                     {packageProducts.length > 0 ? (
-                      <div className="space-y-2">
+                      <div className="space-y-2 max-h-[300px] sm:max-h-[400px] overflow-y-auto pr-1">
                         {packageProducts.map((pp) => {
                           const product = products.find(p => p.id === pp.product_id);
                           return (
-                            <div key={pp.product_id} className="flex items-center justify-between bg-white p-3 rounded-md border border-gray-200">
-                              <div className="flex-1">
-                                <p className="font-medium text-gray-900">{product?.name}</p>
-                                <p className="text-sm text-gray-600">{product && formatPrice(product.price)} × {pp.quantity}</p>
+                            <div key={pp.product_id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between bg-white p-3 rounded-md border border-gray-200 gap-2">
+                              <div className="flex-1 min-w-0">
+                                <p className="font-medium text-gray-900 text-sm truncate">{product?.name}</p>
+                                <p className="text-xs text-gray-600">{product && formatPrice(product.price)} × {pp.quantity}</p>
                               </div>
-                              <div className="flex items-center gap-2">
+                              <div className="flex items-center gap-2 justify-end sm:justify-start">
                                 <input
                                   type="number"
                                   min="1"
                                   value={pp.quantity}
                                   onChange={(e) => updatePackageProductQuantity(pp.product_id, parseInt(e.target.value) || 1)}
-                                  className="w-16 px-2 py-1 border border-gray-300 rounded-md text-center"
+                                  className="w-16 px-2 py-1 border border-gray-300 rounded-md text-center text-sm"
                                 />
                                 <button
                                   type="button"
                                   onClick={() => removeProductFromPackage(pp.product_id)}
                                   className="text-red-600 hover:text-red-900 p-1"
+                                  aria-label="Remove product"
                                 >
                                   <X size={18} />
                                 </button>
@@ -951,14 +1087,11 @@ export default function Shop() {
                           );
                         })}
                         <div className="mt-3 pt-3 border-t border-gray-200">
-                          <p className="text-sm text-gray-600">
-                            Total individual price: {formatPrice(packageProducts.reduce((sum, pp) => {
-                              const product = products.find(p => p.id === pp.product_id);
-                              return sum + (product ? product.price * pp.quantity : 0);
-                            }, 0))}
+                          <p className="text-xs sm:text-sm font-semibold text-gray-900">
+                            Total Package Price: {formatPrice(packageFormData.price)}
                           </p>
-                          <p className="text-sm font-semibold text-gray-900">
-                            Package price: {formatPrice(packageFormData.price)}
+                          <p className="text-xs text-gray-500 mt-1">
+                            Automatically calculated from all products
                           </p>
                         </div>
                       </div>
@@ -1030,7 +1163,7 @@ export default function Shop() {
                     <img
                       src={product.image_url}
                       alt={product.name}
-                      className="w-24 h-24 object-cover rounded-lg border border-gray-300"
+                      className="w-20 h-20 sm:w-24 sm:h-24 object-cover rounded-lg border border-gray-300"
                     />
                   )}
                   <div className="flex-1">
@@ -1132,7 +1265,7 @@ export default function Shop() {
                     <img
                       src={pkg.image_url}
                       alt={pkg.name}
-                      className="w-24 h-24 object-cover rounded-lg border border-gray-300"
+                      className="w-20 h-20 sm:w-24 sm:h-24 object-cover rounded-lg border border-gray-300"
                     />
                   )}
                   <div className="flex-1">
@@ -1210,6 +1343,214 @@ export default function Shop() {
           </div>
         )}
       </div>
+
+      {/* Quick Add Product Modal */}
+      {showQuickAdd && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl p-6 relative max-h-[90vh] overflow-y-auto">
+            <button
+              onClick={() => setShowQuickAdd(false)}
+              className="absolute top-4 right-4 text-slate-500 hover:text-slate-700"
+            >
+              <X size={20} />
+            </button>
+            <h3 className="text-lg font-bold text-slate-900 mb-4">Quick Add Product to Package</h3>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Product Name *</label>
+                <input
+                  type="text"
+                  value={qaName}
+                  onChange={(e) => setQaName(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#1C3D5A]/50 focus:border-transparent"
+                  placeholder="e.g., Logitech Mouse"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                <select
+                  value={qaCategory}
+                  onChange={(e) => setQaCategory(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#1C3D5A]/50 focus:border-transparent"
+                >
+                  {PRODUCT_CATEGORIES.map((c) => (
+                    <option key={c} value={c}>{c}</option>
+                  ))}
+                </select>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Price (UGX) *</label>
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={qaPrice}
+                  onChange={(e) => setQaPrice(e.target.value === '' ? '' : Number(e.target.value))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#1C3D5A]/50 focus:border-transparent"
+                  placeholder="0"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Stock Quantity</label>
+                <input
+                  type="number"
+                  min="0"
+                  value={qaStockQuantity}
+                  onChange={(e) => setQaStockQuantity(parseInt(e.target.value) || 0)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#1C3D5A]/50 focus:border-transparent"
+                  placeholder="0"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Display Order</label>
+                <input
+                  type="number"
+                  min="0"
+                  value={qaDisplayOrder}
+                  onChange={(e) => setQaDisplayOrder(parseInt(e.target.value) || 0)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#1C3D5A]/50 focus:border-transparent"
+                  placeholder="0"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Quantity in Package *</label>
+                <input
+                  type="number"
+                  min="1"
+                  value={qaQuantity}
+                  onChange={(e) => setQaQuantity(parseInt(e.target.value) || 1)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#1C3D5A]/50 focus:border-transparent"
+                  placeholder="1"
+                />
+              </div>
+              
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                <textarea
+                  value={qaDescription}
+                  onChange={(e) => setQaDescription(e.target.value)}
+                  rows={3}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#1C3D5A]/50 focus:border-transparent"
+                  placeholder="Product description..."
+                />
+              </div>
+              
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-1">Product Image</label>
+                <div className="flex items-center gap-4">
+                  {qaImageUrl && (
+                    <div className="relative">
+                      <img 
+                        src={qaImageUrl} 
+                        alt="Product preview" 
+                        className="w-24 h-24 object-cover rounded-lg border border-gray-300" 
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setQaImageUrl(null)}
+                        className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+                      >
+                        <X size={14} />
+                      </button>
+                    </div>
+                  )}
+                  <label className="flex items-center justify-center px-4 py-2 border border-gray-300 rounded-md cursor-pointer hover:bg-gray-50 transition-colors">
+                    <Upload size={18} className="mr-2 text-gray-600" />
+                    <span className="text-sm text-gray-700">
+                      {qaUploading ? 'Uploading...' : qaImageUrl ? 'Change Image' : 'Upload Image'}
+                    </span>
+                    <input 
+                      type="file" 
+                      accept="image/*" 
+                      className="hidden" 
+                      onChange={handleQuickAddImage} 
+                      disabled={qaUploading} 
+                    />
+                  </label>
+                </div>
+              </div>
+              
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-2">Specifications</label>
+                <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
+                  <div className="flex gap-2 mb-3">
+                    <input
+                      type="text"
+                      value={qaSpecKey}
+                      onChange={(e) => setQaSpecKey(e.target.value)}
+                      placeholder="Key (e.g., Color)"
+                      className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#1C3D5A]/50 focus:border-transparent"
+                    />
+                    <input
+                      type="text"
+                      value={qaSpecValue}
+                      onChange={(e) => setQaSpecValue(e.target.value)}
+                      placeholder="Value (e.g., Black)"
+                      className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#1C3D5A]/50 focus:border-transparent"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (qaSpecKey.trim() && qaSpecValue.trim()) {
+                          setQaSpecifications({ ...qaSpecifications, [qaSpecKey.trim()]: qaSpecValue.trim() });
+                          setQaSpecKey('');
+                          setQaSpecValue('');
+                        }
+                      }}
+                      className="px-4 py-2 bg-[#1C3D5A] text-white rounded-md hover:bg-[#143040] transition-colors whitespace-nowrap"
+                    >
+                      Add
+                    </button>
+                  </div>
+                  {Object.keys(qaSpecifications).length > 0 && (
+                    <div className="space-y-1">
+                      {Object.entries(qaSpecifications).map(([key, value]) => (
+                        <div key={key} className="flex items-center justify-between bg-white p-2 rounded border border-gray-200">
+                          <span className="text-sm">
+                            <strong>{key}:</strong> {value}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const newSpecs = { ...qaSpecifications };
+                              delete newSpecs[key];
+                              setQaSpecifications(newSpecs);
+                            }}
+                            className="text-red-600 hover:text-red-900 p-1"
+                          >
+                            <X size={16} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-6 flex justify-end gap-2">
+              <button
+                onClick={() => setShowQuickAdd(false)}
+                className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleQuickAddSave}
+                className="px-4 py-2 bg-[#1C3D5A] text-white rounded-md hover:bg-[#143040]"
+              >
+                Create & Add to Package
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
