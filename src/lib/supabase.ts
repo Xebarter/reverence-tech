@@ -160,3 +160,75 @@ export interface ScheduledCall {
   created_at: string;
   updated_at: string;
 }
+
+export interface ShopProduct {
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+  category: string;
+  image_url: string | null;
+  stock_quantity: number;
+  is_featured: boolean;
+  is_active: boolean;
+  display_order: number;
+  specifications: Record<string, any>;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CustomerDeposit {
+  id: string;
+  customer_name: string;
+  customer_email: string;
+  customer_phone: string;
+  product_id: string;
+  product_name: string;
+  product_price: number;
+  deposit_amount: number;
+  total_deposited: number;
+  remaining_balance: number;
+  status: 'pending' | 'confirmed' | 'completed' | 'cancelled';
+  payment_method: 'mobile_money' | 'bank_transfer' | 'cash' | 'other';
+  payment_reference: string | null;
+  notes: string | null;
+  admin_notes: string | null;
+  deposit_date: string;
+  expected_completion_date: string | null;
+  completed_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Order {
+  id: string;
+  order_number: string;
+  customer_name: string;
+  customer_email: string;
+  customer_phone: string;
+  shipping_address: string;
+  city: string;
+  country: string;
+  payment_method: 'mobile_money' | 'bank_transfer' | 'cash' | 'other';
+  payment_status: 'pending' | 'paid' | 'failed' | 'refunded';
+  payment_reference: string | null;
+  order_status: 'pending' | 'confirmed' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
+  total_amount: number;
+  shipping_fee: number;
+  items: Array<{
+    product_id: string;
+    product_name: string;
+    product_price: number;
+    product_image: string | null;
+    category: string;
+    quantity: number;
+    subtotal: number;
+  }>;
+  notes: string | null;
+  admin_notes: string | null;
+  tracking_number: string | null;
+  shipped_at: string | null;
+  delivered_at: string | null;
+  created_at: string;
+  updated_at: string;
+}

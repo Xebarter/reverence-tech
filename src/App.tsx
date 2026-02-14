@@ -34,6 +34,13 @@ import TermsAndConditions from './components/TermsAndConditions';
 import RefundPolicy from './components/RefundPolicy';
 import { UserProvider } from './UserContext';
 import ScheduledCalls from './components/admin/ScheduledCalls';
+import Shop from './components/Shop';
+import ShopManagement from './components/admin/Shop';
+import DepositTracking from './components/DepositTracking';
+import DepositsManagement from './components/admin/Deposits';
+import Checkout from './components/Checkout';
+import OrdersManagement from './components/admin/Orders';
+import OrderTracking from './components/OrderTracking';
 
 function App() {
   const [isTestimonialFormOpen, setIsTestimonialFormOpen] = useState(false);
@@ -67,6 +74,16 @@ function App() {
                 />
                 <Contact />
                 <FAQ />
+              </main>
+              <Footer />
+            </div>
+          } />
+          
+          <Route path="/shop" element={
+            <div className="min-h-screen">
+              <Header />
+              <main className="pt-20">
+                <Shop />
               </main>
               <Footer />
             </div>
@@ -145,6 +162,33 @@ function App() {
               <Footer />
             </div>
           } />
+          <Route path="/deposits" element={
+            <div className="min-h-screen">
+              <Header />
+              <main className="pt-20">
+                <DepositTracking />
+              </main>
+              <Footer />
+            </div>
+          } />
+          <Route path="/checkout" element={
+            <div className="min-h-screen">
+              <Header />
+              <main className="pt-20">
+                <Checkout />
+              </main>
+              <Footer />
+            </div>
+          } />
+          <Route path="/orders" element={
+            <div className="min-h-screen">
+              <Header />
+              <main className="pt-20">
+                <OrderTracking />
+              </main>
+              <Footer />
+            </div>
+          } />
           <Route path="/unauthorized" element={<Unauthorized />} />
           <Route path="/test-admin" element={<TestAdminUsers />} />
           {/* Admin routes */}
@@ -160,6 +204,9 @@ function App() {
             <Route path="careers" element={<CareersManagement />} />
             <Route path="test-admin-users" element={<TestAdminUsers />} />
             <Route path="scheduled-calls" element={<ScheduledCalls />} />
+            <Route path="shop" element={<ShopManagement />} />
+            <Route path="deposits" element={<DepositsManagement />} />
+            <Route path="orders" element={<OrdersManagement />} />
           </Route>
           
           {/* Temporary admin route for testing without admin checks */}
@@ -177,6 +224,9 @@ function App() {
             <Route path="blog" element={<BlogManagement />} />
             <Route path="users" element={<UserManagement />} />
             <Route path="scheduled-calls" element={<ScheduledCalls />} />
+            <Route path="shop" element={<ShopManagement />} />
+            <Route path="deposits" element={<DepositsManagement />} />
+            <Route path="orders" element={<OrdersManagement />} />
           </Route>
           
           <Route path="/admin/auth" element={<AdminAuth />} />

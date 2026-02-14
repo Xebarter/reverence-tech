@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Mail, Phone, MapPin, Send, CheckCircle2, Clock, ShieldCheck } from 'lucide-react';
+import { Mail, Phone, MapPin, Send, CheckCircle2, Clock, ShieldCheck, Award, Lock, Zap } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase, Inquiry } from '../lib/supabase';
 
@@ -112,7 +112,7 @@ export default function Contact() {
               </div>
 
               {/* Office Hours / Trust Badge */}
-              <div className="bg-slate-900 rounded-[2rem] p-8 text-white relative overflow-hidden">
+              <div className="bg-gradient-to-br from-slate-900 via-indigo-900 to-slate-900 rounded-[2rem] p-8 text-white relative overflow-hidden shadow-2xl border border-indigo-500/20">
                 <ShieldCheck className="absolute -right-4 -bottom-4 text-white/5" size={160} />
                 <div className="relative z-10">
                   <div className="flex items-center gap-2 mb-4 text-indigo-400">
@@ -120,7 +120,7 @@ export default function Contact() {
                     <span className="font-bold uppercase tracking-wider text-xs">Availability</span>
                   </div>
                   <h4 className="text-xl font-bold mb-4">We're here when you need us.</h4>
-                  <div className="grid grid-cols-2 gap-4 text-sm text-slate-300">
+                  <div className="grid grid-cols-2 gap-4 text-sm text-slate-300 mb-6">
                     <div>
                       <p className="text-white font-medium">Mon — Fri</p>
                       <p>8:00 AM - 6:00 PM</p>
@@ -128,6 +128,22 @@ export default function Contact() {
                     <div>
                       <p className="text-white font-medium">Saturday</p>
                       <p>9:00 AM - 2:00 PM</p>
+                    </div>
+                  </div>
+                  
+                  {/* Trust Indicators */}
+                  <div className="grid grid-cols-3 gap-3 pt-6 border-t border-white/10">
+                    <div className="text-center">
+                      <Lock className="mx-auto mb-2 text-indigo-400" size={20} />
+                      <p className="text-xs font-semibold text-slate-300">Secure</p>
+                    </div>
+                    <div className="text-center">
+                      <Zap className="mx-auto mb-2 text-amber-400" size={20} />
+                      <p className="text-xs font-semibold text-slate-300">Fast Response</p>
+                    </div>
+                    <div className="text-center">
+                      <Award className="mx-auto mb-2 text-emerald-400" size={20} />
+                      <p className="text-xs font-semibold text-slate-300">Trusted</p>
                     </div>
                   </div>
                 </div>
@@ -267,7 +283,7 @@ export default function Contact() {
                     <button
                       type="submit"
                       disabled={submitting}
-                      className="group w-full bg-slate-900 text-white py-5 rounded-2xl font-bold text-lg flex items-center justify-center gap-3 hover:bg-indigo-600 transition-all duration-300 disabled:opacity-50 shadow-lg shadow-indigo-200"
+                      className="group w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-5 rounded-2xl font-bold text-lg flex items-center justify-center gap-3 hover:from-indigo-700 hover:to-purple-700 transition-all duration-300 disabled:opacity-50 shadow-lg shadow-indigo-500/30 hover:shadow-xl hover:shadow-indigo-500/40 transform hover:scale-[1.02]"
                     >
                       {submitting ? "Processing..." : "Send Message"}
                       <Send size={20} className="group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />

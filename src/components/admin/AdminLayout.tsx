@@ -14,7 +14,10 @@ import {
   X,
   User,
   FolderOpen,
-  Phone
+  Phone,
+  ShoppingCart,
+  CreditCard,
+  PackageCheck
 } from 'lucide-react';
 
 export default function AdminLayout() {
@@ -39,6 +42,9 @@ export default function AdminLayout() {
     { name: 'Projects', href: '/admin/projects', icon: FolderOpen },
     { name: 'Careers', href: '/admin/careers', icon: Briefcase },
     { name: 'Blog', href: '/admin/blog', icon: BookOpen },
+    { name: 'Shop', href: '/admin/shop', icon: ShoppingCart },
+    { name: 'Deposits', href: '/admin/deposits', icon: CreditCard },
+    { name: 'Orders', href: '/admin/orders', icon: PackageCheck },
     { name: 'Users', href: '/admin/users', icon: Users },
   ];
 

@@ -1,12 +1,16 @@
-import { Menu, X, ChevronRight, Phone, Mail, ArrowRight, MapPin } from 'lucide-react';
+import { Menu, X, ChevronRight, Phone, Mail, ArrowRight, MapPin, ShoppingCart, Package, CreditCard, ShoppingBag, Trash2 } from 'lucide-react';
 import { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useCart } from '../CartContext';
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [isCartOpen, setIsCartOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+  const { cartItems, cartCount, removeFromCart, getTotal } = useCart();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -163,6 +167,150 @@ export default function Header() {
                 Portfolio
                 <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-yellow-500 transition-all group-hover:w-full" />
               </button>
+              
+              {/* Cart Dropdown */}
+              <div className="relative">
+                <button
+                  onClick={() => setIsCartOpen(!isCartOpen)}
+                  className={`p-2.5 rounded-xl transition-all duration-300 relative ${
+                    isScrolled 
+                      ? 'bg-slate-100 text-slate-700 hover:bg-yellow-400 hover:text-white' 
+                      : 'bg-white/10 text-white hover:bg-yellow-400 hover:text-[#1C3D5A]'
+                  }`}
+                >
+                  <ShoppingCart size={20} />
+                  {/* Cart Badge */}
+                  {cartCount > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                      {cartCount > 9 ? '9+' : cartCount}
+                    </span>
+                  )}
+                </button>
+
+                {/* Dropdown Menu */}
+                <AnimatePresence>
+                  {isCartOpen && (
+                    <>
+                      {/* Backdrop to close dropdown */}
+                      <div 
+                        className="fixed inset-0 z-40" 
+                        onClick={() => setIsCartOpen(false)}
+                      />
+                      <motion.div
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        transition={{ duration: 0.2 }}
+                        className="absolute right-0 mt-2 w-96 bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden z-50 max-h-[600px] flex flex-col"
+                      >
+                        <div className="p-4 bg-gradient-to-br from-[#1C3D5A] to-[#2a5a7f] text-white">
+                          <h3 className="font-black text-lg">Shopping Cart</h3>
+                          <p className="text-xs text-slate-200 mt-1">
+                            {cartCount > 0 ? `${cartCount} item${cartCount > 1 ? 's' : ''} in cart` : 'Your cart is empty'}
+                          </p>
+                        </div>
+
+                        {/* Cart Items Preview */}
+                        {cartItems.length > 0 && (
+                          <div className="flex-1 overflow-y-auto p-3 border-b border-slate-100 max-h-64">
+                            {cartItems.map((item) => (
+                              <div key={item.product_id} className="flex gap-3 p-3 bg-slate-50 rounded-xl mb-2">
+                                {item.product_image && (
+                                  <img 
+                                    src={item.product_image} 
+                                    alt={item.product_name}
+                                    className="w-16 h-16 object-cover rounded-lg"
+                                  />
+                                )}
+                                <div className="flex-1 min-w-0">
+                                  <h4 className="font-bold text-sm text-slate-800 truncate">{item.product_name}</h4>
+                                  <p className="text-xs text-slate-500">{item.category}</p>
+                                  <p className="text-sm font-bold text-[#1C3D5A] mt-1">
+                                    UGX {item.product_price.toLocaleString()} × {item.quantity}
+                                  </p>
+                                </div>
+                                <button
+                                  onClick={() => removeFromCart(item.product_id)}
+                                  className="text-red-500 hover:bg-red-50 p-2 rounded-lg transition-colors h-fit"
+                                >
+                                  <Trash2 size={16} />
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+
+                        {/* Total and Actions */}
+                        {cartItems.length > 0 && (
+                          <div className="p-4 bg-slate-50">
+                            <div className="flex justify-between items-center mb-4">
+                              <span className="font-bold text-slate-700">Total:</span>
+                              <span className="font-black text-xl text-[#1C3D5A]">
+                                UGX {getTotal().toLocaleString()}
+                              </span>
+                            </div>
+                            <button
+                              onClick={() => {
+                                navigate('/checkout', { state: { cartItems } });
+                                setIsCartOpen(false);
+                              }}
+                              className="w-full bg-gradient-to-r from-[#1C3D5A] to-[#2a5a7f] text-white py-3 rounded-xl font-black text-sm flex items-center justify-center gap-2 hover:shadow-lg transition-all"
+                            >
+                              <ShoppingCart size={18} />
+                              View Cart & Checkout
+                            </button>
+                          </div>
+                        )}
+                        
+                        <div className="p-2 border-t border-slate-100">
+                          <Link
+                            to="/shop"
+                            onClick={() => setIsCartOpen(false)}
+                            className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 transition-all group"
+                          >
+                            <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center text-blue-600 group-hover:bg-blue-100">
+                              <ShoppingBag size={18} />
+                            </div>
+                            <div className="flex-1">
+                              <div className="font-bold text-sm text-slate-800">Shop</div>
+                              <div className="text-xs text-slate-500">Browse products</div>
+                            </div>
+                          </Link>
+
+                          <Link
+                            to="/orders"
+                            onClick={() => setIsCartOpen(false)}
+                            className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 transition-all group"
+                          >
+                            <div className="w-10 h-10 rounded-lg bg-green-50 flex items-center justify-center text-green-600 group-hover:bg-green-100">
+                              <Package size={18} />
+                            </div>
+                            <div className="flex-1">
+                              <div className="font-bold text-sm text-slate-800">Track Orders</div>
+                              <div className="text-xs text-slate-500">Check order status</div>
+                            </div>
+                          </Link>
+
+                          <Link
+                            to="/deposits"
+                            onClick={() => setIsCartOpen(false)}
+                            className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 transition-all group"
+                          >
+                            <div className="w-10 h-10 rounded-lg bg-purple-50 flex items-center justify-center text-purple-600 group-hover:bg-purple-100">
+                              <CreditCard size={18} />
+                            </div>
+                            <div className="flex-1">
+                              <div className="font-bold text-sm text-slate-800">Track Deposits</div>
+                              <div className="text-xs text-slate-500">View deposit status</div>
+                            </div>
+                          </Link>
+                        </div>
+                      </motion.div>
+                    </>
+                  )}
+                </AnimatePresence>
+              </div>
+
               <button
                 onClick={() => navigateToSection('contact')}
                 className={`px-6 py-2.5 rounded-xl font-black text-sm transition-all duration-300 shadow-lg ${isScrolled ? 'bg-[#1C3D5A] text-white hover:bg-yellow-500' : 'bg-yellow-400 text-[#1C3D5A] hover:bg-white'
@@ -245,6 +393,56 @@ export default function Header() {
                   Portfolio
                   <ChevronRight size={18} className="text-slate-300 group-hover:text-yellow-600 transition-colors" />
                 </button>
+                
+                {/* Quick Access Section */}
+                <div className="pt-4">
+                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-4">Quick Access</p>
+                  
+                  <Link
+                    to="/shop"
+                    onClick={() => setIsMenuOpen(false)}
+                    className="flex items-center gap-4 w-full p-4 text-base font-black text-[#1C3D5A] bg-blue-50 rounded-2xl hover:bg-blue-100 transition-all group mb-3"
+                  >
+                    <div className="w-10 h-10 rounded-lg bg-white flex items-center justify-center text-blue-600">
+                      <ShoppingBag size={20} />
+                    </div>
+                    <div className="flex-1 text-left">
+                      <div className="font-black text-sm">Shop</div>
+                      <div className="text-xs text-slate-600 font-normal">Browse products</div>
+                    </div>
+                    <ChevronRight size={18} className="text-slate-300 group-hover:text-blue-600 transition-colors" />
+                  </Link>
+
+                  <Link
+                    to="/orders"
+                    onClick={() => setIsMenuOpen(false)}
+                    className="flex items-center gap-4 w-full p-4 text-base font-black text-[#1C3D5A] bg-green-50 rounded-2xl hover:bg-green-100 transition-all group mb-3"
+                  >
+                    <div className="w-10 h-10 rounded-lg bg-white flex items-center justify-center text-green-600">
+                      <Package size={20} />
+                    </div>
+                    <div className="flex-1 text-left">
+                      <div className="font-black text-sm">Track Orders</div>
+                      <div className="text-xs text-slate-600 font-normal">Check order status</div>
+                    </div>
+                    <ChevronRight size={18} className="text-slate-300 group-hover:text-green-600 transition-colors" />
+                  </Link>
+
+                  <Link
+                    to="/deposits"
+                    onClick={() => setIsMenuOpen(false)}
+                    className="flex items-center gap-4 w-full p-4 text-base font-black text-[#1C3D5A] bg-purple-50 rounded-2xl hover:bg-purple-100 transition-all group"
+                  >
+                    <div className="w-10 h-10 rounded-lg bg-white flex items-center justify-center text-purple-600">
+                      <CreditCard size={20} />
+                    </div>
+                    <div className="flex-1 text-left">
+                      <div className="font-black text-sm">Track Deposits</div>
+                      <div className="text-xs text-slate-600 font-normal">View deposit status</div>
+                    </div>
+                    <ChevronRight size={18} className="text-slate-300 group-hover:text-purple-600 transition-colors" />
+                  </Link>
+                </div>
               </div>
 
               {/* Contact Information (Brought from Desktop Header) */}

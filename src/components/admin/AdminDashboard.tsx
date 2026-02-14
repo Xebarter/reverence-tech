@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { BarChart3, Users, Mail, Package, Image, MessageCircle, Briefcase, BookOpen } from 'lucide-react';
+import { BarChart3, Users, Mail, Package, Image, MessageCircle, Briefcase, BookOpen, ShoppingCart, CreditCard, PackageCheck } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 
 export default function AdminDashboard() {
@@ -7,7 +7,10 @@ export default function AdminDashboard() {
     messages: 0,
     services: 0,
     heroImages: 0,
-    testimonials: 0
+    testimonials: 0,
+    products: 0,
+    deposits: 0,
+    orders: 0
   });
 
   const [loading, setLoading] = useState(true);
@@ -28,12 +31,30 @@ export default function AdminDashboard() {
         .from('services')
         .select('*', { count: 'exact', head: true });
 
+      // Fetch products count
+      const { count: productsCount } = await supabase
+        .from('shop_products')
+        .select('*', { count: 'exact', head: true });
+
+      // Fetch deposits count
+      const { count: depositsCount } = await supabase
+        .from('customer_deposits')
+        .select('*', { count: 'exact', head: true });
+
+      // Fetch orders count
+      const { count: ordersCount } = await supabase
+        .from('orders')
+        .select('*', { count: 'exact', head: true });
+
       // For now, we'll set hero images and testimonials to 0 since we don't have those tables yet
       setStats({
         messages: messageCount || 0,
         services: servicesCount || 0,
         heroImages: 0,
-        testimonials: 0
+        testimonials: 0,
+        products: productsCount || 0,
+        deposits: depositsCount || 0,
+        orders: ordersCount || 0
       });
     } catch (error) {
       console.error('Error fetching stats:', error);
@@ -67,6 +88,24 @@ export default function AdminDashboard() {
       icon: MessageCircle,
       color: 'bg-yellow-500',
     },
+    {
+      name: 'Shop Products',
+      value: stats.products,
+      icon: ShoppingCart,
+      color: 'bg-indigo-500',
+    },
+    {
+      name: 'Deposits',
+      value: stats.deposits,
+      icon: CreditCard,
+      color: 'bg-purple-500',
+    },
+    {
+      name: 'Orders',
+      value: stats.orders,
+      icon: PackageCheck,
+      color: 'bg-teal-500',
+    },
   ];
 
   const quickActions = [
@@ -76,7 +115,10 @@ export default function AdminDashboard() {
     { name: 'Manage Testimonials', href: '/admin/testimonials', icon: MessageCircle },
     { name: 'View Job Postings', href: '/admin/careers', icon: Briefcase },
     { name: 'Manage Blog Posts', href: '/admin/blog', icon: BookOpen },
-    { name: 'User Management', href: '/admin/users', icon: Users }, // Added User Management
+    { name: 'User Management', href: '/admin/users', icon: Users },
+    { name: 'Shop Products', href: '/admin/shop', icon: ShoppingCart },
+    { name: 'Customer Deposits', href: '/admin/deposits', icon: CreditCard },
+    { name: 'Orders', href: '/admin/orders', icon: PackageCheck },
   ];
 
   return (
