@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Search, Filter, Package, CheckCircle2, Clock, XCircle, Truck, Edit, Eye, DollarSign, Mail, Phone, MapPin, Calendar } from 'lucide-react';
+import { Search, Package, CheckCircle2, Clock, XCircle, Truck, Edit, DollarSign, Mail, Phone } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { adminSupabase } from '../../lib/supabase';
 

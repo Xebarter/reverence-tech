@@ -16,13 +16,7 @@ interface DepositFormProps {
   onSuccess?: () => void;
 }
 
-interface ShopProduct {
-  id: string;
-  name: string;
-  price: number;
-  image_url: string | null;
-  category: string;
-}
+
 
 export default function DepositForm({ product, isOpen, onClose, onSuccess }: DepositFormProps) {
   const [formData, setFormData] = useState({
@@ -38,7 +32,8 @@ export default function DepositForm({ product, isOpen, onClose, onSuccess }: Dep
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState('');
-  const [existingDeposits, setExistingDeposits] = useState<any[]>([]);
+  // Note: Keeping for future enhancements; currently unused in UI
+  const [, setExistingDeposits] = useState<any[]>([]);
   const [totalDeposited, setTotalDeposited] = useState(0);
 
   useEffect(() => {

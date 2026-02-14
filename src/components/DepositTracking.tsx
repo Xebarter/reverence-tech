@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { Search, Package, Calendar, CreditCard, CheckCircle2, Clock, XCircle, TrendingUp, Filter } from 'lucide-react';
+import { useState } from 'react';
+import { Search, Package, Calendar, CheckCircle2, Clock, XCircle, Filter } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { supabase } from '../lib/supabase';
 

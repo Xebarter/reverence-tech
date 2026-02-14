@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { ShoppingCart, Star, ChevronRight, Package, Search, Shield, CheckCircle2, TrendingUp, CreditCard } from 'lucide-react';
+import { ShoppingCart, Star, Package, Search, Shield, CheckCircle2, TrendingUp, CreditCard } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
