@@ -176,37 +176,41 @@ export default function Hero() {
   return (
     <section
       id="home"
-      className="relative pt-40 pb-24 overflow-hidden bg-gradient-to-b from-slate-50 via-white to-slate-100"
+      className="relative pt-40 pb-32 overflow-hidden bg-slate-50"
     >
       {/* Background accents */}
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute -top-32 -left-32 w-[500px] h-[500px] rounded-full bg-indigo-100/40 blur-[140px]" />
-        <div className="absolute top-1/3 -right-40 w-[420px] h-[420px] rounded-full bg-slate-200/50 blur-[160px]" />
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        {/* Abstract shapes for professional modern feel */}
+        <div className="absolute -top-[10%] -left-[10%] w-[50%] h-[50%] rounded-full bg-primary-100/60 blur-[120px] mix-blend-multiply" />
+        <div className="absolute top-[20%] -right-[10%] w-[35%] h-[40%] rounded-full bg-blue-100/50 blur-[100px] mix-blend-multiply" />
+        <div className="absolute bottom-0 left-[20%] w-[40%] h-[40%] rounded-full bg-slate-200/60 blur-[120px] mix-blend-multiply" />
+        {/* Subtle dot pattern overlay */}
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjUiIGhlaWdodD0iMjUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMSIgY3k9IjEiIHI9IjEiIGZpbGw9InJnYmEoMCwwLDAsMC4wNikiLz48L3N2Zz4=')] opacity-60 mask-image:linear-gradient(to_bottom,white,transparent)" style={{ WebkitMaskImage: 'linear-gradient(to bottom, white 40%, transparent 100%)' }} />
       </div>
 
       <div className="max-w-7xl mx-auto px-4 relative z-10">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-14 items-center">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 items-center">
           {/* LEFT: CONTENT */}
-          <div className="lg:col-span-7 space-y-8">
+          <div className="lg:col-span-7 space-y-8 lg:pr-6">
             <motion.div
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-100 text-slate-700 text-sm font-semibold shadow-sm backdrop-blur-sm"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/80 border border-primary-100/50 text-primary-700 text-sm font-semibold shadow-sm backdrop-blur-md"
             >
-              <BadgeCheck size={16} className="text-indigo-600" />
+              <BadgeCheck size={16} className="text-primary-600" />
               🇺🇬 Based in Kampala, Uganda | Serving East Africa
             </motion.div>
 
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4 }}
-              className="space-y-4"
+              transition={{ duration: 0.5, delay: 0.1 }}
+              className="space-y-6"
             >
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-extrabold text-slate-900 leading-[1.1] tracking-tight">
+              <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-[4rem] font-black text-slate-900 leading-[1.1] tracking-tight">
                 {valueProposition.headline}
               </h1>
-              <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent">
+              <h2 className="text-xl sm:text-2xl lg:text-3xl font-extrabold bg-gradient-to-r from-primary-600 via-primary-500 to-blue-600 bg-clip-text text-transparent">
                 {valueProposition.subheadline}
               </h2>
               <p className="text-lg lg:text-xl text-slate-600 max-w-2xl leading-relaxed font-medium">
@@ -218,56 +222,70 @@ export default function Hero() {
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.2 }}
-              className="flex flex-wrap items-center gap-4 pt-4"
+              transition={{ duration: 0.5, delay: 0.2 }}
+              className="flex flex-wrap items-center gap-4 pt-2"
             >
-              <div className="flex items-center gap-2 px-4 py-2 bg-white rounded-lg border border-slate-200 shadow-sm">
-                <Award className="text-amber-500" size={20} />
+              <div className="flex items-center gap-3 px-5 py-3.5 bg-white/80 backdrop-blur-sm rounded-xl border border-slate-200/60 shadow-sm hover:shadow-md transition-all hover:-translate-y-1">
+                <div className="p-2.5 bg-amber-50 rounded-lg text-amber-500">
+                  <Award size={24} strokeWidth={2.5} />
+                </div>
                 <div>
-                  <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide">5+ Years</div>
-                  <div className="text-sm font-bold text-slate-900">Experience</div>
+                  <div className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Experience</div>
+                  <div className="text-base font-extrabold text-slate-800">5+ Years</div>
                 </div>
               </div>
-              <div className="flex items-center gap-2 px-4 py-2 bg-white rounded-lg border border-slate-200 shadow-sm">
-                <Users className="text-indigo-500" size={20} />
+              <div className="flex items-center gap-3 px-5 py-3.5 bg-white/80 backdrop-blur-sm rounded-xl border border-slate-200/60 shadow-sm hover:shadow-md transition-all hover:-translate-y-1">
+                <div className="p-2.5 bg-primary-50 rounded-lg text-primary-600">
+                  <Users size={24} strokeWidth={2.5} />
+                </div>
                 <div>
-                  <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide">75+ Clients</div>
-                  <div className="text-sm font-bold text-slate-900">Satisfied</div>
+                  <div className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Clients</div>
+                  <div className="text-base font-extrabold text-slate-800">75+ Happy</div>
                 </div>
               </div>
-              <div className="flex items-center gap-2 px-4 py-2 bg-white rounded-lg border border-slate-200 shadow-sm">
-                <Shield className="text-emerald-500" size={20} />
+              <div className="flex items-center gap-3 px-5 py-3.5 bg-white/80 backdrop-blur-sm rounded-xl border border-slate-200/60 shadow-sm hover:shadow-md transition-all hover:-translate-y-1">
+                <div className="p-2.5 bg-emerald-50 rounded-lg text-emerald-500">
+                  <Shield size={24} strokeWidth={2.5} />
+                </div>
                 <div>
-                  <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Trusted</div>
-                  <div className="text-sm font-bold text-slate-900">Partner</div>
+                  <div className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Partner</div>
+                  <div className="text-base font-extrabold text-slate-800">Trusted</div>
                 </div>
               </div>
             </motion.div>
 
-            <div className="flex flex-col sm:flex-row gap-4 pt-4">
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.3 }}
+              className="flex flex-col sm:flex-row gap-4 pt-6"
+            >
               <button
                 onClick={() => scrollToSection('services')}
-                className="group inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold text-lg shadow-lg shadow-indigo-500/25 hover:shadow-xl hover:shadow-indigo-500/30 transition-all duration-300 transform hover:scale-105"
+                className="group inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl bg-primary-600 hover:bg-primary-700 text-white font-bold text-lg shadow-xl shadow-primary-600/20 transition-all duration-300 hover:shadow-2xl hover:shadow-primary-600/30 active:scale-[0.98]"
               >
-                Request a Quote <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
+                Request a Quote <ArrowRight size={20} className="group-hover:translate-x-1.5 transition-transform" />
               </button>
 
               <button
                 onClick={() => scrollToSection('contact')}
-                className="inline-flex items-center justify-center px-8 py-4 rounded-xl border-2 border-slate-300 bg-white text-slate-700 font-bold text-lg hover:bg-slate-50 hover:border-indigo-300 transition-all duration-300 shadow-sm hover:shadow-md"
+                className="inline-flex items-center justify-center px-8 py-4 rounded-xl border-2 border-slate-200 bg-white/50 backdrop-blur-sm text-slate-700 font-bold text-lg hover:bg-white hover:border-primary-200 hover:text-primary-600 transition-all duration-300 shadow-sm hover:shadow-md active:scale-[0.98]"
               >
                 Contact Us
               </button>
-            </div>
+            </motion.div>
           </div>
 
           {/* RIGHT: IMAGE */}
-          <div className="lg:col-span-5 relative">
+          <div className="lg:col-span-5 relative mt-16 lg:mt-0">
+            {/* Background decorative blob behind image */}
+            <div className="absolute inset-0 bg-primary-200 rounded-[3rem] rotate-3 scale-[1.03] opacity-30 blur-xl transition-transform duration-700 hover:rotate-6 hover:scale-[1.05]"></div>
+
             <motion.div
-              initial={{ opacity: 0, scale: 0.96 }}
+              initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.6 }}
-              className="relative aspect-[4/5] rounded-3xl overflow-hidden bg-gradient-to-br from-indigo-100 to-purple-100 shadow-2xl shadow-indigo-500/20 border-2 border-white/50"
+              transition={{ duration: 0.7, ease: "easeOut" }}
+              className="relative aspect-[4/5] rounded-[2.5rem] overflow-hidden bg-slate-100 shadow-2xl shadow-primary-900/10 border-4 border-white z-10"
             >
               <AnimatePresence mode="wait">
                 {heroImages.length > 0 && (
@@ -277,37 +295,38 @@ export default function Hero() {
                       heroImages[currentImageIndex].image_url,
                       900
                     )}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
+                    initial={{ opacity: 0, scale: 1.1 }}
+                    animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0 }}
-                    transition={{ duration: 0.8 }}
+                    transition={{ duration: 0.8, ease: "easeInOut" }}
                     className="absolute inset-0 w-full h-full object-cover"
                     alt="Web design and software development company in Kampala Uganda - Reverence Technology"
                   />
                 )}
               </AnimatePresence>
               {/* Decorative gradient overlay */}
-              <div className="absolute inset-0 bg-gradient-to-t from-slate-900/20 via-transparent to-transparent pointer-events-none" />
+              <div className="absolute inset-0 bg-gradient-to-t from-primary-900/60 via-primary-900/10 to-transparent pointer-events-none" />
             </motion.div>
+
             {/* Floating stats card */}
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4, duration: 0.6 }}
-              className="absolute -bottom-6 left-0 right-0 mx-auto w-11/12 bg-white/95 backdrop-blur-md rounded-2xl p-6 shadow-xl border border-slate-200/50"
+              transition={{ delay: 0.6, duration: 0.7, type: "spring", bounce: 0.4 }}
+              className="absolute -bottom-8 -left-4 sm:-left-12 right-4 sm:right-auto sm:w-[110%] max-w-sm bg-white/95 backdrop-blur-xl rounded-2xl p-6 shadow-2xl shadow-primary-900/10 border border-white z-20"
             >
-              <div className="grid grid-cols-3 gap-4 text-center">
-                <div>
-                  <div className="text-2xl font-extrabold text-slate-900">5+</div>
-                  <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Years</div>
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex-1 text-center border-r border-slate-100">
+                  <div className="text-3xl font-black text-primary-600">5+</div>
+                  <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-1">Years</div>
                 </div>
-                <div className="border-x border-slate-200">
-                  <div className="text-2xl font-extrabold text-slate-900">75+</div>
-                  <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Clients</div>
+                <div className="flex-1 text-center border-r border-slate-100">
+                  <div className="text-3xl font-black text-primary-600">75+</div>
+                  <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-1">Clients</div>
                 </div>
-                <div>
-                  <div className="text-2xl font-extrabold text-slate-900">50+</div>
-                  <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Projects</div>
+                <div className="flex-1 text-center">
+                  <div className="text-3xl font-black text-primary-600">50+</div>
+                  <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-1">Projects</div>
                 </div>
               </div>
             </motion.div>
@@ -490,8 +509,8 @@ export default function Hero() {
                         startTestimonialCarousel();
                       }}
                       className={`h-1.5 transition-all duration-300 rounded-full ${index === currentTestimonialIndex
-                          ? 'w-6 bg-indigo-600'
-                          : 'w-1.5 bg-slate-200 hover:bg-slate-300'
+                        ? 'w-6 bg-indigo-600'
+                        : 'w-1.5 bg-slate-200 hover:bg-slate-300'
                         }`}
                     />
                   ))}

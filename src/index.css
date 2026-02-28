@@ -1,11 +1,11 @@
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200..1000;1,200..1000&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 * {
-  font-family: 'Montserrat', sans-serif;
+  font-family: 'Nunito', sans-serif;
 }
 
 html {
@@ -39,31 +39,31 @@ body {
 
 /* Neumorphic effect */
 .neumorphic-card {
-  box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.2), 
-              -5px -5px 10px rgba(255, 255, 255, 0.05);
+  box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.2),
+    -5px -5px 10px rgba(255, 255, 255, 0.05);
   border-radius: 24px;
 }
 
 .neumorphic-button {
   box-shadow: 3px 3px 6px rgba(0, 0, 0, 0.2),
-              -3px -3px 6px rgba(255, 255, 255, 0.05);
+    -3px -3px 6px rgba(255, 255, 255, 0.05);
   transition: all 0.3s ease;
   border-radius: 16px;
 }
 
 .neumorphic-button:hover {
   box-shadow: inset 3px 3px 6px rgba(0, 0, 0, 0.2),
-              inset -3px -3px 6px rgba(255, 255, 255, 0.05);
+    inset -3px -3px 6px rgba(255, 255, 255, 0.05);
 }
 
 .neumorphic-button:active {
   box-shadow: inset 4px 4px 8px rgba(0, 0, 0, 0.2),
-              inset -4px -4px 8px rgba(255, 255, 255, 0.05);
+    inset -4px -4px 8px rgba(255, 255, 255, 0.05);
 }
 
 .neumorphic-icon {
   box-shadow: 3px 3px 6px rgba(0, 0, 0, 0.2),
-              -3px -3px 6px rgba(255, 255, 255, 0.05);
+    -3px -3px 6px rgba(255, 255, 255, 0.05);
   border-radius: 12px;
 }
 
