@@ -1,9 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
-import { ArrowRight, Star, ChevronLeft, ChevronRight, Package, Shield, Award, Users, BadgeCheck } from 'lucide-react';
+import { ArrowRight, Star, ChevronLeft, ChevronRight, Shield, Award, Users, BadgeCheck } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
-import ProductDetails from './ProductDetails';
 
 /* ---------------- IMAGE OPTIMIZATION HELPERS ---------------- */
 const getOptimizedImageUrl = (url: string, width: number): string => {
@@ -25,9 +24,6 @@ export default function Hero() {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [testimonials, setTestimonials] = useState<any[]>([]);
   const [currentTestimonialIndex, setCurrentTestimonialIndex] = useState(0);
-  const [featuredProducts, setFeaturedProducts] = useState<any[]>([]);
-  const [selectedProduct, setSelectedProduct] = useState<any>(null);
-  const [showProductDetails, setShowProductDetails] = useState(false);
   const testimonialsRef = useRef<HTMLDivElement>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -79,23 +75,6 @@ export default function Hero() {
     }
   };
 
-  const fetchFeaturedProducts = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('shop_products')
-        .select('*')
-        .eq('is_active', true)
-        .eq('is_featured', true)
-        .order('display_order', { ascending: true })
-        .limit(6);
-
-      if (error) throw error;
-      setFeaturedProducts(data || []);
-    } catch {
-      setFeaturedProducts([]);
-    }
-  };
-
   /* ---------------- CAROUSEL FUNCTIONS ---------------- */
   const startTestimonialCarousel = () => {
     stopTestimonialCarousel();
@@ -124,7 +103,6 @@ export default function Hero() {
   useEffect(() => {
     fetchHeroImages();
     fetchTestimonials();
-    fetchFeaturedProducts();
   }, []);
 
   useEffect(() => {
@@ -157,20 +135,6 @@ export default function Hero() {
   const scrollToSection = (id: string) => {
     document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
   };
-
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('en-UG', {
-      style: 'currency',
-      currency: 'UGX',
-      minimumFractionDigits: 0,
-    }).format(price);
-  };
-
-  const handleProductClick = (product: any) => {
-    setSelectedProduct(product);
-    setShowProductDetails(true);
-  };
-
 
   /* ---------------- RENDER ---------------- */
   return (
@@ -333,95 +297,6 @@ export default function Hero() {
           </div>
         </div>
 
-        {/* FEATURED PRODUCTS SECTION */}
-        {featuredProducts.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5 }}
-            className="mt-20"
-          >
-            <div className="text-center mb-8">
-              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-indigo-100 text-indigo-700 text-sm font-medium mb-4">
-                <Package size={16} />
-                Featured Products
-              </div>
-              <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-2">
-                Shop Our Latest Computers & Accessories
-              </h2>
-              <p className="text-slate-600">
-                Quality hardware for your business and personal needs
-              </p>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {featuredProducts.map((product, index) => (
-                <motion.div
-                  key={product.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.5, delay: index * 0.1 }}
-                  onClick={() => handleProductClick(product)}
-                  className="bg-white rounded-2xl overflow-hidden shadow-sm border border-slate-200 hover:shadow-xl transition-all duration-300 group cursor-pointer"
-                >
-                  <div className="relative aspect-[4/3] overflow-hidden bg-slate-100">
-                    {product.image_url ? (
-                      <img
-                        src={getOptimizedImageUrl(product.image_url, 400)}
-                        alt={product.name}
-                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-slate-400">
-                        <Package size={48} />
-                      </div>
-                    )}
-                    <div className="absolute top-3 right-3 bg-amber-400 text-white px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1">
-                      <Star size={12} className="fill-white" />
-                      Featured
-                    </div>
-                  </div>
-                  <div className="p-5">
-                    <div className="mb-2">
-                      <span className="text-xs font-semibold text-indigo-600 uppercase tracking-wide">
-                        {product.category}
-                      </span>
-                    </div>
-                    <h3 className="text-lg font-bold text-slate-900 mb-2 line-clamp-1">
-                      {product.name}
-                    </h3>
-                    <p className="text-slate-600 text-sm mb-4 line-clamp-2">
-                      {product.description}
-                    </p>
-                    <div className="flex items-center justify-between mb-4">
-                      <span className="text-xl font-bold text-indigo-600">
-                        {formatPrice(product.price)}
-                      </span>
-                      {product.stock_quantity > 0 && (
-                        <span className="text-xs text-green-600 font-medium">
-                          In Stock
-                        </span>
-                      )}
-                    </div>
-                    <div className="flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-100 text-slate-600 rounded-lg font-semibold text-sm">
-                      Click to view details
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-            <div className="text-center mt-8">
-              <button
-                onClick={() => navigate('/shop')}
-                className="inline-flex items-center gap-2 px-6 py-3 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition-colors shadow-sm hover:shadow-md"
-              >
-                View All Products <ArrowRight size={18} />
-              </button>
-            </div>
-          </motion.div>
-        )}
-
         {/* TESTIMONIALS CAROUSEL */}
         <div className="mt-28" ref={testimonialsRef}>
           <h2 className="text-center text-sm font-semibold text-slate-500 uppercase tracking-[0.25em] mb-14">
@@ -535,16 +410,6 @@ export default function Hero() {
           ) : null}
         </div>
       </div>
-
-      {/* Product Details Modal */}
-      <ProductDetails
-        product={selectedProduct}
-        isOpen={showProductDetails}
-        onClose={() => {
-          setShowProductDetails(false);
-          setSelectedProduct(null);
-        }}
-      />
 
     </section>
   );
