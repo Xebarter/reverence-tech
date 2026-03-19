@@ -130,17 +130,18 @@ export default function FAQ() {
   return (
     <>
       <FAQSchema faqs={allFaqItems} />
-      <section id="faq" className="py-20 md:py-32 bg-slate-50/30 overflow-hidden px-4 md:px-6">
+      <section id="faq" className="py-20 md:py-32 bg-slate-50 overflow-hidden px-4 md:px-6">
         <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-16">
 
         {/* Left Side: Text and Stats */}
         <div className="lg:col-span-5 space-y-10">
           <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-50 text-indigo-600 text-[10px] font-bold uppercase tracking-widest mb-6">
-              <HelpCircle size={14} /> Knowledge Base
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border text-[10px] font-bold uppercase tracking-widest mb-6"
+              style={{ backgroundColor: 'rgba(28,61,90,0.07)', borderColor: 'rgba(28,61,90,0.15)', color: '#1C3D5A' }}>
+              <HelpCircle size={13} /> Knowledge Base
             </div>
             <h2 className="text-4xl md:text-6xl font-black text-slate-900 leading-[1.1] mb-6">
-              Everything you need to <span className="text-indigo-600">know.</span>
+              Everything you need to <span className="text-amber-500">know.</span>
             </h2>
             <p className="text-lg text-slate-600 max-w-md">
               Answers to the technical and business questions teams ask before building with Reverence.
@@ -150,7 +151,7 @@ export default function FAQ() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-4">
             {quickFacts.map((fact, i) => (
               <div key={i} className="flex items-center gap-4 bg-white p-5 rounded-2xl border border-slate-100 shadow-sm">
-                <div className="p-3 rounded-xl bg-indigo-600 text-white"><fact.icon size={20} /></div>
+                <div className="p-3 rounded-xl bg-[#1C3D5A] text-white"><fact.icon size={20} /></div>
                 <div>
                   <h4 className="text-xs font-bold text-slate-400 uppercase">{fact.title}</h4>
                   <p className="font-bold text-slate-800">{fact.desc}</p>
@@ -179,7 +180,7 @@ export default function FAQ() {
                           value={callForm.fullName}
                           onChange={handleInputChange}
                           required
-                          className="w-full bg-slate-800 border border-slate-700 rounded-xl py-3 px-4 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                          className="w-full bg-slate-800 border border-slate-700 rounded-xl py-3 px-4 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-[#1C3D5A]"
                           placeholder="John Doe"
                         />
                       </div>
@@ -193,7 +194,7 @@ export default function FAQ() {
                           value={callForm.email}
                           onChange={handleInputChange}
                           required
-                          className="w-full bg-slate-800 border border-slate-700 rounded-xl py-3 px-4 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                          className="w-full bg-slate-800 border border-slate-700 rounded-xl py-3 px-4 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-[#1C3D5A]"
                           placeholder="john@example.com"
                         />
                       </div>
@@ -207,7 +208,7 @@ export default function FAQ() {
                             name="phone"
                             value={callForm.phone}
                             onChange={handleInputChange}
-                            className="w-full bg-slate-800 border border-slate-700 rounded-xl py-3 px-4 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                            className="w-full bg-slate-800 border border-slate-700 rounded-xl py-3 px-4 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-[#1C3D5A]"
                             placeholder="+1234567890"
                           />
                         </div>
@@ -220,7 +221,7 @@ export default function FAQ() {
                             name="company"
                             value={callForm.company}
                             onChange={handleInputChange}
-                            className="w-full bg-slate-800 border border-slate-700 rounded-xl py-3 px-4 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                            className="w-full bg-slate-800 border border-slate-700 rounded-xl py-3 px-4 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-[#1C3D5A]"
                             placeholder="Your company"
                           />
                         </div>
@@ -235,7 +236,7 @@ export default function FAQ() {
                             name="preferredDate"
                             value={callForm.preferredDate}
                             onChange={handleInputChange}
-                            className="w-full bg-slate-800 border border-slate-700 rounded-xl py-3 px-4 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                            className="w-full bg-slate-800 border border-slate-700 rounded-xl py-3 px-4 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-[#1C3D5A]"
                           />
                         </div>
                       </div>
@@ -247,7 +248,7 @@ export default function FAQ() {
                             name="preferredTime"
                             value={callForm.preferredTime}
                             onChange={handleInputChange}
-                            className="w-full bg-slate-800 border border-slate-700 rounded-xl py-3 px-4 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                            className="w-full bg-slate-800 border border-slate-700 rounded-xl py-3 px-4 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-[#1C3D5A]"
                           />
                         </div>
                       </div>
@@ -260,7 +261,7 @@ export default function FAQ() {
                           name="callReason"
                           value={callForm.callReason}
                           onChange={handleInputChange}
-                          className="w-full bg-slate-800 border border-slate-700 rounded-xl py-3 px-4 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                          className="w-full bg-slate-800 border border-slate-700 rounded-xl py-3 px-4 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-[#1C3D5A]"
                           placeholder="Specific question or topic"
                         />
                       </div>
@@ -269,7 +270,7 @@ export default function FAQ() {
                       <button
                         type="submit"
                         disabled={formStatus === 'submitting'}
-                        className="flex-1 py-3 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 transition-colors disabled:opacity-50"
+                        className="flex-1 py-3 bg-[#1C3D5A] text-white font-bold rounded-xl hover:bg-[#152f45] transition-colors disabled:opacity-50"
                       >
                         {formStatus === 'submitting' ? 'Submitting...' : 'Schedule Call'}
                       </button>
@@ -312,13 +313,13 @@ export default function FAQ() {
                   const id = `${gIdx}-${iIdx}`;
                   const isOpen = activeId === id;
                   return (
-                    <div key={id} className={`rounded-2xl border transition-all duration-300 ${isOpen ? 'bg-white border-indigo-200 shadow-lg' : 'bg-slate-50 border-slate-200'}`}>
+                    <div key={id} className={`rounded-2xl border transition-all duration-300 ${isOpen ? 'bg-white border-[#1C3D5A]/25 shadow-md' : 'bg-slate-50 border-slate-200'}`}>
                       <button
                         onClick={() => setActiveId(isOpen ? null : id)}
                         className="w-full flex items-center justify-between px-6 py-5 text-left"
                       >
-                        <span className={`font-bold text-lg ${isOpen ? 'text-indigo-600' : 'text-slate-900'}`}>{item.question}</span>
-                        <ChevronDown size={20} className={`transition-transform duration-300 ${isOpen ? 'rotate-180 text-indigo-600' : 'text-slate-400'}`} />
+                        <span className={`font-bold text-lg ${isOpen ? 'text-[#1C3D5A]' : 'text-slate-900'}`}>{item.question}</span>
+                        <ChevronDown size={20} className={`transition-transform duration-300 ${isOpen ? 'rotate-180 text-[#1C3D5A]' : 'text-slate-400'}`} />
                       </button>
                       <AnimatePresence>
                         {isOpen && (
@@ -361,7 +362,7 @@ export default function FAQ() {
                         value={callForm.fullName}
                         onChange={handleInputChange}
                         required
-                        className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#1C3D5A] focus:border-transparent"
                         placeholder="John Doe"
                       />
                     </div>
@@ -373,7 +374,7 @@ export default function FAQ() {
                         value={callForm.email}
                         onChange={handleInputChange}
                         required
-                        className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#1C3D5A] focus:border-transparent"
                         placeholder="john@example.com"
                       />
                     </div>
@@ -385,7 +386,7 @@ export default function FAQ() {
                           name="phone"
                           value={callForm.phone}
                           onChange={handleInputChange}
-                          className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                          className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#1C3D5A] focus:border-transparent"
                           placeholder="+1234567890"
                         />
                       </div>
@@ -396,7 +397,7 @@ export default function FAQ() {
                           name="company"
                           value={callForm.company}
                           onChange={handleInputChange}
-                          className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                          className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#1C3D5A] focus:border-transparent"
                           placeholder="Your company"
                         />
                       </div>
@@ -409,7 +410,7 @@ export default function FAQ() {
                           name="preferredDate"
                           value={callForm.preferredDate}
                           onChange={handleInputChange}
-                          className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                          className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#1C3D5A] focus:border-transparent"
                         />
                       </div>
                       <div>
@@ -419,7 +420,7 @@ export default function FAQ() {
                           name="preferredTime"
                           value={callForm.preferredTime}
                           onChange={handleInputChange}
-                          className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                          className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#1C3D5A] focus:border-transparent"
                         />
                       </div>
                     </div>
@@ -430,7 +431,7 @@ export default function FAQ() {
                         name="callReason"
                         value={callForm.callReason}
                         onChange={handleInputChange}
-                        className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#1C3D5A] focus:border-transparent"
                         placeholder="Specific question or topic"
                       />
                     </div>
@@ -438,7 +439,7 @@ export default function FAQ() {
                       <button
                         type="submit"
                         disabled={formStatus === 'submitting'}
-                        className="flex-1 py-3 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 transition-colors disabled:opacity-50"
+                        className="flex-1 py-3 bg-[#1C3D5A] text-white font-bold rounded-xl hover:bg-[#152f45] transition-colors disabled:opacity-50"
                       >
                         {formStatus === 'submitting' ? 'Submitting...' : 'Schedule Call'}
                       </button>
@@ -456,7 +457,7 @@ export default function FAQ() {
             ) : (
               <button 
                 onClick={() => setShowCallForm(true)}
-                className="w-full py-4 bg-indigo-600 text-white font-bold rounded-2xl shadow-xl flex items-center justify-center gap-2"
+                className="w-full py-4 bg-[#1C3D5A] text-white font-bold rounded-2xl shadow-xl flex items-center justify-center gap-2"
               >
                 <Phone size={20} /> Talk to an Expert
               </button>

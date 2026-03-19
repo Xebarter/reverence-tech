@@ -70,9 +70,9 @@ export default function Contact() {
   };
 
   return (
-    <section id="contact" className="py-24 px-4 bg-slate-50 relative overflow-hidden">
-      {/* Decorative background blur */}
-      <div className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/2 w-[500px] h-[500px] bg-indigo-100 rounded-full blur-3xl opacity-50" />
+    <section id="contact" className="py-24 px-4 bg-white relative overflow-hidden">
+      <div className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/2 w-[500px] h-[500px] bg-[#1C3D5A]/5 rounded-full blur-3xl" />
+      <div className="absolute bottom-0 left-0 translate-y-1/3 -translate-x-1/4 w-[400px] h-[400px] bg-amber-100/30 rounded-full blur-3xl" />
 
       <div className="max-w-7xl mx-auto relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 items-start">
@@ -84,11 +84,11 @@ export default function Contact() {
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
             >
-              <h2 className="text-5xl font-black text-slate-900 mb-6 tracking-tight">
+              <h2 className="text-4xl sm:text-5xl font-black text-slate-900 mb-6 tracking-tight">
                 Let’s build your <br />
-                <span className="text-indigo-600 underline decoration-indigo-200 decoration-8 underline-offset-4">digital future</span>.
+                <span className="text-amber-500">digital future</span>.
               </h2>
-              <p className="text-xl text-slate-600 mb-12 leading-relaxed">
+              <p className="text-lg text-slate-500 mb-10 leading-relaxed">
                 Based in Kampala, serving the world. We combine local expertise with global tech standards.
               </p>
 
@@ -174,7 +174,7 @@ export default function Contact() {
                     <p className="text-slate-500 text-lg">We've received your inquiry and will reach out <br /> within 24 business hours.</p>
                     <button
                       onClick={() => setSubmitted(false)}
-                      className="mt-8 text-indigo-600 font-bold hover:underline"
+                      className="mt-8 text-[#1C3D5A] font-bold hover:underline"
                     >
                       Send another message
                     </button>
@@ -182,7 +182,7 @@ export default function Contact() {
                 ) : (
                   <form onSubmit={handleSubmit} className="space-y-6">
                     <div className="flex items-center gap-3 mb-8">
-                      <div className="h-10 w-1 bg-indigo-600 rounded-full" />
+                      <div className="h-10 w-1 bg-[#1C3D5A] rounded-full" />
                       <h3 className="text-2xl font-bold text-slate-900">Project Inquiry</h3>
                     </div>
 
@@ -195,7 +195,7 @@ export default function Contact() {
                           value={formData.full_name}
                           onChange={handleChange}
                           placeholder="E.g. David Okello"
-                          className="w-full px-5 py-4 rounded-xl bg-slate-50 border border-slate-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all"
+                          className="w-full px-5 py-4 rounded-xl bg-slate-50 border border-slate-200 focus:border-[#1C3D5A] focus:ring-4 focus:ring-[#1C3D5A]/10 outline-none transition-all"
                         />
                       </div>
                       <div className="space-y-2">
@@ -207,7 +207,7 @@ export default function Contact() {
                           value={formData.email}
                           onChange={handleChange}
                           placeholder="david@company.com"
-                          className="w-full px-5 py-4 rounded-xl bg-slate-50 border border-slate-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all"
+                          className="w-full px-5 py-4 rounded-xl bg-slate-50 border border-slate-200 focus:border-[#1C3D5A] focus:ring-4 focus:ring-[#1C3D5A]/10 outline-none transition-all"
                         />
                       </div>
                     </div>
@@ -222,7 +222,7 @@ export default function Contact() {
                           value={formData.phone_number}
                           onChange={handleChange}
                           placeholder="+256..."
-                          className="w-full px-5 py-4 rounded-xl bg-slate-50 border border-slate-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all"
+                          className="w-full px-5 py-4 rounded-xl bg-slate-50 border border-slate-200 focus:border-[#1C3D5A] focus:ring-4 focus:ring-[#1C3D5A]/10 outline-none transition-all"
                         />
                       </div>
                       <div className="space-y-2">
@@ -232,7 +232,7 @@ export default function Contact() {
                           value={formData.company_name}
                           onChange={handleChange}
                           placeholder="Your Organization"
-                          className="w-full px-5 py-4 rounded-xl bg-slate-50 border border-slate-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all"
+                          className="w-full px-5 py-4 rounded-xl bg-slate-50 border border-slate-200 focus:border-[#1C3D5A] focus:ring-4 focus:ring-[#1C3D5A]/10 outline-none transition-all"
                         />
                       </div>
                     </div>
@@ -244,7 +244,7 @@ export default function Contact() {
                         name="interested_package"
                         value={formData.interested_package}
                         onChange={handleChange}
-                        className="w-full px-5 py-4 rounded-xl bg-slate-50 border border-slate-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all appearance-none cursor-pointer"
+                        className="w-full px-5 py-4 rounded-xl bg-slate-50 border border-slate-200 focus:border-[#1C3D5A] focus:ring-4 focus:ring-[#1C3D5A]/10 outline-none transition-all appearance-none cursor-pointer"
                       >
                         <option value="">Select a service category</option>
                         <optgroup label="Web & Software">
@@ -270,7 +270,7 @@ export default function Contact() {
                         onChange={handleChange}
                         rows={4}
                         placeholder="Tell us about your goals..."
-                        className="w-full px-5 py-4 rounded-xl bg-slate-50 border border-slate-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all resize-none"
+                        className="w-full px-5 py-4 rounded-xl bg-slate-50 border border-slate-200 focus:border-[#1C3D5A] focus:ring-4 focus:ring-[#1C3D5A]/10 outline-none transition-all resize-none"
                       />
                     </div>
 
@@ -283,7 +283,7 @@ export default function Contact() {
                     <button
                       type="submit"
                       disabled={submitting}
-                      className="group w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-5 rounded-2xl font-bold text-lg flex items-center justify-center gap-3 hover:from-indigo-700 hover:to-purple-700 transition-all duration-300 disabled:opacity-50 shadow-lg shadow-indigo-500/30 hover:shadow-xl hover:shadow-indigo-500/40 transform hover:scale-[1.02]"
+                      className="group w-full bg-gradient-to-r bg-[#1C3D5A] text-white py-5 rounded-2xl font-bold text-lg flex items-center justify-center gap-3 hover:bg-[#152f45] transition-all duration-300 disabled:opacity-50 shadow-lg active:scale-[0.98]"
                     >
                       {submitting ? "Processing..." : "Send Message"}
                       <Send size={20} className="group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />

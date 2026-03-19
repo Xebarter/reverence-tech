@@ -104,29 +104,30 @@ export default function Testimonials({
   }
 
   return (
-    <section className="py-16 md:py-24 px-4 sm:px-6 lg:px-8 bg-white relative overflow-hidden">
-      <div className="max-w-5xl mx-auto">
+    <section className="py-20 md:py-28 px-4 sm:px-6 lg:px-8 bg-slate-50 relative overflow-hidden">
+      <div className="absolute top-0 right-0 w-80 h-80 rounded-full bg-amber-100/40 blur-3xl pointer-events-none" />
+      <div className="max-w-5xl mx-auto relative z-10">
         {/* Header */}
-        <div className="text-center mb-12 md:mb-20">
-          <span className="text-indigo-600 text-[10px] md:text-xs font-black tracking-[0.25em] uppercase">
+        <div className="text-center mb-12 md:mb-16">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border text-xs font-bold uppercase tracking-wider mb-5"
+            style={{ backgroundColor: 'rgba(28,61,90,0.07)', borderColor: 'rgba(28,61,90,0.15)', color: '#1C3D5A' }}>
             Client Testimonials
-          </span>
-          <h2 className="text-3xl md:text-5xl font-extrabold text-slate-900 mt-4 mb-4 md:mb-6 tracking-tight">
-            Trusted by Organizations
+          </div>
+          <h2 className="text-3xl md:text-5xl font-extrabold text-slate-900 mt-2 mb-4 tracking-tight">
+            Trusted by organizations <span className="text-amber-500">across East Africa</span>
           </h2>
           <p className="text-base md:text-lg text-slate-500 max-w-2xl mx-auto">
-            Our clients trust us to deliver secure, reliable, and impactful
-            digital solutions.
+            Our clients trust us to deliver secure, reliable, and impactful digital solutions.
           </p>
         </div>
 
         {testimonials.length === 0 ? (
-          <div className="bg-slate-50 border border-dashed border-slate-200 rounded-3xl py-12 md:py-20 text-center px-6">
+          <div className="bg-white border border-dashed border-slate-200 rounded-3xl py-12 md:py-20 text-center px-6">
             <User size={40} className="mx-auto text-slate-300 mb-4" />
             <h3 className="text-lg font-bold text-slate-900 mb-2">No testimonials yet</h3>
             <button
               onClick={onShowTestimonialForm}
-              className="mt-4 inline-flex items-center gap-2 px-6 py-3 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition"
+              className="mt-4 inline-flex items-center gap-2 px-6 py-3 bg-[#1C3D5A] text-white rounded-xl font-bold hover:bg-[#152f45] transition"
             >
               <MessageSquarePlus size={18} />
               Submit Testimonial
@@ -154,8 +155,8 @@ export default function Testimonials({
                   }}
                   className="w-full cursor-grab active:cursor-grabbing"
                 >
-                  <div className="bg-slate-50 border border-slate-100 rounded-3xl p-6 md:p-10 shadow-sm">
-                    <Quote className="absolute top-4 right-4 md:top-6 md:right-6 text-indigo-100 w-10 h-10 md:w-12 md:h-12" />
+                  <div className="bg-white border border-slate-100 rounded-3xl p-6 md:p-10 shadow-sm">
+                    <Quote className="absolute top-4 right-4 md:top-6 md:right-6 w-10 h-10 md:w-12 md:h-12" style={{ color: 'rgba(28,61,90,0.08)' }} />
 
                     <div className="flex gap-1 mb-4">
                       {[...Array(5)].map((_, i) => (
@@ -173,7 +174,7 @@ export default function Testimonials({
 
                     <div className="flex items-center gap-3 md:gap-4">
                       <img
-                        src={testimonials[currentIndex].avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(testimonials[currentIndex].name)}&background=4f46e5&color=fff`}
+                        src={testimonials[currentIndex].avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(testimonials[currentIndex].name)}&background=1C3D5A&color=fff`}
                         alt={testimonials[currentIndex].name}
                         className="w-12 h-12 md:w-14 md:h-14 rounded-full object-cover border border-white shadow"
                       />
@@ -183,7 +184,7 @@ export default function Testimonials({
                         </p>
                         <p className="text-xs md:text-sm text-slate-500 truncate">
                           {testimonials[currentIndex].role && `${testimonials[currentIndex].role}, `}
-                          <span className="text-indigo-600 font-medium">
+                          <span className="text-[#1C3D5A] font-semibold">
                             {testimonials[currentIndex].company}
                           </span>
                         </p>
@@ -200,7 +201,7 @@ export default function Testimonials({
                 <button
                   key={i}
                   onClick={() => { setDirection(i > currentIndex ? 1 : -1); setCurrentIndex(i); }}
-                  className={`h-1.5 rounded-full transition-all ${i === currentIndex ? 'w-6 bg-indigo-600' : 'w-1.5 bg-slate-300'}`}
+                  className={`h-1.5 rounded-full transition-all ${i === currentIndex ? 'w-6 bg-[#1C3D5A]' : 'w-1.5 bg-slate-200 hover:bg-slate-300'}`}
                 />
               ))}
             </div>
@@ -209,7 +210,7 @@ export default function Testimonials({
             <div className="flex flex-col md:flex-row items-center justify-between mt-8 gap-6">
               <button
                 onClick={onShowTestimonialForm}
-                className="order-2 md:order-1 text-slate-500 hover:text-indigo-600 font-bold text-sm flex items-center gap-2 transition"
+                className="order-2 md:order-1 text-slate-500 hover:text-[#1C3D5A] font-bold text-sm flex items-center gap-2 transition"
               >
                 <MessageSquarePlus size={18} />
                 Share your experience

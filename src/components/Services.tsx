@@ -144,10 +144,8 @@ export default function Services() {
     return (
       <section className="py-24 bg-slate-50 flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
-          <div className="w-12 h-12 border-4 border-slate-200 border-t-indigo-600 rounded-full animate-spin" />
-          <p className="text-slate-500 font-medium">
-            Loading service offerings…
-          </p>
+          <div className="w-12 h-12 border-4 border-slate-200 border-t-[#1C3D5A] rounded-full animate-spin" />
+          <p className="text-slate-500 font-medium">Loading service offerings…</p>
         </div>
       </section>
     );
@@ -160,9 +158,8 @@ export default function Services() {
       id="services"
       className="relative py-24 px-4 bg-slate-50 overflow-hidden"
     >
-      {/* Decorative background */}
-      <div className="absolute top-0 right-0 w-96 h-96 bg-indigo-100/50 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
-      <div className="absolute bottom-0 left-0 w-96 h-96 bg-amber-100/50 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2" />
+      <div className="absolute top-0 right-0 w-96 h-96 bg-[#1C3D5A]/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+      <div className="absolute bottom-0 left-0 w-96 h-96 bg-amber-100/40 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2" />
 
       <div className="relative max-w-7xl mx-auto">
         {/* Header */}
@@ -171,9 +168,10 @@ export default function Services() {
             initial={{ opacity: 0, y: 8 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-indigo-50 border border-indigo-100 text-indigo-700 text-sm font-semibold mb-6"
+            className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border text-sm font-semibold mb-6"
+            style={{ backgroundColor: 'rgba(28,61,90,0.07)', borderColor: 'rgba(28,61,90,0.15)', color: '#1C3D5A' }}
           >
-            <ShieldCheck size={16} />
+            <ShieldCheck size={15} />
             Trusted Digital Solutions
           </motion.div>
 
@@ -184,8 +182,8 @@ export default function Services() {
             transition={{ delay: 0.1 }}
             className="text-4xl md:text-5xl font-extrabold text-slate-900 tracking-tight mb-6"
           >
-            Solutions Designed for{' '}
-            <span className="text-indigo-600">Growth & Stability</span>
+            Solutions designed for{' '}
+            <span className="text-amber-500">growth & stability</span>
           </motion.h2>
 
           <motion.p
@@ -193,10 +191,10 @@ export default function Services() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.2 }}
-            className="text-lg text-slate-600 max-w-2xl mx-auto"
+            className="text-lg text-slate-500 max-w-2xl mx-auto"
           >
-            We deliver reliable, secure, and scalable digital services for
-            startups, institutions, and enterprises across East Africa.
+            Reliable, secure, and scalable digital services for startups,
+            institutions, and enterprises across East Africa.
           </motion.p>
         </div>
 
@@ -228,8 +226,9 @@ export default function Services() {
                     <div
                       className={`p-3 rounded-2xl ${featured
                         ? 'bg-amber-400/10 text-amber-400'
-                        : 'bg-indigo-50 text-indigo-600'
+                        : 'bg-[#1C3D5A]/8 text-[#1C3D5A]'
                         }`}
+                      style={!featured ? { backgroundColor: 'rgba(28,61,90,0.08)' } : {}}
                     >
                       {index % 3 === 0 ? (
                         <Zap size={24} />
@@ -263,9 +262,7 @@ export default function Services() {
                     <li key={i} className="flex items-start gap-3 text-sm">
                       <Check
                         size={16}
-                        className={
-                          featured ? 'text-amber-400' : 'text-indigo-600'
-                        }
+                        className={featured ? 'text-amber-400' : 'text-[#1C3D5A]'}
                       />
                       <span
                         className={
@@ -281,8 +278,8 @@ export default function Services() {
                 <button
                   onClick={() => handleGetStarted(service)}
                   className={`w-full py-4 rounded-xl font-bold flex items-center justify-center gap-2 transition ${featured
-                    ? 'bg-amber-400 text-slate-900 hover:bg-amber-300'
-                    : 'bg-slate-900 text-white hover:bg-slate-800'
+                    ? 'bg-amber-400 text-[#1C3D5A] hover:bg-amber-300'
+                    : 'bg-[#1C3D5A] text-white hover:bg-[#152f45]'
                     }`}
                 >
                   Request This Service <ChevronRight size={18} />
@@ -405,7 +402,7 @@ export default function Services() {
                     <button
                       type="submit"
                       disabled={submitting}
-                      className="col-span-full py-5 bg-indigo-600 text-white font-bold rounded-2xl hover:bg-indigo-700 transition"
+                      className="col-span-full py-5 bg-[#1C3D5A] text-white font-bold rounded-2xl hover:bg-[#152f45] transition disabled:opacity-60"
                     >
                       {submitting ? 'Submitting…' : 'Submit Inquiry'}
                     </button>

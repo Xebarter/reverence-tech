@@ -20,19 +20,28 @@ export default function About() {
       id="about"
       className="relative overflow-hidden bg-slate-50 py-24 px-4 sm:px-6 lg:px-8"
     >
-      {/* Decorative background element */}
-      <div className="absolute -top-24 -left-24 h-96 w-96 rounded-full bg-yellow-400/5 blur-3xl" />
+      <div className="absolute -top-24 -left-24 h-96 w-96 rounded-full bg-amber-400/5 blur-3xl" />
+      <div className="absolute bottom-0 right-0 h-72 w-72 rounded-full bg-[#1C3D5A]/5 blur-3xl" />
 
       <div className="relative z-10 mx-auto max-w-7xl">
         {/* Header */}
         <div className="mb-20 text-center">
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border text-xs font-bold uppercase tracking-wider mb-6"
+            style={{ backgroundColor: 'rgba(28,61,90,0.07)', borderColor: 'rgba(28,61,90,0.15)', color: '#1C3D5A' }}
+          >
+            Why Reverence
+          </motion.div>
           <motion.h2
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             className="mb-6 text-4xl md:text-5xl font-black tracking-tight text-[#1C3D5A]"
           >
-            Why Choose <span className="text-yellow-500">Reverence Technology</span>
+            Built for <span className="text-amber-500">East Africa</span>,<br className="hidden sm:block" /> trusted globally
           </motion.h2>
 
           <motion.p
@@ -63,7 +72,7 @@ export default function About() {
               className="group rounded-[2rem] border border-slate-100 bg-white p-8 text-center shadow-sm transition-all duration-500 hover:shadow-xl hover:shadow-slate-200/50"
             >
               <div
-                className={`${stat.bg} mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl transition-transform duration-300 group-hover:scale-110`}
+                className={`${stat.bg} mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-xl transition-transform duration-300 group-hover:scale-110`}
               >
                 <stat.icon className={stat.color} size={32} />
               </div>
@@ -86,7 +95,7 @@ export default function About() {
 
             <div className="mx-auto max-w-4xl">
               <div className="mb-16 flex flex-col items-center text-center">
-                <div className="mb-6 rounded-full border border-yellow-400/20 bg-yellow-400/10 px-4 py-1 text-xs font-black uppercase tracking-[0.3em] text-yellow-400">
+                <div className="mb-6 rounded-full border border-amber-400/30 bg-amber-400/10 px-4 py-1.5 text-xs font-black uppercase tracking-[0.3em] text-amber-400">
                   Our Mission
                 </div>
 
@@ -104,7 +113,7 @@ export default function About() {
                     key={idx}
                     className="group flex flex-col items-center text-center"
                   >
-                    <div className="mb-4 rounded-xl border border-white/10 bg-white/5 p-3 text-yellow-400 transition-all duration-300 group-hover:bg-yellow-400 group-hover:text-[#1C3D5A]">
+                    <div className="mb-4 rounded-xl border border-white/10 bg-white/5 p-3 text-amber-400 transition-all duration-300 group-hover:bg-amber-400 group-hover:text-[#1C3D5A]">
                       <value.icon size={24} />
                     </div>
                     <h4 className="mb-3 text-xl font-bold text-white">

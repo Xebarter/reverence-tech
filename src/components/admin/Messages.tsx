@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { MessageSquare } from 'lucide-react';
+import { MessageSquare, Trash2, AlertTriangle } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 
 interface Inquiry {
@@ -18,6 +18,8 @@ export default function Messages() {
   const [messages, setMessages] = useState<Inquiry[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedMessage, setSelectedMessage] = useState<Inquiry | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     fetchMessages();
@@ -59,6 +61,27 @@ export default function Messages() {
       }
     } catch (error) {
       console.error('Error updating message status:', error);
+    }
+  };
+
+  const deleteMessage = async () => {
+    if (!selectedMessage) return;
+    setDeleting(true);
+    try {
+      const { error } = await supabase
+        .from('inquiries')
+        .delete()
+        .eq('id', selectedMessage.id);
+
+      if (error) throw error;
+
+      setMessages(messages.filter(msg => msg.id !== selectedMessage.id));
+      setSelectedMessage(null);
+      setShowDeleteConfirm(false);
+    } catch (error) {
+      console.error('Error deleting message:', error);
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -187,6 +210,13 @@ export default function Messages() {
                     >
                       Mark as New
                     </button>
+                    <button
+                      onClick={() => setShowDeleteConfirm(true)}
+                      className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center gap-2 ml-auto"
+                    >
+                      <Trash2 size={16} />
+                      Delete
+                    </button>
                   </div>
                 </div>
               </div>
@@ -199,6 +229,43 @@ export default function Messages() {
                 </div>
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6">
+            <div className="flex items-center gap-4 mb-4">
+              <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
+                <AlertTriangle size={24} className="text-red-600" />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-gray-900">Delete Message</h3>
+                <p className="text-sm text-gray-500">This action cannot be undone.</p>
+              </div>
+            </div>
+            <p className="text-gray-600 mb-6">
+              Are you sure you want to delete the message from <span className="font-semibold text-gray-900">{selectedMessage?.full_name}</span>?
+            </p>
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => setShowDeleteConfirm(false)}
+                disabled={deleting}
+                className="px-4 py-2 rounded-lg border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors font-medium"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={deleteMessage}
+                disabled={deleting}
+                className="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 transition-colors font-medium flex items-center gap-2 disabled:opacity-60"
+              >
+                <Trash2 size={16} />
+                {deleting ? 'Deleting…' : 'Delete'}
+              </button>
+            </div>
           </div>
         </div>
       )}

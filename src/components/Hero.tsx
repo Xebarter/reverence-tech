@@ -25,14 +25,6 @@ export default function Hero() {
   const testimonialsRef = useRef<HTMLDivElement>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  /* ---------------- SINGLE VALUE PROPOSITION ---------------- */
-  const valueProposition = {
-    headline: 'Leading Web Design & Software Development Company in Uganda',
-    subheadline: 'Custom Websites, Mobile Apps & IT Solutions for East Africa',
-    copy:
-      'Professional web design, software development, and mobile app solutions in Kampala, Uganda. We help businesses across East Africa build powerful digital platforms that drive growth. 5+ years experience, 75+ satisfied clients.'
-  };
-
   /* ---------------- DATA FETCHING ---------------- */
   const fetchHeroImages = async () => {
     try {
@@ -109,14 +101,11 @@ export default function Hero() {
         setCurrentImageIndex(prev => (prev + 1) % heroImages.length);
       }
     }, 6500);
-
     return () => clearInterval(interval);
   }, [heroImages.length]);
 
   useEffect(() => {
-    if (testimonials.length > 1) {
-      startTestimonialCarousel();
-    }
+    if (testimonials.length > 1) startTestimonialCarousel();
     return () => stopTestimonialCarousel();
   }, [testimonials]);
 
@@ -125,7 +114,6 @@ export default function Hero() {
       ([entry]) => entry.isIntersecting,
       { threshold: 0.15 }
     );
-
     if (testimonialsRef.current) observer.observe(testimonialsRef.current);
     return () => observer.disconnect();
   }, []);
@@ -134,236 +122,273 @@ export default function Hero() {
     document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
   };
 
+  const stats = [
+    { value: '5+', label: 'Years Experience', icon: Award },
+    { value: '75+', label: 'Happy Clients', icon: Users },
+    { value: '50+', label: 'Projects Delivered', icon: Shield },
+  ];
+
   /* ---------------- RENDER ---------------- */
   return (
-    <section
-      id="home"
-      className="relative pt-40 pb-32 overflow-hidden bg-slate-50"
-    >
-      {/* Background accents */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        {/* Abstract shapes for professional modern feel */}
-        <div className="absolute -top-[10%] -left-[10%] w-[50%] h-[50%] rounded-full bg-primary-100/60 blur-[120px] mix-blend-multiply" />
-        <div className="absolute top-[20%] -right-[10%] w-[35%] h-[40%] rounded-full bg-blue-100/50 blur-[100px] mix-blend-multiply" />
-        <div className="absolute bottom-0 left-[20%] w-[40%] h-[40%] rounded-full bg-slate-200/60 blur-[120px] mix-blend-multiply" />
-        {/* Subtle dot pattern overlay */}
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjUiIGhlaWdodD0iMjUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMSIgY3k9IjEiIHI9IjEiIGZpbGw9InJnYmEoMCwwLDAsMC4wNikiLz48L3N2Zz4=')] opacity-60 mask-image:linear-gradient(to_bottom,white,transparent)" style={{ WebkitMaskImage: 'linear-gradient(to bottom, white 40%, transparent 100%)' }} />
-      </div>
+    <section id="home" className="relative overflow-hidden bg-[#1C3D5A]">
 
-      <div className="max-w-7xl mx-auto px-4 relative z-10">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 items-center">
-          {/* LEFT: CONTENT */}
-          <div className="lg:col-span-7 space-y-8 lg:pr-6">
-            <motion.div
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/80 border border-primary-100/50 text-primary-700 text-sm font-semibold shadow-sm backdrop-blur-md"
-            >
-              <BadgeCheck size={16} className="text-primary-600" />
-              🇺🇬 Based in Kampala, Uganda | Serving East Africa
-            </motion.div>
+      {/* ── Subtle texture / grid overlay ── */}
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          backgroundImage:
+            'radial-gradient(circle, rgba(255,255,255,0.04) 1px, transparent 1px)',
+          backgroundSize: '32px 32px',
+        }}
+      />
+      {/* Warm glow top-right */}
+      <div className="absolute -top-32 -right-32 w-[600px] h-[600px] rounded-full bg-amber-400/10 blur-[120px] pointer-events-none" />
+      {/* Cool glow bottom-left */}
+      <div className="absolute bottom-0 -left-24 w-[400px] h-[400px] rounded-full bg-sky-400/10 blur-[100px] pointer-events-none" />
 
+      {/* ═══════════════════════════════════════════
+          MAIN HERO GRID
+      ═══════════════════════════════════════════ */}
+      <div className="relative z-10 max-w-7xl mx-auto px-6 pt-44 pb-24">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 xl:gap-20 items-center">
+
+          {/* ── LEFT: COPY ── */}
+          <div className="space-y-8">
+
+            {/* Location badge */}
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.1 }}
-              className="space-y-6"
+              transition={{ duration: 0.4 }}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 border border-white/20 text-amber-300 text-sm font-semibold backdrop-blur-sm"
             >
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-[4rem] font-black text-slate-900 leading-[1.1] tracking-tight">
-                {valueProposition.headline}
+              <BadgeCheck size={15} />
+              🇺🇬 Kampala, Uganda &nbsp;·&nbsp; Serving East Africa
+            </motion.div>
+
+            {/* Headline */}
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.55, delay: 0.1 }}
+              className="space-y-4"
+            >
+              <h1 className="text-4xl sm:text-5xl xl:text-[3.4rem] font-black text-white leading-[1.1] tracking-tight">
+                Build Your Digital&nbsp;
+                <span className="text-amber-400 relative">
+                  Future
+                  <svg
+                    className="absolute -bottom-1 left-0 w-full"
+                    viewBox="0 0 200 8"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                    aria-hidden="true"
+                  >
+                    <path
+                      d="M2 6 Q50 2 100 5 Q150 8 198 4"
+                      stroke="#FCD34D"
+                      strokeWidth="2.5"
+                      strokeLinecap="round"
+                      fill="none"
+                    />
+                  </svg>
+                </span>
+                &nbsp;with Uganda's Leading Tech Partner
               </h1>
-              <h2 className="text-xl sm:text-2xl lg:text-3xl font-extrabold bg-gradient-to-r from-primary-600 via-primary-500 to-blue-600 bg-clip-text text-transparent">
-                {valueProposition.subheadline}
-              </h2>
-              <p className="text-lg lg:text-xl text-slate-600 max-w-2xl leading-relaxed font-medium">
-                {valueProposition.copy}
+              <p className="text-lg text-slate-300 leading-relaxed max-w-xl">
+                We craft high-performance websites, mobile apps, and custom software that help businesses across East Africa grow faster and compete smarter.
               </p>
             </motion.div>
 
-            {/* Trust Badges */}
+            {/* Trust signals row */}
             <motion.div
-              initial={{ opacity: 0, y: 10 }}
+              initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.2 }}
-              className="flex flex-wrap items-center gap-4 pt-2"
+              className="flex flex-wrap gap-3"
             >
-              <div className="flex items-center gap-3 px-5 py-3.5 bg-white/80 backdrop-blur-sm rounded-xl border border-slate-200/60 shadow-sm hover:shadow-md transition-all hover:-translate-y-1">
-                <div className="p-2.5 bg-amber-50 rounded-lg text-amber-500">
-                  <Award size={24} strokeWidth={2.5} />
+              {stats.map(({ value, label, icon: Icon }) => (
+                <div
+                  key={label}
+                  className="flex items-center gap-3 px-4 py-3 rounded-xl bg-white/8 border border-white/15 backdrop-blur-sm"
+                  style={{ backgroundColor: 'rgba(255,255,255,0.06)' }}
+                >
+                  <div className="p-2 rounded-lg bg-amber-400/20 text-amber-300">
+                    <Icon size={18} strokeWidth={2} />
+                  </div>
+                  <div>
+                    <div className="text-lg font-black text-white leading-none">{value}</div>
+                    <div className="text-[11px] text-slate-400 font-medium mt-0.5">{label}</div>
+                  </div>
                 </div>
-                <div>
-                  <div className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Experience</div>
-                  <div className="text-base font-extrabold text-slate-800">5+ Years</div>
-                </div>
-              </div>
-              <div className="flex items-center gap-3 px-5 py-3.5 bg-white/80 backdrop-blur-sm rounded-xl border border-slate-200/60 shadow-sm hover:shadow-md transition-all hover:-translate-y-1">
-                <div className="p-2.5 bg-primary-50 rounded-lg text-primary-600">
-                  <Users size={24} strokeWidth={2.5} />
-                </div>
-                <div>
-                  <div className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Clients</div>
-                  <div className="text-base font-extrabold text-slate-800">75+ Happy</div>
-                </div>
-              </div>
-              <div className="flex items-center gap-3 px-5 py-3.5 bg-white/80 backdrop-blur-sm rounded-xl border border-slate-200/60 shadow-sm hover:shadow-md transition-all hover:-translate-y-1">
-                <div className="p-2.5 bg-emerald-50 rounded-lg text-emerald-500">
-                  <Shield size={24} strokeWidth={2.5} />
-                </div>
-                <div>
-                  <div className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Partner</div>
-                  <div className="text-base font-extrabold text-slate-800">Trusted</div>
-                </div>
-              </div>
+              ))}
             </motion.div>
 
+            {/* CTAs */}
             <motion.div
-              initial={{ opacity: 0, y: 10 }}
+              initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.3 }}
-              className="flex flex-col sm:flex-row gap-4 pt-6"
+              className="flex flex-col sm:flex-row gap-4 pt-2"
             >
               <button
                 onClick={() => scrollToSection('services')}
-                className="group inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl bg-primary-600 hover:bg-primary-700 text-white font-bold text-lg shadow-xl shadow-primary-600/20 transition-all duration-300 hover:shadow-2xl hover:shadow-primary-600/30 active:scale-[0.98]"
+                className="group inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl bg-amber-400 hover:bg-amber-300 text-[#1C3D5A] font-black text-base shadow-lg shadow-amber-400/25 transition-all duration-300 hover:shadow-xl hover:shadow-amber-400/30 active:scale-[0.98]"
               >
-                Request a Quote <ArrowRight size={20} className="group-hover:translate-x-1.5 transition-transform" />
+                Get a Free Quote
+                <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
               </button>
-
               <button
                 onClick={() => scrollToSection('contact')}
-                className="inline-flex items-center justify-center px-8 py-4 rounded-xl border-2 border-slate-200 bg-white/50 backdrop-blur-sm text-slate-700 font-bold text-lg hover:bg-white hover:border-primary-200 hover:text-primary-600 transition-all duration-300 shadow-sm hover:shadow-md active:scale-[0.98]"
+                className="inline-flex items-center justify-center px-8 py-4 rounded-xl border-2 border-white/25 text-white font-bold text-base hover:bg-white/10 hover:border-white/40 transition-all duration-300 active:scale-[0.98]"
               >
-                Contact Us
+                Talk to Us
               </button>
             </motion.div>
           </div>
 
-          {/* RIGHT: IMAGE */}
-          <div className="lg:col-span-5 relative mt-16 lg:mt-0">
-            {/* Background decorative blob behind image */}
-            <div className="absolute inset-0 bg-primary-200 rounded-[3rem] rotate-3 scale-[1.03] opacity-30 blur-xl transition-transform duration-700 hover:rotate-6 hover:scale-[1.05]"></div>
+          {/* ── RIGHT: IMAGE ── */}
+          <motion.div
+            initial={{ opacity: 0, x: 30 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.7, delay: 0.15, ease: 'easeOut' }}
+            className="relative hidden lg:block"
+          >
+            {/* Decorative ring */}
+            <div className="absolute -inset-4 rounded-[2.5rem] border border-white/10 pointer-events-none" />
+            <div className="absolute -inset-8 rounded-[3rem] border border-white/5 pointer-events-none" />
 
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.7, ease: "easeOut" }}
-              className="relative aspect-[4/5] rounded-[2.5rem] overflow-hidden bg-slate-100 shadow-2xl shadow-primary-900/10 border-4 border-white z-10"
-            >
+            {/* Main image frame */}
+            <div className="relative aspect-[4/5] rounded-[2rem] overflow-hidden bg-[#152f45] shadow-2xl ring-1 ring-white/10">
               <AnimatePresence mode="wait">
                 {heroImages.length > 0 && (
                   <motion.img
                     key={heroImages[currentImageIndex].id}
-                    src={getOptimizedImageUrl(
-                      heroImages[currentImageIndex].image_url,
-                      900
-                    )}
-                    initial={{ opacity: 0, scale: 1.1 }}
+                    src={getOptimizedImageUrl(heroImages[currentImageIndex].image_url, 900)}
+                    initial={{ opacity: 0, scale: 1.06 }}
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0 }}
-                    transition={{ duration: 0.8, ease: "easeInOut" }}
+                    transition={{ duration: 0.9, ease: 'easeInOut' }}
                     className="absolute inset-0 w-full h-full object-cover"
-                    alt="Web design and software development company in Kampala Uganda - Reverence Technology"
+                    alt="Web design and software development in Kampala Uganda – Reverence Technology"
                   />
                 )}
               </AnimatePresence>
-              {/* Decorative gradient overlay */}
-              <div className="absolute inset-0 bg-gradient-to-t from-primary-900/60 via-primary-900/10 to-transparent pointer-events-none" />
-            </motion.div>
+              {/* Gradient overlay for readability of floating card */}
+              <div className="absolute inset-0 bg-gradient-to-t from-[#0d1d2c]/80 via-transparent to-transparent pointer-events-none" />
 
-            {/* Floating stats card */}
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.6, duration: 0.7, type: "spring", bounce: 0.4 }}
-              className="absolute -bottom-8 -left-4 sm:-left-12 right-4 sm:right-auto sm:w-[110%] max-w-sm bg-white/95 backdrop-blur-xl rounded-2xl p-6 shadow-2xl shadow-primary-900/10 border border-white z-20"
-            >
-              <div className="flex items-center justify-between gap-2">
-                <div className="flex-1 text-center border-r border-slate-100">
-                  <div className="text-3xl font-black text-primary-600">5+</div>
-                  <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-1">Years</div>
+              {/* Floating verified badge */}
+              <motion.div
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.8, type: 'spring', bounce: 0.4 }}
+                className="absolute top-5 right-5 flex items-center gap-2 px-3 py-2 rounded-xl bg-white/95 backdrop-blur-sm shadow-lg"
+              >
+                <BadgeCheck size={16} className="text-emerald-500" />
+                <span className="text-xs font-bold text-slate-800">Verified Partner</span>
+              </motion.div>
+
+              {/* Floating stat row at bottom */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.7, duration: 0.6, type: 'spring', bounce: 0.3 }}
+                className="absolute bottom-5 left-5 right-5 bg-white/95 backdrop-blur-xl rounded-xl p-4 shadow-xl"
+              >
+                <div className="flex items-center justify-around">
+                  {[
+                    { n: '5+', l: 'Years' },
+                    { n: '75+', l: 'Clients' },
+                    { n: '50+', l: 'Projects' },
+                  ].map(({ n, l }, i) => (
+                    <div key={l} className={`flex-1 text-center ${i < 2 ? 'border-r border-slate-100' : ''}`}>
+                      <div className="text-2xl font-black text-[#1C3D5A]">{n}</div>
+                      <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">{l}</div>
+                    </div>
+                  ))}
                 </div>
-                <div className="flex-1 text-center border-r border-slate-100">
-                  <div className="text-3xl font-black text-primary-600">75+</div>
-                  <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-1">Clients</div>
-                </div>
-                <div className="flex-1 text-center">
-                  <div className="text-3xl font-black text-primary-600">50+</div>
-                  <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-1">Projects</div>
-                </div>
-              </div>
-            </motion.div>
-          </div>
+              </motion.div>
+            </div>
+          </motion.div>
         </div>
+      </div>
 
-        {/* TESTIMONIALS CAROUSEL */}
-        <div className="mt-28" ref={testimonialsRef}>
-          <h2 className="text-center text-sm font-semibold text-slate-500 uppercase tracking-[0.25em] mb-14">
-            Client Feedback
-          </h2>
+      {/* ═══════════════════════════════════════════
+          TESTIMONIALS STRIP  (white band)
+      ═══════════════════════════════════════════ */}
+      <div className="relative z-10 bg-white" ref={testimonialsRef}>
+        {testimonials.length > 0 && (
+          <div className="max-w-4xl mx-auto px-6 py-12">
+            <p className="text-center text-[11px] font-black uppercase tracking-[0.25em] text-slate-400 mb-8">
+              What our clients say
+            </p>
 
-          {testimonials.length > 0 ? (
-            <div className="relative group">
-              <div className="relative h-[180px]">
+            <div className="relative">
+              <div className="relative h-[160px]">
                 <AnimatePresence mode="wait">
                   <motion.div
                     key={currentTestimonialIndex}
-                    initial={{ opacity: 0, x: 100 }}
+                    initial={{ opacity: 0, x: 60 }}
                     animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -100 }}
-                    transition={{ duration: 0.3 }}
-                    className="absolute inset-0"
+                    exit={{ opacity: 0, x: -60 }}
+                    transition={{ duration: 0.35 }}
+                    className="absolute inset-0 flex items-center"
                   >
-                    <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm h-full flex items-center">
-                      <div className="flex items-center gap-6 w-full">
-                        <div className="relative flex-shrink-0">
-                          <div className="w-14 h-14 rounded-full overflow-hidden border-2 border-white shadow ring-1 ring-slate-200">
-                            <img
-                              src={
-                                testimonials[currentTestimonialIndex].avatar_url ||
-                                `https://ui-avatars.com/api/?name=${encodeURIComponent(
-                                  testimonials[currentTestimonialIndex].name
-                                )}&background=6366F1&color=fff`
-                              }
-                              className="w-full h-full object-cover"
-                              alt={testimonials[currentTestimonialIndex].name}
-                            />
-                          </div>
-                          <div className="absolute -bottom-1 -right-1 bg-amber-400 p-1 rounded-full shadow-sm">
-                            <Star size={10} className="fill-slate-900 text-slate-900" />
-                          </div>
+                    <div className="flex items-start gap-6 w-full">
+                      {/* Avatar */}
+                      <div className="relative flex-shrink-0">
+                        <div className="w-14 h-14 rounded-2xl overflow-hidden ring-2 ring-slate-100 shadow-sm">
+                          <img
+                            src={
+                              testimonials[currentTestimonialIndex].avatar_url ||
+                              `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                                testimonials[currentTestimonialIndex].name
+                              )}&background=1C3D5A&color=fff`
+                            }
+                            className="w-full h-full object-cover"
+                            alt={testimonials[currentTestimonialIndex].name}
+                          />
                         </div>
+                        <div className="absolute -bottom-1.5 -right-1.5 bg-amber-400 p-1 rounded-md shadow">
+                          <Star size={9} className="fill-white text-white" />
+                        </div>
+                      </div>
 
-                        <div className="flex-1 min-w-0">
-                          <div className="flex gap-1 mb-2">
-                            {[...Array(5)].map((_, i) => (
-                              <Star
-                                key={i}
-                                size={14}
-                                className={
-                                  i < testimonials[currentTestimonialIndex].rating
-                                    ? 'fill-amber-400 text-amber-400'
-                                    : 'text-slate-200'
-                                }
-                              />
-                            ))}
-                          </div>
-
-                          <p className="text-slate-600 italic leading-relaxed mb-3 line-clamp-2">
-                            "{testimonials[currentTestimonialIndex].content}"
+                      {/* Content */}
+                      <div className="flex-1 min-w-0">
+                        {/* Stars */}
+                        <div className="flex gap-0.5 mb-2">
+                          {[...Array(5)].map((_, i) => (
+                            <Star
+                              key={i}
+                              size={13}
+                              className={
+                                i < testimonials[currentTestimonialIndex].rating
+                                  ? 'fill-amber-400 text-amber-400'
+                                  : 'text-slate-200 fill-slate-200'
+                              }
+                            />
+                          ))}
+                        </div>
+                        <p className="text-slate-700 leading-relaxed line-clamp-2 text-base italic mb-3">
+                          "{testimonials[currentTestimonialIndex].content}"
+                        </p>
+                        <div className="flex items-center gap-2">
+                          <p className="text-sm font-bold text-slate-900">
+                            {testimonials[currentTestimonialIndex].name}
                           </p>
-
-                          <div>
-                            <p className="text-sm font-semibold text-slate-900 truncate">
-                              {testimonials[currentTestimonialIndex].name}
-                            </p>
-                            <p className="text-xs text-slate-500 truncate">
-                              {testimonials[currentTestimonialIndex].role}
-                              {testimonials[currentTestimonialIndex].role && ', '}
-                              <span className="text-indigo-600 font-medium">
-                                {testimonials[currentTestimonialIndex].company}
-                              </span>
-                            </p>
-                          </div>
+                          {(testimonials[currentTestimonialIndex].role || testimonials[currentTestimonialIndex].company) && (
+                            <>
+                              <span className="text-slate-300">·</span>
+                              <p className="text-xs text-slate-500 truncate">
+                                {testimonials[currentTestimonialIndex].role}
+                                {testimonials[currentTestimonialIndex].role && testimonials[currentTestimonialIndex].company && ', '}
+                                <span className="text-[#1C3D5A] font-semibold">
+                                  {testimonials[currentTestimonialIndex].company}
+                                </span>
+                              </p>
+                            </>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -371,8 +396,9 @@ export default function Hero() {
                 </AnimatePresence>
               </div>
 
-              <div className="flex items-center justify-between mt-6">
-                <div className="flex gap-2">
+              {/* Controls */}
+              <div className="flex items-center justify-between mt-4">
+                <div className="flex gap-1.5">
                   {testimonials.map((_, index) => (
                     <button
                       key={index}
@@ -381,32 +407,32 @@ export default function Hero() {
                         setCurrentTestimonialIndex(index);
                         startTestimonialCarousel();
                       }}
-                      className={`h-1.5 transition-all duration-300 rounded-full ${index === currentTestimonialIndex
-                        ? 'w-6 bg-indigo-600'
-                        : 'w-1.5 bg-slate-200 hover:bg-slate-300'
-                        }`}
+                      className={`h-1.5 rounded-full transition-all duration-300 ${
+                        index === currentTestimonialIndex
+                          ? 'w-6 bg-[#1C3D5A]'
+                          : 'w-1.5 bg-slate-200 hover:bg-slate-300'
+                      }`}
                     />
                   ))}
                 </div>
-
                 <div className="flex gap-2">
                   <button
                     onClick={() => handleTestimonialNavigate(-1)}
-                    className="p-2 rounded-full bg-white border border-slate-200 text-slate-600 hover:bg-slate-900 hover:text-white transition-all shadow-sm"
+                    className="p-2 rounded-lg border border-slate-200 text-slate-500 hover:bg-[#1C3D5A] hover:text-white hover:border-[#1C3D5A] transition-all"
                   >
-                    <ChevronLeft size={16} />
+                    <ChevronLeft size={15} />
                   </button>
                   <button
                     onClick={() => handleTestimonialNavigate(1)}
-                    className="p-2 rounded-full bg-white border border-slate-200 text-slate-600 hover:bg-slate-900 hover:text-white transition-all shadow-sm"
+                    className="p-2 rounded-lg border border-slate-200 text-slate-500 hover:bg-[#1C3D5A] hover:text-white hover:border-[#1C3D5A] transition-all"
                   >
-                    <ChevronRight size={16} />
+                    <ChevronRight size={15} />
                   </button>
                 </div>
               </div>
             </div>
-          ) : null}
-        </div>
+          </div>
+        )}
       </div>
 
     </section>

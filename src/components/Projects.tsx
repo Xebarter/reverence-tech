@@ -74,35 +74,28 @@ const Projects: React.FC = () => {
   }
 
   return (
-    <section id="projects" className="py-16 px-4 sm:px-6 lg:px-8 bg-[#F8FAFC] min-h-screen">
-      {/* Scope description styling for cards */}
+    <section id="projects" className="py-20 px-4 sm:px-6 lg:px-8 bg-white">
       <style>{`
-        .project-card-description p {
-          color: #64748b;
-          font-size: 0.875rem;
-          line-height: 1.6;
-          margin: 0 0 0.5rem 0;
-        }
+        .project-card-description p { color: #64748b; font-size: 0.875rem; line-height: 1.6; margin: 0 0 0.5rem 0; }
         .project-card-description strong { font-weight: 600; color: #1e293b; }
-        .project-card-description:last-child { margin-bottom: 0; }
       `}</style>
 
       <div className="max-w-7xl mx-auto">
-        {/* Header Section */}
-        <div className="text-center mb-12 space-y-4">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-50 border border-indigo-100 text-indigo-700 text-xs font-bold uppercase tracking-wider">
+        {/* Header */}
+        <div className="text-center mb-14 space-y-4">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#1C3D5A]/8 border border-[#1C3D5A]/15 text-[#1C3D5A] text-xs font-bold uppercase tracking-wider" style={{ backgroundColor: 'rgba(28,61,90,0.07)' }}>
             <Layers className="h-3 w-3" /> Our Portfolio
           </div>
           <h2 className="text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight">
-            Digital Solutions & <span className="text-indigo-600">Innovation</span>
+            Work that <span className="text-amber-500">speaks for itself</span>
           </h2>
-          <p className="text-base text-slate-600 max-w-2xl mx-auto">
-            A curated selection of projects where technical excellence meets business transformation.
+          <p className="text-base text-slate-500 max-w-xl mx-auto">
+            A curated selection of projects where technical excellence meets real business impact.
           </p>
         </div>
 
         {projects.length === 0 ? (
-          <div className="text-center py-16 bg-white rounded-3xl border border-dashed border-slate-300">
+          <div className="text-center py-16 bg-slate-50 rounded-3xl border border-dashed border-slate-200">
             <Search className="h-12 w-12 text-slate-300 mx-auto mb-4" />
             <h3 className="text-xl font-bold text-slate-900">Portfolio under maintenance</h3>
             <p className="mt-2 text-slate-500">We are currently updating our latest success stories.</p>
@@ -113,117 +106,86 @@ const Projects: React.FC = () => {
               {projects.map((project) => (
                 <div
                   key={project.id}
-                  className="group bg-white rounded-2xl border border-slate-200 overflow-hidden hover:shadow-2xl hover:shadow-indigo-500/10 transition-all duration-500 flex flex-col h-full cursor-pointer hover:-translate-y-1"
+                  className="group bg-white rounded-2xl border border-slate-200 overflow-hidden hover:shadow-2xl hover:shadow-[#1C3D5A]/8 transition-all duration-500 flex flex-col h-full cursor-pointer hover:-translate-y-1"
                   onClick={() => handleProjectClick(project.id)}
                 >
-                  {/* Visual Preview Header (Containment Logic) */}
-                  <div className="flex h-36 bg-slate-100 border-b border-slate-100 relative overflow-hidden">
-                    {/* Desktop Preview Panel */}
-                    <div className="w-2/3 border-r border-slate-200/50 bg-slate-50 relative flex items-center justify-center p-2">
+                  {/* Preview header */}
+                  <div className="flex h-36 bg-slate-50 border-b border-slate-100 relative overflow-hidden">
+                    <div className="w-2/3 border-r border-slate-200/50 bg-white relative flex items-center justify-center p-2">
                       <div className="absolute top-2 left-2 flex gap-1 z-10">
-                        <div className="w-1.5 h-1.5 rounded-full bg-slate-300" />
-                        <div className="w-1.5 h-1.5 rounded-full bg-slate-300" />
+                        <div className="w-1.5 h-1.5 rounded-full bg-slate-200" />
+                        <div className="w-1.5 h-1.5 rounded-full bg-slate-200" />
                       </div>
                       {project.image_url ? (
-                        <img
-                          src={project.image_url}
-                          alt="Desktop"
-                          className="w-full h-full object-contain drop-shadow-md transition-transform duration-500 group-hover:scale-105"
-                        />
+                        <img src={project.image_url} alt="Desktop" className="w-full h-full object-contain drop-shadow-md transition-transform duration-500 group-hover:scale-105" />
                       ) : (
                         <Monitor className="h-6 w-6 text-slate-200" />
                       )}
-                      <span className="absolute bottom-1 right-2 text-[8px] font-bold text-slate-400 uppercase tracking-tighter">Desktop</span>
+                      <span className="absolute bottom-1 right-2 text-[8px] font-bold text-slate-300 uppercase tracking-tighter">Desktop</span>
                     </div>
-
-                    {/* Mobile Preview Panel */}
-                    <div className="w-1/3 bg-slate-100 relative flex items-center justify-center p-2">
+                    <div className="w-1/3 bg-slate-50 relative flex items-center justify-center p-2">
                       {project.mobile_image_url ? (
-                        <img
-                          src={project.mobile_image_url}
-                          alt="Mobile"
-                          className="w-full h-full object-contain drop-shadow-lg transition-transform duration-500 group-hover:rotate-2 group-hover:scale-110"
-                        />
+                        <img src={project.mobile_image_url} alt="Mobile" className="w-full h-full object-contain drop-shadow-lg transition-transform duration-500 group-hover:rotate-2 group-hover:scale-110" />
                       ) : (
                         <Smartphone className="h-5 w-5 text-slate-200" />
                       )}
-                      <span className="absolute bottom-1 right-2 text-[8px] font-bold text-slate-400 uppercase tracking-tighter">Mobile</span>
+                      <span className="absolute bottom-1 right-2 text-[8px] font-bold text-slate-300 uppercase tracking-tighter">Mobile</span>
                     </div>
                   </div>
 
-                  {/* Content Body */}
+                  {/* Content */}
                   <div className="p-5 flex flex-col flex-1">
-                    <div className="flex items-center justify-between mb-2">
-                      <h3 className="text-lg font-bold text-slate-900 group-hover:text-indigo-600 transition-colors">
-                        {project.title}
-                      </h3>
-                    </div>
-
+                    <h3 className="text-lg font-bold text-slate-900 group-hover:text-[#1C3D5A] transition-colors mb-2">
+                      {project.title}
+                    </h3>
                     <div className="flex-1 min-h-0">
-                      <div
-                        className="text-slate-600 text-sm mb-4 project-card-description line-clamp-2"
-                        dangerouslySetInnerHTML={{ __html: project.description }}
-                      />
+                      <div className="text-slate-500 text-sm mb-4 project-card-description line-clamp-2" dangerouslySetInnerHTML={{ __html: project.description }} />
                     </div>
-
                     <div className="pt-2">
-                      {/* Tech Badges */}
                       <div className="flex flex-wrap gap-1 mb-4 min-h-[28px]">
                         {project.technologies.slice(0, 2).map((tech, index) => (
-                          <span
-                            key={index}
-                            className="px-2 py-1 bg-slate-50 text-slate-500 text-[10px] font-bold uppercase tracking-wider rounded border border-slate-100"
-                          >
-                            {tech}
-                          </span>
+                          <span key={index} className="px-2 py-1 bg-slate-50 text-slate-500 text-[10px] font-bold uppercase tracking-wider rounded border border-slate-100">{tech}</span>
                         ))}
                         {project.technologies.length > 2 && (
-                          <span className="px-2 py-1 bg-indigo-50 text-indigo-600 text-[10px] font-bold rounded">
+                          <span className="px-2 py-1 bg-amber-50 text-amber-700 text-[10px] font-bold rounded border border-amber-100">
                             +{project.technologies.length - 2}
                           </span>
                         )}
                       </div>
-
-                      <button className="flex items-center justify-center gap-2 w-full py-2.5 bg-slate-900 text-white rounded-lg group-hover:bg-indigo-600 transition-all duration-300 text-sm font-bold shadow">
-                        View Details
-                        <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
+                      <button className="flex items-center justify-center gap-2 w-full py-2.5 bg-[#1C3D5A] text-white rounded-lg group-hover:bg-[#152f45] transition-all duration-300 text-sm font-bold">
+                        View Details <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
                       </button>
                     </div>
                   </div>
                 </div>
               ))}
             </div>
-            
-            {/* View More Button */}
+
             <div className="text-center mt-10">
               <button
                 onClick={() => navigate('/projects')}
-                className="inline-flex items-center gap-2 px-5 py-2.5 bg-indigo-600 text-white font-bold rounded-lg hover:bg-indigo-700 transition-colors shadow hover:shadow-md"
+                className="inline-flex items-center gap-2 px-6 py-3 bg-[#1C3D5A] text-white font-bold rounded-xl hover:bg-[#152f45] transition-colors shadow-sm hover:shadow-md"
               >
-                View More Projects
-                <ArrowRight className="h-4 w-4" />
+                View All Projects <ArrowRight className="h-4 w-4" />
               </button>
             </div>
           </>
         )}
 
-        {/* Bottom Social Proof / CTA */}
-        <div className="mt-16 p-6 rounded-2xl bg-indigo-900 text-center relative overflow-hidden shadow-xl">
-          <div className="absolute top-0 right-0 opacity-10 translate-x-1/4 -translate-y-1/4">
+        {/* CTA Banner */}
+        <div className="mt-16 p-8 rounded-2xl bg-[#1C3D5A] text-center relative overflow-hidden shadow-xl">
+          <div className="absolute top-0 right-0 opacity-[0.07] translate-x-1/4 -translate-y-1/4">
             <Layout size={200} />
           </div>
+          <div className="absolute -bottom-16 -left-16 w-64 h-64 rounded-full bg-amber-400/10 blur-[60px]" />
           <div className="relative z-10">
-            <h3 className="text-xl font-bold text-white mb-1">Have a project in mind?</h3>
-            <p className="text-indigo-200 mb-4 text-sm">Let's build something exceptional together.</p>
-            <button 
-              className="px-6 py-2.5 bg-white text-indigo-900 font-bold rounded-lg hover:bg-indigo-50 transition-colors shadow-md text-sm"
+            <h3 className="text-2xl font-bold text-white mb-2">Have a project in mind?</h3>
+            <p className="text-slate-300 mb-6 text-sm">Let's build something exceptional together.</p>
+            <button
+              className="px-7 py-3 bg-amber-400 text-[#1C3D5A] font-black rounded-xl hover:bg-amber-300 transition-colors shadow-md text-sm"
               onClick={() => {
-                const contactSection = document.getElementById('contact');
-                if (contactSection) {
-                  contactSection.scrollIntoView({ behavior: 'smooth' });
-                } else {
-                  window.location.hash = 'contact';
-                }
+                const el = document.getElementById('contact');
+                el ? el.scrollIntoView({ behavior: 'smooth' }) : (window.location.hash = 'contact');
               }}
             >
               Start a Conversation

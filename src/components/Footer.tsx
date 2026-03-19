@@ -47,7 +47,7 @@ const Footer = () => {
           {/* Brand Column */}
           <div>
             <h3 className="text-2xl font-bold mb-6 tracking-tight">
-              Reverence <span className="text-indigo-500">Technology</span>
+              Reverence <span className="text-amber-400">Technology</span>
             </h3>
             <p className="text-slate-400 leading-relaxed mb-8">
               Delivering innovative technology solutions to empower businesses in the digital age.
@@ -69,14 +69,14 @@ const Footer = () => {
           <div>
             <h4 className="text-lg font-semibold mb-6">Quick Links</h4>
             <ul className="space-y-3">
-              <li><a href="/" className="text-slate-400 hover:text-white transition-all duration-300 border-b-2 border-transparent hover:border-indigo-500 pb-1">Home</a></li>
-              <li><button onClick={() => navigateToSection('about')} className="text-slate-400 hover:text-white transition-all duration-300 border-b-2 border-transparent hover:border-indigo-500 pb-1 text-left">About Us</button></li>
-              <li><button onClick={() => navigateToSection('services')} className="text-slate-400 hover:text-white transition-all duration-300 border-b-2 border-transparent hover:border-indigo-500 pb-1 text-left">Services</button></li>
-              <li><button onClick={() => navigateToSection('faq')} className="text-slate-400 hover:text-white transition-all duration-300 border-b-2 border-transparent hover:border-indigo-500 pb-1 text-left">FAQ</button></li>
-              <li><button onClick={() => navigateToSection('projects')} className="text-slate-400 hover:text-white transition-all duration-300 border-b-2 border-transparent hover:border-indigo-500 pb-1 text-left">Portfolio</button></li>
-              <li><a href="/blog" className="text-slate-400 hover:text-white transition-all duration-300 border-b-2 border-transparent hover:border-indigo-500 pb-1">Blog</a></li>
-              <li><a href="/careers" className="text-slate-400 hover:text-white transition-all duration-300 border-b-2 border-transparent hover:border-indigo-500 pb-1">Careers</a></li>
-              <li><button onClick={() => navigateToSection('contact')} className="text-slate-400 hover:text-white transition-all duration-300 border-b-2 border-transparent hover:border-indigo-500 pb-1 text-left">Contact</button></li>
+              <li><a href="/" className="text-slate-400 hover:text-white transition-all duration-300 border-b-2 border-transparent hover:border-amber-400 pb-1">Home</a></li>
+              <li><button onClick={() => navigateToSection('about')} className="text-slate-400 hover:text-white transition-all duration-300 border-b-2 border-transparent hover:border-amber-400 pb-1 text-left">About Us</button></li>
+              <li><button onClick={() => navigateToSection('services')} className="text-slate-400 hover:text-white transition-all duration-300 border-b-2 border-transparent hover:border-amber-400 pb-1 text-left">Services</button></li>
+              <li><button onClick={() => navigateToSection('faq')} className="text-slate-400 hover:text-white transition-all duration-300 border-b-2 border-transparent hover:border-amber-400 pb-1 text-left">FAQ</button></li>
+              <li><button onClick={() => navigateToSection('projects')} className="text-slate-400 hover:text-white transition-all duration-300 border-b-2 border-transparent hover:border-amber-400 pb-1 text-left">Portfolio</button></li>
+              <li><a href="/blog" className="text-slate-400 hover:text-white transition-all duration-300 border-b-2 border-transparent hover:border-amber-400 pb-1">Blog</a></li>
+              <li><a href="/careers" className="text-slate-400 hover:text-white transition-all duration-300 border-b-2 border-transparent hover:border-amber-400 pb-1">Careers</a></li>
+              <li><button onClick={() => navigateToSection('contact')} className="text-slate-400 hover:text-white transition-all duration-300 border-b-2 border-transparent hover:border-amber-400 pb-1 text-left">Contact</button></li>
             </ul>
           </div>
 
@@ -84,12 +84,12 @@ const Footer = () => {
           <div>
             <h4 className="text-lg font-semibold mb-6">Services</h4>
             <ul className="space-y-3">
-              <li><button onClick={() => navigateToSection('services')} className="text-slate-400 hover:text-white transition-all duration-300 border-b-2 border-transparent hover:border-indigo-500 pb-1 text-left">Web Development</button></li>
-              <li><button onClick={() => navigateToSection('services')} className="text-slate-400 hover:text-white transition-all duration-300 border-b-2 border-transparent hover:border-indigo-500 pb-1 text-left">Mobile Apps</button></li>
-              <li><button onClick={() => navigateToSection('services')} className="text-slate-400 hover:text-white transition-all duration-300 border-b-2 border-transparent hover:border-indigo-500 pb-1 text-left">Cloud Solutions</button></li>
-              <li><button onClick={() => navigateToSection('services')} className="text-slate-400 hover:text-white transition-all duration-300 border-b-2 border-transparent hover:border-indigo-500 pb-1 text-left">UI/UX Design</button></li>
-              <li><button onClick={() => navigateToSection('services')} className="text-slate-400 hover:text-white transition-all duration-300 border-b-2 border-transparent hover:border-indigo-500 pb-1 text-left">Consulting</button></li>
-              <li><button onClick={() => navigateToSection('projects')} className="text-slate-400 hover:text-white transition-all duration-300 border-b-2 border-transparent hover:border-indigo-500 pb-1 text-left">Our Projects</button></li>
+              <li><button onClick={() => navigateToSection('services')} className="text-slate-400 hover:text-white transition-all duration-300 border-b-2 border-transparent hover:border-amber-400 pb-1 text-left">Web Development</button></li>
+              <li><button onClick={() => navigateToSection('services')} className="text-slate-400 hover:text-white transition-all duration-300 border-b-2 border-transparent hover:border-amber-400 pb-1 text-left">Mobile Apps</button></li>
+              <li><button onClick={() => navigateToSection('services')} className="text-slate-400 hover:text-white transition-all duration-300 border-b-2 border-transparent hover:border-amber-400 pb-1 text-left">Cloud Solutions</button></li>
+              <li><button onClick={() => navigateToSection('services')} className="text-slate-400 hover:text-white transition-all duration-300 border-b-2 border-transparent hover:border-amber-400 pb-1 text-left">UI/UX Design</button></li>
+              <li><button onClick={() => navigateToSection('services')} className="text-slate-400 hover:text-white transition-all duration-300 border-b-2 border-transparent hover:border-amber-400 pb-1 text-left">Consulting</button></li>
+              <li><button onClick={() => navigateToSection('projects')} className="text-slate-400 hover:text-white transition-all duration-300 border-b-2 border-transparent hover:border-amber-400 pb-1 text-left">Our Projects</button></li>
             </ul>
           </div>
 
@@ -98,23 +98,23 @@ const Footer = () => {
             <h4 className="text-lg font-semibold mb-6">Contact Info</h4>
             <ul className="space-y-4">
               <li className="flex items-start">
-                <MapPin className="w-5 h-5 mr-3 mt-1 text-indigo-500 flex-shrink-0" />
+                <MapPin className="w-5 h-5 mr-3 mt-1 text-amber-400 flex-shrink-0" />
                 <span className="text-slate-400">Mutungo, Zone 1, Kampala</span>
               </li>
               <li className="flex items-start">
-                <Phone className="w-5 h-5 mr-3 mt-1 text-indigo-500 flex-shrink-0" />
+                <Phone className="w-5 h-5 mr-3 mt-1 text-amber-400 flex-shrink-0" />
                 <a href="tel:+256783676313" className="text-slate-400 hover:text-white transition-colors">
                   +256 783 676 313
                 </a>
               </li>
               <li className="flex items-start">
-                <Mail className="w-5 h-5 mr-3 mt-1 text-indigo-500 flex-shrink-0" />
+                <Mail className="w-5 h-5 mr-3 mt-1 text-amber-400 flex-shrink-0" />
                 <a href="mailto:reverencetech1@gmail.com" className="text-slate-400 hover:text-white transition-colors">
                   reverencetech1@gmail.com
                 </a>
               </li>
               <li className="flex items-start">
-                <Clock className="w-5 h-5 mr-3 mt-1 text-indigo-500 flex-shrink-0" />
+                <Clock className="w-5 h-5 mr-3 mt-1 text-amber-400 flex-shrink-0" />
                 <div>
                   <p className="text-slate-400">Mon-Fri: 9AM - 5PM</p>
                   <p className="text-slate-400">Sat-Sun: Closed</p>
