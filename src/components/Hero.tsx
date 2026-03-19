@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { ArrowRight, Star, ChevronLeft, ChevronRight, Shield, Award, Users, BadgeCheck } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 
 /* ---------------- IMAGE OPTIMIZATION HELPERS ---------------- */
@@ -19,7 +18,6 @@ const getOptimizedImageUrl = (url: string, width: number): string => {
 
 /* ---------------- COMPONENT ---------------- */
 export default function Hero() {
-  const navigate = useNavigate();
   const [heroImages, setHeroImages] = useState<any[]>([]);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [testimonials, setTestimonials] = useState<any[]>([]);
