@@ -493,20 +493,20 @@ const RefundPolicy = () => {
   return (
     <div className="min-h-screen bg-slate-50">
       {/* Hero Section */}
-      <div className="relative bg-[#1C3D5A] pt-32 pb-40 overflow-hidden">
+      <div className="relative bg-[#1C3D5A] pt-28 sm:pt-32 pb-32 sm:pb-40 overflow-hidden">
         <div className="absolute top-0 right-0 w-1/2 h-full bg-yellow-400/5 blur-[120px] rounded-full -translate-y-1/2 translate-x-1/2" />
-        <div className="container mx-auto px-6 relative z-10">
+        <div className="container mx-auto px-4 sm:px-6 relative z-10">
           <div className="max-w-4xl mx-auto text-center">
-            <div className="inline-flex items-center justify-center w-20 h-20 bg-yellow-400/10 backdrop-blur-sm rounded-2xl mb-6 border border-yellow-400/20">
-              <DollarSign className="w-10 h-10 text-yellow-400" />
+            <div className="inline-flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 bg-yellow-400/10 backdrop-blur-sm rounded-2xl mb-5 border border-yellow-400/20">
+              <DollarSign className="w-8 h-8 sm:w-10 sm:h-10 text-yellow-400" />
             </div>
-            <h1 className="text-4xl md:text-5xl font-black text-white mb-6">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-black text-white mb-4 sm:mb-6">
               Refund & Cancellation Policy
             </h1>
-            <p className="text-xl text-white/90 mb-4">
+            <p className="text-base sm:text-xl text-white/90 mb-3 sm:mb-4 px-2">
               Comprehensive guide to refunds and cancellations for custom software development services
             </p>
-            <p className="text-slate-300">
+            <p className="text-sm sm:text-base text-slate-300">
               Last Updated: February 4, 2026
             </p>
           </div>
@@ -514,10 +514,10 @@ const RefundPolicy = () => {
       </div>
 
       {/* Main Content */}
-      <div className="container mx-auto px-6 py-16 -mt-24 relative z-20">
+      <div className="container mx-auto px-4 sm:px-6 py-10 sm:py-16 -mt-16 sm:-mt-24 relative z-20">
         <div className="max-w-4xl mx-auto">
           {/* Introduction */}
-          <div className="bg-white rounded-[2rem] shadow-xl shadow-slate-200/50 p-8 mb-8 border border-slate-100">
+          <div className="bg-white rounded-2xl sm:rounded-[2rem] shadow-xl shadow-slate-200/50 p-5 sm:p-8 mb-6 sm:mb-8 border border-slate-100">
             <div className="prose prose-slate max-w-none">
               <p className="text-lg text-slate-700 leading-relaxed mb-4">
                 This Refund Policy explains when and how refunds may be issued for our services. It forms part of and is subject to our full{' '}
@@ -537,24 +537,24 @@ const RefundPolicy = () => {
             return (
               <div
                 key={idx}
-                className="bg-white rounded-[2rem] shadow-lg shadow-slate-200/30 p-8 mb-8 border border-slate-100 hover:shadow-xl hover:shadow-slate-200/50 transition-all duration-300"
+                className="bg-white rounded-2xl sm:rounded-[2rem] shadow-lg shadow-slate-200/30 p-5 sm:p-8 mb-5 sm:mb-8 border border-slate-100 hover:shadow-xl hover:shadow-slate-200/50 transition-all duration-300"
               >
-                <div className="flex items-start gap-4 mb-6">
+                <div className="flex items-start gap-3 sm:gap-4 mb-5 sm:mb-6">
                   <div className="flex-shrink-0">
-                    <div className="w-12 h-12 bg-yellow-50 rounded-xl flex items-center justify-center border border-yellow-100">
-                      <IconComponent className="w-6 h-6 text-yellow-600" />
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 bg-yellow-50 rounded-xl flex items-center justify-center border border-yellow-100">
+                      <IconComponent className="w-5 h-5 sm:w-6 sm:h-6 text-yellow-600" />
                     </div>
                   </div>
-                  <h2 className="text-2xl font-black text-[#1C3D5A] mt-2">
+                  <h2 className="text-lg sm:text-2xl font-black text-[#1C3D5A] mt-1 sm:mt-2 leading-snug">
                     {section.title}
                   </h2>
                 </div>
 
-                <div className="space-y-6">
+                <div className="space-y-5 sm:space-y-6">
                   {section.content.map((item, itemIdx) => (
-                    <div key={itemIdx} className="ml-16">
+                    <div key={itemIdx} className="ml-0 sm:ml-16">
                       {item.subtitle && (
-                        <h3 className="text-lg font-bold text-[#1C3D5A] mb-3">
+                        <h3 className="text-base sm:text-lg font-bold text-[#1C3D5A] mb-2 sm:mb-3">
                           {item.subtitle}
                         </h3>
                       )}
@@ -595,7 +595,7 @@ const RefundPolicy = () => {
           })}
 
           {/* Contact Section */}
-          <div className="relative overflow-hidden bg-gradient-to-br from-[#1C3D5A] to-[#0B1221] rounded-[2rem] shadow-2xl p-8 text-white">
+          <div className="relative overflow-hidden bg-gradient-to-br from-[#1C3D5A] to-[#0B1221] rounded-2xl sm:rounded-[2rem] shadow-2xl p-5 sm:p-8 text-white">
             <div className="absolute top-0 right-0 h-64 w-64 rounded-full bg-yellow-400/10 blur-[80px]" />
             <div className="relative z-10">
               <div className="flex items-center gap-3 mb-4">
