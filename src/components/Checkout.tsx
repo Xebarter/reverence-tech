@@ -9,6 +9,8 @@ interface CheckoutProps {
   onClose?: () => void;
 }
 
+type PaymentMethod = 'mobile_money' | 'bank_transfer' | 'cash' | 'other';
+
 export default function Checkout({ onClose }: CheckoutProps) {
   const navigate = useNavigate();
   const { cartItems, updateQuantity, removeFromCart, clearCart, getTotal } = useCart();
@@ -24,10 +26,13 @@ export default function Checkout({ onClose }: CheckoutProps) {
     shipping_address: '',
     city: '',
     country: 'Uganda',
-    payment_method: 'mobile_money' as 'mobile_money' | 'bank_transfer' | 'cash' | 'other',
+    payment_method: 'mobile_money' as PaymentMethod,
     payment_reference: '',
     notes: '',
   });
+
+  const isPaymentReferenceRequired =
+    formData.payment_method === 'mobile_money' || formData.payment_method === 'bank_transfer';
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
@@ -70,6 +75,12 @@ export default function Checkout({ onClose }: CheckoutProps) {
 
     if (cartItems.length === 0) {
       setError('Your cart is empty');
+      setSubmitting(false);
+      return;
+    }
+
+    if (isPaymentReferenceRequired && !formData.payment_reference.trim()) {
+      setError('Please enter your payment reference/transaction ID.');
       setSubmitting(false);
       return;
     }
@@ -191,7 +202,7 @@ export default function Checkout({ onClose }: CheckoutProps) {
   }
 
   return (
-    <section className="py-24 px-4 bg-gradient-to-b from-slate-50 to-white min-h-screen">
+    <section className="py-10 sm:py-16 lg:py-24 px-4 bg-gradient-to-b from-slate-50 to-white min-h-screen">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="mb-8">
@@ -205,7 +216,7 @@ export default function Checkout({ onClose }: CheckoutProps) {
             <ArrowLeft size={20} />
             <span className="font-semibold">Back to Shop</span>
           </button>
-          <h1 className="text-4xl font-extrabold text-slate-900 mb-2">Checkout</h1>
+          <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 mb-2">Checkout</h1>
           <p className="text-slate-600">Complete your purchase</p>
         </div>
 
@@ -322,7 +333,7 @@ export default function Checkout({ onClose }: CheckoutProps) {
                       <button
                         key={method.value}
                         type="button"
-                        onClick={() => setFormData(prev => ({ ...prev, payment_method: method.value as any }))}
+                        onClick={() => setFormData(prev => ({ ...prev, payment_method: method.value as PaymentMethod }))}
                         className={`p-4 rounded-xl border-2 transition-all ${
                           formData.payment_method === method.value
                             ? 'border-indigo-500 bg-indigo-50 text-indigo-700'
@@ -336,16 +347,32 @@ export default function Checkout({ onClose }: CheckoutProps) {
                   })}
                 </div>
                 <div>
-                  <label className="block text-sm font-bold text-slate-700 mb-2">Payment Reference / Transaction ID</label>
+                  <label className="block text-sm font-bold text-slate-700 mb-2">
+                    Payment Reference / Transaction ID{' '}
+                    {isPaymentReferenceRequired ? (
+                      <span className="text-red-600">*</span>
+                    ) : (
+                      <span className="text-slate-500 font-semibold">(optional)</span>
+                    )}
+                  </label>
                   <input
                     type="text"
                     name="payment_reference"
                     value={formData.payment_reference}
                     onChange={handleChange}
-                    className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all"
-                    placeholder="Enter transaction ID or reference"
+                    required={isPaymentReferenceRequired}
+                    className={`w-full px-4 py-3 border-2 rounded-xl outline-none transition-all ${
+                      isPaymentReferenceRequired && !formData.payment_reference.trim()
+                        ? 'border-red-300 focus:border-red-500 focus:ring-4 focus:ring-red-500/20'
+                        : 'border-slate-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10'
+                    }`}
+                    placeholder={isPaymentReferenceRequired ? 'Enter transaction ID or reference *' : 'Enter transaction ID or reference (optional)'}
                   />
-                  <p className="mt-1 text-xs text-slate-500">Please provide your payment reference for verification</p>
+                  <p className="mt-1 text-xs text-slate-500">
+                    {isPaymentReferenceRequired
+                      ? 'Required for Mobile Money and Bank Transfer.'
+                      : 'You can leave this blank if paying cash.'}
+                  </p>
                 </div>
               </div>
 
@@ -395,7 +422,7 @@ export default function Checkout({ onClose }: CheckoutProps) {
 
           {/* Order Summary */}
           <div className="lg:col-span-1">
-            <div className="bg-white rounded-2xl shadow-lg border-2 border-slate-100 p-6 sticky top-24">
+            <div className="bg-white rounded-2xl shadow-lg border-2 border-slate-100 p-6 lg:sticky lg:top-24 max-h-[calc(100vh-14rem)] overflow-y-auto">
               <h2 className="text-xl font-bold text-slate-900 mb-6">Order Summary</h2>
               
               {/* Cart Items */}

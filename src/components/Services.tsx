@@ -23,39 +23,70 @@ interface Service {
   created_at: string;
 }
 
-interface Inquiry {
-  id: string;
-  full_name: string;
-  email: string;
-  phone: string;
-  company?: string;
-  service_interest: string;
-  message: string;
-  status: string;
-  created_at: string;
+function parseUgxAmountRange(pricing: string): { min: number; max: number | null } {
+  // Supports strings like:
+  // - "UGX 500,000 – 1,000,000"
+  // - "UGX 2,500,000+"
+  // - "From $999" (best-effort fallback)
+  const normalized = (pricing || '').replace(/\s+/g, ' ').trim();
+  const rangeMatch = normalized.match(/(?:UGX|UGS)\s*([0-9][0-9,]*)\s*[-\u2013]\s*([0-9][0-9,]*)/i);
+  if (rangeMatch) {
+    const min = parseInt(rangeMatch[1].replace(/,/g, ''), 10);
+    const max = parseInt(rangeMatch[2].replace(/,/g, ''), 10);
+    return { min, max };
+  }
+
+  const plusMatch = normalized.match(/(?:UGX|UGS)\s*([0-9][0-9,]*)\s*\+/i);
+  if (plusMatch) {
+    const min = parseInt(plusMatch[1].replace(/,/g, ''), 10);
+    return { min, max: null };
+  }
+
+  // Fallback: first number in the string.
+  const anyNumberMatch = normalized.match(/([0-9][0-9,]*)(?:\.[0-9]+)?/);
+  if (anyNumberMatch) {
+    const min = parseInt(anyNumberMatch[1].replace(/,/g, ''), 10);
+    return { min, max: null };
+  }
+
+  return { min: 0, max: null };
 }
 
 /* -------------------- Component -------------------- */
 export default function Services() {
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showContactForm, setShowContactForm] = useState(false);
+  const [checkoutOpen, setCheckoutOpen] = useState(false);
+  const [checkoutStep, setCheckoutStep] = useState<'details' | 'confirm' | 'processing'>('details');
+  const [selectedService, setSelectedService] = useState<Service | null>(null);
+
   const [showAllServices, setShowAllServices] = useState(false);
 
-  const [formData, setFormData] = useState<
-    Omit<Inquiry, 'id' | 'status' | 'created_at'>
-  >({
+  const [formData, setFormData] = useState({
     full_name: '',
     email: '',
     phone: '',
     company: '',
-    service_interest: '',
-    message: '',
+    address: '',
+    city: '',
+    country: 'Uganda',
+    amount: 0,
+    notes: '',
   });
 
-  const [submitting, setSubmitting] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
+  const [amountRange, setAmountRange] = useState<{ min: number; max: number | null }>({
+    min: 0,
+    max: null,
+  });
+
+  const [processing, setProcessing] = useState(false);
   const [error, setError] = useState('');
+  const [pendingOrderNumber, setPendingOrderNumber] = useState<string>('');
+
+  const inputClass =
+    'w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all';
+
+  const stepIndex = checkoutStep === 'details' ? 0 : checkoutStep === 'confirm' ? 1 : 2;
 
   useEffect(() => {
     fetchServices();
@@ -79,11 +110,27 @@ export default function Services() {
 
   const handleGetStarted = (service?: Service | null) => {
     const next = service ?? null;
-    setFormData(prev => ({
-      ...prev,
-      service_interest: next?.package_name ?? '',
-    }));
-    setShowContactForm(true);
+    if (!next) return;
+
+    const { min, max } = parseUgxAmountRange(next.suggested_pricing);
+
+    setSelectedService(next);
+    setAmountRange({ min, max });
+    setFormData({
+      full_name: '',
+      email: '',
+      phone: '',
+      company: '',
+      address: '',
+      city: '',
+      country: 'Uganda',
+      amount: min,
+      notes: '',
+    });
+    setCheckoutStep('details');
+    setProcessing(false);
+    setError('');
+    setCheckoutOpen(true);
   };
 
   const handleChange = (
@@ -92,51 +139,129 @@ export default function Services() {
       | React.ChangeEvent<HTMLTextAreaElement>
       | React.ChangeEvent<HTMLSelectElement>
   ) => {
-    setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
+    const { name, value } = e.target;
+    setFormData(prev => {
+      if (name === 'amount') {
+        return { ...prev, amount: Math.max(0, Number(value || 0)) };
+      }
+      return { ...prev, [name as keyof typeof prev]: value } as typeof prev;
+    });
+    setError('');
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleNext = (e: React.FormEvent) => {
     e.preventDefault();
-    setSubmitting(true);
+    setError('');
+    if (!selectedService) {
+      setError('Please select a service package.');
+      return;
+    }
+    if (!formData.amount || formData.amount <= 0) {
+      setError('Please enter a valid amount to pay.');
+      return;
+    }
+    setCheckoutStep('confirm');
+  };
+
+  const handlePayWithDpo = async () => {
+    if (!selectedService) return;
+    if (!formData.amount || formData.amount <= 0) return;
+    if (!formData.full_name || !formData.email || !formData.phone) return;
+
+    setProcessing(true);
     setError('');
 
     try {
-      const { error } = await supabase.from('inquiries').insert([formData]);
-      if (error) throw error;
-
-      const emailPayload = {
-        ...formData,
-        source: 'services-modal',
-        submitted_at: new Date().toISOString(),
+      // Create an order record first so the callback can update it.
+      const orderData = {
+        customer_name: formData.full_name,
+        customer_email: formData.email,
+        customer_phone: formData.phone,
+        shipping_address: formData.address || 'N/A',
+        city: formData.city || 'N/A',
+        country: formData.country || 'Uganda',
+        payment_method: 'other' as const,
+        payment_reference: null,
+        payment_status: 'pending' as const,
+        order_status: 'pending' as const,
+        total_amount: formData.amount,
+        shipping_fee: 0,
+        items: [
+          {
+            product_id: selectedService.id,
+            product_name: selectedService.package_name,
+            product_price: formData.amount,
+            product_image: null,
+            category: 'service',
+            quantity: 1,
+            subtotal: formData.amount,
+          },
+        ],
+        notes: formData.notes || null,
       };
 
-      const { error: emailError } = await supabase.functions.invoke('send-inquiry-email', {
-        body: emailPayload,
+      const { data: inserted, error: insertError } = await supabase
+        .from('orders')
+        .insert([orderData])
+        .select()
+        .single();
+
+      if (insertError) throw insertError;
+      if (!inserted?.order_number) throw new Error('Order number was not created.');
+
+      setPendingOrderNumber(inserted.order_number);
+
+      // Create a DPO token server-side, then redirect the customer.
+      const redirectUrl = `${window.location.origin}/payment-result?order=${encodeURIComponent(
+        inserted.order_number
+      )}`;
+
+      const {
+        data: tokenData,
+        error: tokenError,
+      } = await supabase.functions.invoke('create-dpo-service-payment', {
+        body: {
+          orderNumber: inserted.order_number,
+          amount: formData.amount,
+          currency: 'UGX',
+          serviceName: selectedService.package_name,
+          customer: {
+            fullName: formData.full_name,
+            email: formData.email,
+            phone: formData.phone,
+            company: formData.company || null,
+          },
+          redirectUrl,
+        },
       });
 
-      if (emailError) {
-        console.error('Failed to trigger inquiry email notification', emailError);
+      if (tokenError) throw tokenError;
+      type CreateDpoServicePaymentResponse = {
+        redirectUrl?: string;
+        transRef?: string;
+        orderNumber?: string;
+      };
+      const tokenResponse = tokenData as CreateDpoServicePaymentResponse | null;
+      const dpoRedirectUrl = tokenResponse?.redirectUrl;
+      const transRef = tokenResponse?.transRef;
+
+      if (!dpoRedirectUrl) throw new Error('Failed to create DPO payment session.');
+
+      if (transRef) {
+        await supabase
+          .from('orders')
+          .update({ payment_reference: transRef })
+          .eq('id', inserted.id);
       }
 
-      setSubmitted(true);
-      setTimeout(() => {
-        setShowContactForm(false);
-        setSubmitted(false);
-        setFormData({
-          full_name: '',
-          email: '',
-          phone: '',
-          company: '',
-          service_interest: '',
-          message: '',
-        });
-      }, 3500);
-    } catch {
-      setError(
-        'Your inquiry could not be submitted at this time. Please try again.'
-      );
-    } finally {
-      setSubmitting(false);
+      setCheckoutStep('processing');
+      window.location.href = dpoRedirectUrl;
+    } catch (e: any) {
+      console.error('DPO payment error:', e);
+      setError(e?.message || 'Failed to initiate payment. Please try again.');
+      setProcessing(false);
+      setCheckoutStep('confirm');
+      setPendingOrderNumber('');
     }
   };
 
@@ -306,13 +431,21 @@ export default function Services() {
 
       {/* Contact Modal */}
       <AnimatePresence>
-        {showContactForm && (
+        {checkoutOpen && selectedService && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              onClick={() => setShowContactForm(false)}
+              onClick={() => {
+                setCheckoutOpen(false);
+                setSelectedService(null);
+                setCheckoutStep('details');
+                setAmountRange({ min: 0, max: null });
+                setProcessing(false);
+                setError('');
+                setPendingOrderNumber('');
+              }}
               className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
             />
 
@@ -320,39 +453,70 @@ export default function Services() {
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="relative w-full max-w-2xl bg-white rounded-[2.5rem] shadow-2xl"
+              className="relative w-full max-w-2xl bg-white rounded-[2.5rem] shadow-2xl max-h-[90vh] overflow-y-auto overflow-x-hidden"
             >
-              <div className="p-10">
-                {submitted ? (
-                  <div className="text-center py-12">
-                    <div className="w-20 h-20 mx-auto mb-6 bg-green-100 text-green-600 rounded-full flex items-center justify-center">
-                      <Check size={40} />
-                    </div>
-                    <h4 className="text-2xl font-bold text-slate-900">
-                      Inquiry Received
-                    </h4>
-                    <p className="text-slate-600 mt-2">
-                      Our team will contact you within 24 business hours.
-                    </p>
+              <div className="p-6 sm:p-10">
+                <div className="mb-6 text-center">
+                  <h4 className="text-2xl font-extrabold text-slate-900">
+                    {checkoutStep === 'details' ? 'Service Checkout' : checkoutStep === 'confirm' ? 'Confirm & Pay' : 'Processing Payment'}
+                  </h4>
+                  <p className="text-slate-600 mt-2">
+                    Payments are handled securely by DPO Pay.
+                  </p>
+                </div>
+
+                {/* Stepper */}
+                <div className="flex items-center justify-between mb-8 px-3">
+                  {[
+                    { key: 'details', label: 'Details' },
+                    { key: 'confirm', label: 'Confirm' },
+                    { key: 'processing', label: 'Pay' },
+                  ].map((s, idx) => {
+                    const active = idx <= stepIndex;
+                    return (
+                      <div key={s.key} className="flex-1 flex items-center gap-3">
+                        <div className="flex items-center justify-center">
+                          <div
+                            className={`w-10 h-10 rounded-full flex items-center justify-center border-2 ${
+                              active
+                                ? 'border-indigo-500 bg-indigo-50 text-indigo-700'
+                                : 'border-slate-200 bg-white text-slate-400'
+                            }`}
+                          >
+                            <span className="text-sm font-extrabold">{idx + 1}</span>
+                          </div>
+                        </div>
+                        {idx < 2 && (
+                          <div className={`h-1 flex-1 rounded-full ${active ? 'bg-indigo-500' : 'bg-slate-200'}`} />
+                        )}
+                        {idx === stepIndex && (
+                          <div className="whitespace-nowrap text-sm font-bold text-slate-900">
+                            {s.label}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {error && (
+                  <div className="mb-4 p-4 bg-red-50 text-red-600 rounded-xl text-sm">
+                    {error}
                   </div>
-                ) : (
+                )}
+
+                {checkoutStep === 'details' && (
                   <form
-                    onSubmit={handleSubmit}
+                    onSubmit={handleNext}
                     className="grid grid-cols-1 sm:grid-cols-2 gap-6"
                   >
-                    {error && (
-                      <div className="col-span-full p-4 bg-red-50 text-red-600 rounded-xl text-sm">
-                        {error}
-                      </div>
-                    )}
-
                     <input
                       required
                       name="full_name"
                       placeholder="Full Name"
                       value={formData.full_name}
                       onChange={handleChange}
-                      className="input"
+                      className={inputClass}
                     />
 
                     <input
@@ -362,7 +526,7 @@ export default function Services() {
                       placeholder="Email Address"
                       value={formData.email}
                       onChange={handleChange}
-                      className="input"
+                      className={inputClass}
                     />
 
                     <input
@@ -371,42 +535,248 @@ export default function Services() {
                       placeholder="Phone Number"
                       value={formData.phone}
                       onChange={handleChange}
-                      className="input"
+                      className={inputClass}
+                    />
+
+                    <input
+                      name="company"
+                      placeholder="Company (optional)"
+                      value={formData.company}
+                      onChange={handleChange}
+                      className={inputClass}
+                    />
+
+                    <input
+                      required
+                      name="address"
+                      placeholder="Address"
+                      value={formData.address}
+                      onChange={handleChange}
+                      className={`${inputClass} sm:col-span-2`}
+                    />
+
+                    <input
+                      required
+                      name="city"
+                      placeholder="City"
+                      value={formData.city}
+                      onChange={handleChange}
+                      className={inputClass}
                     />
 
                     <select
-                      name="service_interest"
-                      value={formData.service_interest}
+                      name="country"
+                      value={formData.country}
                       onChange={handleChange}
-                      className="input"
+                      className={inputClass}
                     >
-                      <option value="">Select Service</option>
-                      {services.map(s => (
-                        <option key={s.id} value={s.package_name}>
-                          {s.package_name}
-                        </option>
-                      ))}
-                      <option value="Custom Solution">Custom Solution</option>
+                      <option value="Uganda">Uganda</option>
+                      <option value="Kenya">Kenya</option>
+                      <option value="Tanzania">Tanzania</option>
+                      <option value="Rwanda">Rwanda</option>
+                      <option value="South Sudan">South Sudan</option>
+                      <option value="Other">Other</option>
                     </select>
+
+                    <div className="sm:col-span-2 p-4 bg-slate-50 rounded-2xl border border-slate-200">
+                      <div className="text-sm font-bold text-slate-700 mb-2">
+                        Selected Service
+                      </div>
+                      <div className="text-slate-900 font-extrabold">
+                        {selectedService.package_name}
+                      </div>
+                      <div className="text-xs text-slate-500 mt-1">
+                        {selectedService.suggested_pricing}
+                      </div>
+
+                      <div className="mt-4">
+                        <label className="block text-sm font-bold text-slate-700 mb-2">
+                          Amount to Pay (UGX) *
+                        </label>
+                        {amountRange.max ? (
+                          <div className="space-y-3">
+                            <div className="flex items-center justify-between text-xs text-slate-500 font-semibold">
+                              <span>
+                                Suggested: {new Intl.NumberFormat('en-UG', { style: 'currency', currency: 'UGX', minimumFractionDigits: 0 }).format(amountRange.min)}
+                              </span>
+                              <span>
+                                Up to: {new Intl.NumberFormat('en-UG', { style: 'currency', currency: 'UGX', minimumFractionDigits: 0 }).format(amountRange.max)}
+                              </span>
+                            </div>
+
+                            <input
+                              required
+                              type="range"
+                              name="amount"
+                              min={amountRange.min}
+                              max={amountRange.max}
+                              step={1000}
+                              value={formData.amount || amountRange.min}
+                              onChange={(e) =>
+                                setFormData(prev => ({
+                                  ...prev,
+                                  amount: Math.max(amountRange.min, Number(e.target.value || amountRange.min)),
+                                }))
+                              }
+                              className="w-full accent-indigo-600"
+                            />
+
+                            <div className="flex gap-3">
+                              <button
+                                type="button"
+                                className="flex-1 py-2 rounded-xl border-2 border-slate-200 text-slate-700 font-bold hover:bg-slate-50 transition"
+                                onClick={() => setFormData(prev => ({ ...prev, amount: amountRange.min }))}
+                              >
+                                Min
+                              </button>
+                              <button
+                                type="button"
+                                className="flex-1 py-2 rounded-xl border-2 border-slate-200 text-slate-700 font-bold hover:bg-slate-50 transition"
+                                onClick={() =>
+                                  setFormData(prev => ({
+                                    ...prev,
+                                    amount:
+                                      Math.round(((amountRange.min + (amountRange.max as number)) / 2) / 1000) * 1000,
+                                  }))
+                                }
+                              >
+                                Mid
+                              </button>
+                              <button
+                                type="button"
+                                className="flex-1 py-2 rounded-xl border-2 border-indigo-500 text-indigo-700 font-bold hover:bg-indigo-50 transition"
+                                onClick={() => setFormData(prev => ({ ...prev, amount: amountRange.max as number }))}
+                              >
+                                Max
+                              </button>
+                            </div>
+
+                            <input
+                              required
+                              type="number"
+                              name="amount"
+                              min={1}
+                              step={1000}
+                              value={formData.amount || 0}
+                              onChange={handleChange}
+                              className={inputClass}
+                            />
+                          </div>
+                        ) : (
+                          <input
+                            required
+                            type="number"
+                            name="amount"
+                            min={1}
+                            step={1000}
+                            value={formData.amount || 0}
+                            onChange={handleChange}
+                            className={inputClass}
+                          />
+                        )}
+                        <p className="mt-1 text-xs text-slate-500">
+                          This payment will be sent to DPO Pay. Final scope can be agreed by email after payment.
+                        </p>
+                      </div>
+                    </div>
 
                     <textarea
                       required
-                      name="message"
+                      name="notes"
                       rows={4}
                       placeholder="Briefly describe your needs"
-                      value={formData.message}
+                      value={formData.notes}
                       onChange={handleChange}
-                      className="input col-span-full resize-none"
+                      className={`${inputClass} col-span-full resize-none`}
                     />
 
                     <button
                       type="submit"
-                      disabled={submitting}
+                      disabled={processing}
                       className="col-span-full py-5 bg-[#1C3D5A] text-white font-bold rounded-2xl hover:bg-[#152f45] transition disabled:opacity-60"
                     >
-                      {submitting ? 'Submitting…' : 'Submit Inquiry'}
+                      Continue to Payment
                     </button>
                   </form>
+                )}
+
+                {checkoutStep === 'confirm' && (
+                  <div className="space-y-5">
+                    <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200">
+                      <div className="text-sm font-bold text-slate-700 mb-2">
+                        Payment Summary
+                      </div>
+                      <div className="text-slate-900 font-extrabold">
+                        {selectedService.package_name}
+                      </div>
+                      <div className="text-slate-600 mt-2 text-sm">
+                        Amount: <span className="font-bold text-slate-900">{new Intl.NumberFormat('en-UG', { style: 'currency', currency: 'UGX', minimumFractionDigits: 0 }).format(formData.amount || 0)}</span>
+                      </div>
+                      <div className="text-xs text-slate-500 mt-1">
+                        Payment method: DPO Pay (cards/secure checkout)
+                      </div>
+                      <div className="mt-4 pt-4 border-t border-slate-200 text-xs text-slate-500 space-y-1">
+                        <div>
+                          Customer: <span className="font-bold text-slate-700">{formData.full_name}</span> ({formData.email})
+                        </div>
+                        <div>
+                          Phone: <span className="font-bold text-slate-700">{formData.phone}</span>
+                        </div>
+                        <div>
+                          Address: <span className="font-bold text-slate-700">{formData.address}</span>, {formData.city}, {formData.country}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="p-4 rounded-2xl border border-amber-200 bg-amber-50 text-amber-900">
+                      <div className="font-bold mb-1">What happens next?</div>
+                      <div className="text-sm">
+                        You will be redirected to DPO Pay to complete the payment securely. After payment, our system will update your order status automatically.
+                      </div>
+                    </div>
+
+                    <div className="flex gap-4">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setCheckoutStep('details');
+                          setPendingOrderNumber('');
+                        }}
+                        className="flex-1 py-4 border-2 border-slate-200 text-slate-700 font-bold rounded-2xl hover:bg-slate-50 transition"
+                      >
+                        Back
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handlePayWithDpo}
+                        disabled={processing}
+                        className="flex-1 py-4 bg-[#1C3D5A] text-white font-bold rounded-2xl hover:bg-[#152f45] transition disabled:opacity-60 flex items-center justify-center gap-2"
+                      >
+                        {processing ? 'Redirecting…' : 'Pay with DPO Pay'}
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {checkoutStep === 'processing' && (
+                  <div className="text-center py-10">
+                    <div className="mx-auto mb-4 w-12 h-12 border-4 border-slate-200 border-t-[#1C3D5A] rounded-full animate-spin" />
+                    <h4 className="text-xl font-bold text-slate-900 mb-2">
+                      Redirecting to DPO Pay…
+                    </h4>
+                    <p className="text-slate-600 text-sm">
+                      {pendingOrderNumber ? (
+                        <>
+                          Order ref: <span className="font-bold font-mono text-slate-900">{pendingOrderNumber}</span>
+                        </>
+                      ) : (
+                        'Preparing your secure checkout…'
+                      )}
+                    </p>
+                    <p className="text-slate-600 text-sm mt-1">
+                      If you are not redirected automatically, return and track your order using the reference above.
+                    </p>
+                  </div>
                 )}
               </div>
             </motion.div>

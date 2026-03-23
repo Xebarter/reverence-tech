@@ -41,6 +41,7 @@ import DepositsManagement from './components/admin/Deposits';
 import Checkout from './components/Checkout';
 import OrdersManagement from './components/admin/Orders';
 import OrderTracking from './components/OrderTracking';
+import PaymentResult from './components/PaymentResult';
 
 function App() {
   const [isTestimonialFormOpen, setIsTestimonialFormOpen] = useState(false);
@@ -176,6 +177,15 @@ function App() {
               <Header />
               <main className="pt-20">
                 <Checkout />
+              </main>
+              <Footer />
+            </div>
+          } />
+          <Route path="/payment-result" element={
+            <div className="min-h-screen">
+              <Header />
+              <main className="pt-20">
+                <PaymentResult />
               </main>
               <Footer />
             </div>
