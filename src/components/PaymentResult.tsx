@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { CheckCircle2, Clock, XCircle } from 'lucide-react';
+import { CheckCircle2, Clock, XCircle, ShieldCheck, RefreshCw } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
 type PaymentStatus = 'paid' | 'failed' | 'pending' | 'refunded' | null;
@@ -15,15 +15,23 @@ export default function PaymentResult() {
   const [paymentReference, setPaymentReference] = useState<string | null>(null);
   const [orderStatus, setOrderStatus] = useState<string | null>(null);
   const [error, setError] = useState('');
+  const [polling, setPolling] = useState(false);
+  const [refreshNonce, setRefreshNonce] = useState(0);
+  const [lastCheckedAt, setLastCheckedAt] = useState<string | null>(null);
 
   useEffect(() => {
     if (!orderNumber) return;
 
     let isMounted = true;
-    setLoading(true);
-    setError('');
+    let intervalId: number | undefined;
+    let attempts = 0;
+    const maxAttempts = 24; // ~2 minutes with 5s interval
+    const intervalMs = 5000;
 
-    (async () => {
+    const fetchStatus = async () => {
+      if (!isMounted) return null;
+
+      setError('');
       try {
         const { data, error: fetchError } = await supabase
           .from('orders')
@@ -32,33 +40,84 @@ export default function PaymentResult() {
           .maybeSingle();
 
         if (fetchError) {
-          // RLS policies can prevent reads; still show a generic confirmation page.
+          setPaymentStatus(null);
+          setPaymentReference(null);
+          setOrderStatus(null);
           if (isMounted) {
-            setPaymentStatus(null);
-            setPaymentReference(null);
-            setOrderStatus(null);
+            setError('We’re still waiting for payment confirmation. Please try again in a moment.');
           }
-          return;
+          setLastCheckedAt(
+            new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+          );
+          return null;
         }
 
-        if (!isMounted) return;
-        setPaymentStatus((data?.payment_status as PaymentStatus) || null);
-        setPaymentReference((data?.payment_reference as string | null) || null);
-        setOrderStatus((data?.order_status as string | null) || null);
+        const nextPaymentStatus = (data?.payment_status as PaymentStatus) || null;
+        const nextPaymentReference = (data?.payment_reference as string | null) || null;
+        const nextOrderStatus = (data?.order_status as string | null) || null;
+
+        if (!isMounted) return null;
+
+        setPaymentStatus(nextPaymentStatus);
+        setPaymentReference(nextPaymentReference);
+        setOrderStatus(nextOrderStatus);
+        setLastCheckedAt(
+          new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+        );
+
+        return nextPaymentStatus;
       } catch {
-        if (!isMounted) return;
         setPaymentStatus(null);
         setPaymentReference(null);
         setOrderStatus(null);
-      } finally {
-        if (isMounted) setLoading(false);
+        if (isMounted) setError('Failed to check payment status. Please refresh or try again.');
+        setLastCheckedAt(
+          new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+        );
+        return null;
       }
+    };
+
+    (async () => {
+      setLoading(true);
+      setError('');
+      setPolling(false);
+      setLastCheckedAt(null);
+
+      const initialStatus = await fetchStatus();
+      if (!isMounted) return;
+      setLoading(false);
+
+      const shouldContinue = !(initialStatus && initialStatus !== 'pending');
+      if (!shouldContinue) return;
+
+      setPolling(true);
+      intervalId = window.setInterval(async () => {
+        if (!isMounted) return;
+
+        attempts += 1;
+        if (attempts >= maxAttempts) {
+          if (intervalId) window.clearInterval(intervalId);
+          intervalId = undefined;
+          setPolling(false);
+          return;
+        }
+
+        const nextPaymentStatus = await fetchStatus();
+
+        if (nextPaymentStatus && nextPaymentStatus !== 'pending') {
+          if (intervalId) window.clearInterval(intervalId);
+          intervalId = undefined;
+          setPolling(false);
+        }
+      }, intervalMs);
     })();
 
     return () => {
       isMounted = false;
+      if (intervalId) window.clearInterval(intervalId);
     };
-  }, [orderNumber]);
+  }, [orderNumber, refreshNonce]);
 
   const statusConfig =
     paymentStatus === 'paid'
@@ -67,9 +126,20 @@ export default function PaymentResult() {
         ? { icon: XCircle, label: 'Payment failed', tone: 'red' }
         : paymentStatus === 'refunded'
           ? { icon: XCircle, label: 'Payment refunded', tone: 'slate' }
-          : { icon: Clock, label: 'Payment pending', tone: 'amber' };
+          : paymentStatus === 'pending'
+            ? { icon: Clock, label: 'Payment pending', tone: 'amber' }
+            : { icon: ShieldCheck, label: 'Payment status pending verification', tone: 'slate' };
 
   const Icon = statusConfig.icon;
+
+  const iconClass =
+    statusConfig.tone === 'emerald'
+      ? 'text-emerald-600'
+      : statusConfig.tone === 'red'
+        ? 'text-red-600'
+        : statusConfig.tone === 'amber'
+          ? 'text-amber-600'
+          : 'text-slate-600';
 
   return (
     <section className="py-24 px-4 bg-gradient-to-b from-slate-50 to-white min-h-screen">
@@ -87,13 +157,7 @@ export default function PaymentResult() {
           <div className="flex items-center justify-center gap-3 mb-6">
             <Icon
               size={20}
-              className={
-                paymentStatus === 'paid'
-                  ? 'text-emerald-600'
-                  : paymentStatus === 'failed' || paymentStatus === 'refunded'
-                    ? 'text-red-600'
-                    : 'text-amber-600'
-              }
+              className={iconClass}
             />
             <div className="text-sm text-slate-600">
               {orderNumber ? (
@@ -106,10 +170,30 @@ export default function PaymentResult() {
             </div>
           </div>
 
-          {loading && <div className="text-slate-600 mb-4">Checking payment status…</div>}
+          {(paymentStatus === 'pending' || paymentStatus === null) && (
+            <div className="flex justify-center mb-4">
+              <button
+                type="button"
+                onClick={() => setRefreshNonce((n) => n + 1)}
+                disabled={loading || polling}
+                className="px-4 py-2 border-2 border-slate-200 text-slate-700 font-bold rounded-xl hover:bg-slate-50 transition disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-2"
+              >
+                <RefreshCw size={18} className={polling ? 'animate-spin' : ''} />
+                Refresh status
+              </button>
+            </div>
+          )}
+
+          {(loading || polling) && (
+            <div className="text-slate-600 mb-4">Updating payment status…</div>
+          )}
 
           {error && (
-            <div className="p-4 bg-red-50 text-red-700 rounded-xl text-sm inline-block mb-4">
+            <div
+              className="p-4 bg-red-50 text-red-700 rounded-xl text-sm inline-block mb-4"
+              role="alert"
+              aria-live="polite"
+            >
               {error}
             </div>
           )}
@@ -125,10 +209,20 @@ export default function PaymentResult() {
                 The payment did not complete. Please try again, or contact us with your order
                 reference.
               </p>
+            ) : paymentStatus === 'refunded' ? (
+              <p className="text-slate-700">
+                Your payment was refunded. If you were charged, your bank may take a few days to
+                show the refund.
+              </p>
+            ) : paymentStatus === 'pending' ? (
+              <p className="text-slate-700">
+                Your payment is being processed. This page updates automatically once our system
+                receives confirmation from DPO Pay.
+              </p>
             ) : (
               <p className="text-slate-700">
-                Your payment is being processed. This page may update once our system receives
-                DPO Pay confirmation.
+                We couldn’t verify your payment status yet. Please keep your order reference and
+                check again shortly.
               </p>
             )}
 
@@ -147,6 +241,11 @@ export default function PaymentResult() {
                 )}
               </div>
             )}
+
+            <div className="mt-4 text-xs text-slate-500 text-center">
+              {lastCheckedAt ? `Last updated: ${lastCheckedAt}. ` : ''}
+              Status updates automatically once our system receives confirmation from DPO Pay.
+            </div>
 
             <div className="mt-6 flex gap-3 justify-center">
               <Link

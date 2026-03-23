@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { ArrowLeft, CreditCard, Smartphone, Building2, Wallet, MapPin, Package, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
+import { ArrowLeft, CreditCard, Smartphone, Building2, Wallet, MapPin, Package, CheckCircle2, AlertCircle, Loader2, ShieldCheck } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { adminSupabase } from '../lib/supabase';
 import { useCart } from '../CartContext';
 
@@ -33,6 +33,30 @@ export default function Checkout({ onClose }: CheckoutProps) {
 
   const isPaymentReferenceRequired =
     formData.payment_method === 'mobile_money' || formData.payment_method === 'bank_transfer';
+
+  const paymentVerification = (() => {
+    if (formData.payment_method === 'mobile_money' || formData.payment_method === 'bank_transfer') {
+      return {
+        title: 'Payment verification',
+        description:
+          'After you place your order, we will verify your transaction using the reference/transaction ID you provide. Please keep it for your records.',
+      };
+    }
+
+    if (formData.payment_method === 'cash') {
+      return {
+        title: 'Cash handling',
+        description:
+          'Your order will be marked pending until we confirm delivery/pickup details with you. We may contact you if we need more information.',
+      };
+    }
+
+    return {
+      title: 'Secure processing',
+      description:
+        'Your order will be marked pending while we review your payment details. We will follow up using the email and phone you provide.',
+    };
+  })();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
@@ -122,19 +146,11 @@ export default function Checkout({ onClose }: CheckoutProps) {
       setOrderNumber(data.order_number);
       setSubmitted(true);
       
-      // Clear cart
+      // Clear cart only after the order record is created.
       clearCart();
-      
-      setTimeout(() => {
-        if (onClose) {
-          onClose();
-        } else {
-          navigate('/');
-        }
-      }, 5000);
     } catch (err: any) {
       console.error('Error submitting order:', err);
-      setError(err.message || 'Failed to submit order. Please try again.');
+      setError('Sorry, we couldn’t place your order. Please check your details and try again.');
     } finally {
       setSubmitting(false);
     }
@@ -176,9 +192,16 @@ export default function Checkout({ onClose }: CheckoutProps) {
           <p className="text-xl text-slate-600 mb-6">
             Your order number is: <span className="font-bold text-indigo-600">{orderNumber}</span>
           </p>
-          <p className="text-slate-600 mb-8">
-            We've received your order and will process it shortly. You'll receive a confirmation email with order details.
+          <p className="text-slate-600 mb-4">
+            We’ve received your order. It’s currently pending review, and we’ll update the status soon.
+            You can track it anytime using your order number.
           </p>
+          {isPaymentReferenceRequired && formData.payment_reference.trim() && (
+            <p className="text-xs text-slate-500 mb-8">
+              Payment reference:{' '}
+              <span className="font-mono font-bold text-indigo-600">{formData.payment_reference.trim()}</span>
+            </p>
+          )}
           <div className="flex gap-4 justify-center">
             <button
               onClick={() => {
@@ -376,6 +399,31 @@ export default function Checkout({ onClose }: CheckoutProps) {
                 </div>
               </div>
 
+              {/* Trust / Next steps */}
+              <div className="bg-indigo-50 border border-indigo-100 rounded-2xl p-5">
+                <div className="flex items-start gap-3">
+                  <ShieldCheck size={22} className="text-indigo-600 mt-0.5" />
+                  <div>
+                    <div className="font-bold text-slate-900">{paymentVerification.title}</div>
+                    <p className="text-sm text-slate-600 mt-1">{paymentVerification.description}</p>
+                  </div>
+                </div>
+                <div className="mt-3 text-xs text-slate-500">
+                  By placing your order, you agree to our{' '}
+                  <Link to="/terms" className="font-semibold text-indigo-700 hover:text-indigo-800 underline">
+                    Terms &amp; Conditions
+                  </Link>{' '}
+                  and{' '}
+                  <Link
+                    to="/refund-policy"
+                    className="font-semibold text-indigo-700 hover:text-indigo-800 underline"
+                  >
+                    Refund Policy
+                  </Link>
+                  .
+                </div>
+              </div>
+
               {/* Notes */}
               <div className="bg-white rounded-2xl shadow-lg border-2 border-slate-100 p-6">
                 <label className="block text-sm font-bold text-slate-700 mb-2">Additional Notes (Optional)</label>
@@ -393,6 +441,8 @@ export default function Checkout({ onClose }: CheckoutProps) {
                 <motion.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
+                  role="alert"
+                  aria-live="polite"
                   className="flex items-center gap-2 p-4 bg-red-50 border border-red-200 rounded-xl text-red-700"
                 >
                   <AlertCircle size={20} />

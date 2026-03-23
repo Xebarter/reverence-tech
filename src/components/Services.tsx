@@ -1,15 +1,17 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import { Link } from 'react-router-dom';
 import {
   ChevronRight,
   Check,
   Sparkles,
   ShieldCheck,
   Zap,
+  X,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { supabase } from '../lib/supabase';
+import { supabase, adminSupabase } from '../lib/supabase';
 
 /* -------------------- Types -------------------- */
 interface Service {
@@ -88,9 +90,32 @@ export default function Services() {
 
   const stepIndex = checkoutStep === 'details' ? 0 : checkoutStep === 'confirm' ? 1 : 2;
 
+  const resetCheckout = useCallback(() => {
+    setCheckoutOpen(false);
+    setSelectedService(null);
+    setCheckoutStep('details');
+    setAmountRange({ min: 0, max: null });
+    setProcessing(false);
+    setError('');
+    setPendingOrderNumber('');
+  }, []);
+
   useEffect(() => {
     fetchServices();
   }, []);
+
+  useEffect(() => {
+    if (!checkoutOpen) return;
+
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') return;
+      if (processing || checkoutStep === 'processing') return;
+      resetCheckout();
+    };
+
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [checkoutOpen, processing, checkoutStep, resetCheckout]);
 
   const fetchServices = async () => {
     try {
@@ -200,7 +225,7 @@ export default function Services() {
         notes: formData.notes || null,
       };
 
-      const { data: inserted, error: insertError } = await supabase
+      const { data: inserted, error: insertError } = await adminSupabase
         .from('orders')
         .insert([orderData])
         .select()
@@ -248,7 +273,7 @@ export default function Services() {
       if (!dpoRedirectUrl) throw new Error('Failed to create DPO payment session.');
 
       if (transRef) {
-        await supabase
+        await adminSupabase
           .from('orders')
           .update({ payment_reference: transRef })
           .eq('id', inserted.id);
@@ -438,13 +463,8 @@ export default function Services() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => {
-                setCheckoutOpen(false);
-                setSelectedService(null);
-                setCheckoutStep('details');
-                setAmountRange({ min: 0, max: null });
-                setProcessing(false);
-                setError('');
-                setPendingOrderNumber('');
+                if (processing || checkoutStep === 'processing') return;
+                resetCheckout();
               }}
               className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
             />
@@ -456,13 +476,34 @@ export default function Services() {
               className="relative w-full max-w-2xl bg-white rounded-[2.5rem] shadow-2xl max-h-[90vh] overflow-y-auto overflow-x-hidden"
             >
               <div className="p-6 sm:p-10">
-                <div className="mb-6 text-center">
-                  <h4 className="text-2xl font-extrabold text-slate-900">
-                    {checkoutStep === 'details' ? 'Service Checkout' : checkoutStep === 'confirm' ? 'Confirm & Pay' : 'Processing Payment'}
-                  </h4>
-                  <p className="text-slate-600 mt-2">
-                    Payments are handled securely by DPO Pay.
-                  </p>
+                <div className="mb-6 flex items-start justify-between gap-4">
+                  <div className="text-center flex-1">
+                    <h4 className="text-2xl font-extrabold text-slate-900">
+                      {checkoutStep === 'details'
+                        ? 'Service Checkout'
+                        : checkoutStep === 'confirm'
+                          ? 'Confirm & Pay'
+                          : 'Processing Payment'}
+                    </h4>
+                    <p className="text-slate-600 mt-2">
+                      Payments are handled securely by DPO Pay.
+                    </p>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (processing || checkoutStep === 'processing') return;
+                      resetCheckout();
+                    }}
+                    disabled={processing || checkoutStep === 'processing'}
+                    className={`p-2 rounded-full hover:bg-slate-100 transition-colors ${
+                      processing || checkoutStep === 'processing' ? 'opacity-50 cursor-not-allowed' : ''
+                    }`}
+                    aria-label="Close checkout"
+                  >
+                    <X size={22} className="text-slate-500" />
+                  </button>
                 </div>
 
                 {/* Stepper */}
@@ -500,7 +541,11 @@ export default function Services() {
                 </div>
 
                 {error && (
-                  <div className="mb-4 p-4 bg-red-50 text-red-600 rounded-xl text-sm">
+                  <div
+                    className="mb-4 p-4 bg-red-50 text-red-600 rounded-xl text-sm"
+                    role="alert"
+                    aria-live="polite"
+                  >
                     {error}
                   </div>
                 )}
@@ -612,26 +657,26 @@ export default function Services() {
                               max={amountRange.max}
                               step={1000}
                               value={formData.amount || amountRange.min}
+                              disabled
                               onChange={(e) =>
-                                setFormData(prev => ({
-                                  ...prev,
-                                  amount: Math.max(amountRange.min, Number(e.target.value || amountRange.min)),
-                                }))
+                                e.preventDefault()
                               }
-                              className="w-full accent-indigo-600"
+                              className="w-full accent-indigo-600 opacity-60 cursor-not-allowed"
                             />
 
                             <div className="flex gap-3">
                               <button
                                 type="button"
-                                className="flex-1 py-2 rounded-xl border-2 border-slate-200 text-slate-700 font-bold hover:bg-slate-50 transition"
+                                disabled
+                                className="flex-1 py-2 rounded-xl border-2 border-slate-200 text-slate-700 font-bold opacity-60 cursor-not-allowed transition"
                                 onClick={() => setFormData(prev => ({ ...prev, amount: amountRange.min }))}
                               >
                                 Min
                               </button>
                               <button
                                 type="button"
-                                className="flex-1 py-2 rounded-xl border-2 border-slate-200 text-slate-700 font-bold hover:bg-slate-50 transition"
+                                disabled
+                                className="flex-1 py-2 rounded-xl border-2 border-slate-200 text-slate-700 font-bold opacity-60 cursor-not-allowed transition"
                                 onClick={() =>
                                   setFormData(prev => ({
                                     ...prev,
@@ -644,7 +689,8 @@ export default function Services() {
                               </button>
                               <button
                                 type="button"
-                                className="flex-1 py-2 rounded-xl border-2 border-indigo-500 text-indigo-700 font-bold hover:bg-indigo-50 transition"
+                                disabled
+                                className="flex-1 py-2 rounded-xl border-2 border-indigo-500 text-indigo-700 font-bold opacity-60 cursor-not-allowed transition"
                                 onClick={() => setFormData(prev => ({ ...prev, amount: amountRange.max as number }))}
                               >
                                 Max
@@ -658,8 +704,8 @@ export default function Services() {
                               min={1}
                               step={1000}
                               value={formData.amount || 0}
-                              onChange={handleChange}
-                              className={inputClass}
+                              readOnly
+                              className={`${inputClass} bg-slate-100 cursor-not-allowed`}
                             />
                           </div>
                         ) : (
@@ -670,8 +716,8 @@ export default function Services() {
                             min={1}
                             step={1000}
                             value={formData.amount || 0}
-                            onChange={handleChange}
-                            className={inputClass}
+                            readOnly
+                            className={`${inputClass} bg-slate-100 cursor-not-allowed`}
                           />
                         )}
                         <p className="mt-1 text-xs text-slate-500">
@@ -731,7 +777,8 @@ export default function Services() {
                     <div className="p-4 rounded-2xl border border-amber-200 bg-amber-50 text-amber-900">
                       <div className="font-bold mb-1">What happens next?</div>
                       <div className="text-sm">
-                        You will be redirected to DPO Pay to complete the payment securely. After payment, our system will update your order status automatically.
+                        You will be redirected over HTTPS to DPO Pay to complete the payment securely. Once DPO Pay confirms,
+                        our system updates your order status automatically. Keep the order reference shown during processing so you can check status anytime.
                       </div>
                     </div>
 
@@ -776,6 +823,23 @@ export default function Services() {
                     <p className="text-slate-600 text-sm mt-1">
                       If you are not redirected automatically, return and track your order using the reference above.
                     </p>
+
+                    {pendingOrderNumber && (
+                      <div className="mt-5 flex gap-3 justify-center">
+                        <Link
+                          to={`/payment-result?order=${encodeURIComponent(pendingOrderNumber)}`}
+                          className="px-5 py-2 bg-[#1C3D5A] text-white font-bold rounded-xl hover:bg-[#152f45] transition"
+                        >
+                          Check payment status
+                        </Link>
+                        <Link
+                          to="/orders"
+                          className="px-5 py-2 border-2 border-[#1C3D5A] text-[#1C3D5A] font-bold rounded-xl hover:bg-[#1C3D5A]/5 transition"
+                        >
+                          Track order
+                        </Link>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
