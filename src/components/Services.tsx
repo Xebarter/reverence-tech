@@ -11,7 +11,7 @@ import {
   X,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { supabase, adminSupabase } from '../lib/supabase';
+import { supabase } from '../lib/supabase';
 import { isDpoTestMode } from '../lib/dpoTestMode';
 import { describeFunctionsHttpError } from '../lib/describeFunctionsHttpError';
 import DpoSandboxTestCards from './DpoSandboxTestCards';
@@ -200,7 +200,6 @@ export default function Services() {
     setError('');
 
     try {
-      // Create an order record first so the callback can update it.
       const orderData = {
         customer_name: formData.full_name,
         customer_email: formData.email,
@@ -228,62 +227,43 @@ export default function Services() {
         notes: formData.notes || null,
       };
 
-      const { data: inserted, error: insertError } = await adminSupabase
-        .from('orders')
-        .insert([orderData])
-        .select()
-        .single();
+      // Use Vercel Serverless (/api) in production, so DPO sees an HTTPS origin and
+      // the server-to-server call comes from your Vercel deployment (not the browser).
+      const redirectUrl = `${window.location.origin}/payment-result`;
 
-      if (insertError) throw insertError;
-      if (!inserted?.order_number) throw new Error('Order number was not created.');
-
-      setPendingOrderNumber(inserted.order_number);
-
-      // Create a DPO token server-side, then redirect the customer.
-      const redirectUrl = `${window.location.origin}/payment-result?order=${encodeURIComponent(
-        inserted.order_number
-      )}`;
-
-      const {
-        data: tokenData,
-        error: tokenError,
-      } = await supabase.functions.invoke('create-dpo-service-payment', {
-        body: {
-          orderNumber: inserted.order_number,
-          amount: formData.amount,
-          currency: 'UGX',
-          serviceName: selectedService.package_name,
-          customer: {
-            fullName: formData.full_name,
-            email: formData.email,
-            phone: formData.phone,
-            company: formData.company || null,
+      const resp = await fetch('/api/dpo/create-token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          order: orderData,
+          payment: {
+            amount: formData.amount,
+            currency: 'UGX',
+            serviceName: selectedService.package_name,
+            customer: {
+              fullName: formData.full_name,
+              email: formData.email,
+              phone: formData.phone,
+              company: formData.company || null,
+            },
+            redirectUrl,
           },
-          redirectUrl,
-        },
+        }),
       });
 
-      if (tokenError) {
-        const detail = await describeFunctionsHttpError(tokenError);
-        throw new Error(detail || tokenError.message);
-      }
-      type CreateDpoServicePaymentResponse = {
-        redirectUrl?: string;
-        transRef?: string;
-        orderNumber?: string;
-      };
-      const tokenResponse = tokenData as CreateDpoServicePaymentResponse | null;
-      const dpoRedirectUrl = tokenResponse?.redirectUrl;
-      const transRef = tokenResponse?.transRef;
+      const json = (await resp.json().catch(() => null)) as
+        | { orderNumber?: string; redirectUrl?: string; error?: string; hint?: string }
+        | null;
 
-      if (!dpoRedirectUrl) throw new Error('Failed to create DPO payment session.');
-
-      if (transRef) {
-        await adminSupabase
-          .from('orders')
-          .update({ payment_reference: transRef })
-          .eq('id', inserted.id);
+      if (!resp.ok) {
+        throw new Error(json?.hint || json?.error || `Failed to initiate payment (HTTP ${resp.status})`);
       }
+
+      const orderNumber = json?.orderNumber;
+      const dpoRedirectUrl = json?.redirectUrl;
+      if (!orderNumber || !dpoRedirectUrl) throw new Error('Failed to create DPO payment session.');
+
+      setPendingOrderNumber(orderNumber);
 
       setCheckoutStep('processing');
       window.location.href = dpoRedirectUrl;

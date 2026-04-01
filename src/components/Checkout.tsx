@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { ArrowLeft, CreditCard, Smartphone, Building2, Wallet, MapPin, Package, CheckCircle2, AlertCircle, Loader2, ShieldCheck } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
-import { adminSupabase, supabase } from '../lib/supabase';
+import { adminSupabase } from '../lib/supabase';
 import { useCart } from '../CartContext';
 import { isDpoTestMode } from '../lib/dpoTestMode';
 import DpoSandboxTestCards from './DpoSandboxTestCards';
@@ -147,6 +147,45 @@ export default function Checkout({ onClose }: CheckoutProps) {
         notes: formData.notes || null,
       };
 
+      if (isDpoPayment) {
+        const redirectUrl = `${window.location.origin}/payment-result`;
+
+        const resp = await fetch('/api/dpo/create-token', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            order: orderData,
+            payment: {
+              amount: calculateTotal(),
+              currency: 'UGX',
+              serviceName: 'Shop Order',
+              customer: {
+                fullName: formData.customer_name,
+                email: formData.customer_email,
+                phone: formData.customer_phone,
+              },
+              redirectUrl,
+            },
+          }),
+        });
+
+        const json = (await resp.json().catch(() => null)) as
+          | { orderNumber?: string; redirectUrl?: string; error?: string; hint?: string }
+          | null;
+
+        if (!resp.ok) {
+          throw new Error(json?.hint || json?.error || `Failed to initiate payment (HTTP ${resp.status})`);
+        }
+
+        const orderNumberFromApi = json?.orderNumber;
+        const dpoRedirectUrl = json?.redirectUrl;
+        if (!orderNumberFromApi || !dpoRedirectUrl) throw new Error('Failed to create DPO payment session.');
+
+        clearCart();
+        window.location.href = `${dpoRedirectUrl}`;
+        return;
+      }
+
       const { data, error: insertError } = await adminSupabase
         .from('orders')
         .insert([orderData])
@@ -154,54 +193,6 @@ export default function Checkout({ onClose }: CheckoutProps) {
         .single();
 
       if (insertError) throw insertError;
-
-      if (isDpoPayment) {
-        const redirectUrl = `${window.location.origin}/payment-result?order=${encodeURIComponent(data.order_number)}`;
-        const {
-          data: tokenData,
-          error: tokenError,
-        } = await supabase.functions.invoke('create-dpo-service-payment', {
-          body: {
-            orderNumber: data.order_number,
-            amount: calculateTotal(),
-            currency: 'UGX',
-            serviceName: `Shop Order ${data.order_number}`,
-            customer: {
-              fullName: formData.customer_name,
-              email: formData.customer_email,
-              phone: formData.customer_phone,
-            },
-            redirectUrl,
-          },
-        });
-
-        if (tokenError) {
-          const detail = await describeFunctionsHttpError(tokenError);
-          throw new Error(detail || tokenError.message);
-        }
-
-        type CreateDpoServicePaymentResponse = {
-          redirectUrl?: string;
-          transRef?: string;
-        };
-
-        const tokenResponse = tokenData as CreateDpoServicePaymentResponse | null;
-        const dpoRedirectUrl = tokenResponse?.redirectUrl;
-        const transRef = tokenResponse?.transRef;
-
-        if (!dpoRedirectUrl) throw new Error('Failed to create DPO payment session.');
-
-        if (transRef) {
-          await adminSupabase
-            .from('orders')
-            .update({ payment_reference: transRef })
-            .eq('id', data.id);
-        }
-
-        clearCart();
-        window.location.href = dpoRedirectUrl;
-        return;
-      }
 
       setOrderNumber(data.order_number);
       setSubmitted(true);
