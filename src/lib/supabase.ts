@@ -188,7 +188,7 @@ export interface CustomerDeposit {
   total_deposited: number;
   remaining_balance: number;
   status: 'pending' | 'confirmed' | 'completed' | 'cancelled';
-  payment_method: 'mobile_money' | 'bank_transfer' | 'cash' | 'other';
+  payment_method: 'dpo' | 'mobile_money' | 'bank_transfer' | 'cash' | 'other';
   payment_reference: string | null;
   notes: string | null;
   admin_notes: string | null;
@@ -208,7 +208,7 @@ export interface Order {
   shipping_address: string;
   city: string;
   country: string;
-  payment_method: 'mobile_money' | 'bank_transfer' | 'cash' | 'other';
+  payment_method: 'dpo' | 'mobile_money' | 'bank_transfer' | 'cash' | 'other';
   payment_status: 'pending' | 'paid' | 'failed' | 'refunded';
   payment_reference: string | null;
   order_status: 'pending' | 'confirmed' | 'processing' | 'shipped' | 'delivered' | 'cancelled';

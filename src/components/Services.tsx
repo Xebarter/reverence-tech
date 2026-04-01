@@ -12,6 +12,9 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase, adminSupabase } from '../lib/supabase';
+import { isDpoTestMode } from '../lib/dpoTestMode';
+import { describeFunctionsHttpError } from '../lib/describeFunctionsHttpError';
+import DpoSandboxTestCards from './DpoSandboxTestCards';
 
 /* -------------------- Types -------------------- */
 interface Service {
@@ -205,7 +208,7 @@ export default function Services() {
         shipping_address: formData.address || 'N/A',
         city: formData.city || 'N/A',
         country: formData.country || 'Uganda',
-        payment_method: 'other' as const,
+        payment_method: 'dpo' as const,
         payment_reference: null,
         payment_status: 'pending' as const,
         order_status: 'pending' as const,
@@ -260,7 +263,10 @@ export default function Services() {
         },
       });
 
-      if (tokenError) throw tokenError;
+      if (tokenError) {
+        const detail = await describeFunctionsHttpError(tokenError);
+        throw new Error(detail || tokenError.message);
+      }
       type CreateDpoServicePaymentResponse = {
         redirectUrl?: string;
         transRef?: string;
@@ -281,9 +287,14 @@ export default function Services() {
 
       setCheckoutStep('processing');
       window.location.href = dpoRedirectUrl;
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.error('DPO payment error:', e);
-      setError(e?.message || 'Failed to initiate payment. Please try again.');
+      const fromHttp = await describeFunctionsHttpError(e);
+      setError(
+        fromHttp ??
+          (e instanceof Error ? e.message : null) ??
+          'Failed to initiate payment. Please try again.',
+      );
       setProcessing(false);
       setCheckoutStep('confirm');
       setPendingOrderNumber('');
@@ -781,6 +792,8 @@ export default function Services() {
                         our system updates your order status automatically. Keep the order reference shown during processing so you can check status anytime.
                       </div>
                     </div>
+
+                    {isDpoTestMode() && <DpoSandboxTestCards className="mt-1" />}
 
                     <div className="flex gap-4">
                       <button

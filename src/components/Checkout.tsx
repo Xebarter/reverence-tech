@@ -2,14 +2,17 @@ import { useState } from 'react';
 import { ArrowLeft, CreditCard, Smartphone, Building2, Wallet, MapPin, Package, CheckCircle2, AlertCircle, Loader2, ShieldCheck } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
-import { adminSupabase } from '../lib/supabase';
+import { adminSupabase, supabase } from '../lib/supabase';
 import { useCart } from '../CartContext';
+import { isDpoTestMode } from '../lib/dpoTestMode';
+import DpoSandboxTestCards from './DpoSandboxTestCards';
+import { describeFunctionsHttpError } from '../lib/describeFunctionsHttpError';
 
 interface CheckoutProps {
   onClose?: () => void;
 }
 
-type PaymentMethod = 'mobile_money' | 'bank_transfer' | 'cash' | 'other';
+type PaymentMethod = 'dpo' | 'mobile_money' | 'bank_transfer' | 'cash' | 'other';
 
 export default function Checkout({ onClose }: CheckoutProps) {
   const navigate = useNavigate();
@@ -26,7 +29,7 @@ export default function Checkout({ onClose }: CheckoutProps) {
     shipping_address: '',
     city: '',
     country: 'Uganda',
-    payment_method: 'mobile_money' as PaymentMethod,
+    payment_method: 'dpo' as PaymentMethod,
     payment_reference: '',
     notes: '',
   });
@@ -35,6 +38,14 @@ export default function Checkout({ onClose }: CheckoutProps) {
     formData.payment_method === 'mobile_money' || formData.payment_method === 'bank_transfer';
 
   const paymentVerification = (() => {
+    if (formData.payment_method === 'dpo') {
+      return {
+        title: 'Secure DPO checkout',
+        description:
+          'After placing your order, you will be redirected to DPO Pay to complete your payment securely.',
+      };
+    }
+
     if (formData.payment_method === 'mobile_money' || formData.payment_method === 'bank_transfer') {
       return {
         title: 'Payment verification',
@@ -110,6 +121,7 @@ export default function Checkout({ onClose }: CheckoutProps) {
     }
 
     try {
+      const isDpoPayment = formData.payment_method === 'dpo';
       const orderData = {
         customer_name: formData.customer_name,
         customer_email: formData.customer_email,
@@ -117,8 +129,8 @@ export default function Checkout({ onClose }: CheckoutProps) {
         shipping_address: formData.shipping_address,
         city: formData.city,
         country: formData.country,
-        payment_method: formData.payment_method,
-        payment_reference: formData.payment_reference || null,
+        payment_method: isDpoPayment ? 'dpo' : formData.payment_method,
+        payment_reference: isDpoPayment ? null : formData.payment_reference || null,
         payment_status: 'pending',
         order_status: 'pending',
         total_amount: calculateTotal(),
@@ -143,14 +155,67 @@ export default function Checkout({ onClose }: CheckoutProps) {
 
       if (insertError) throw insertError;
 
+      if (isDpoPayment) {
+        const redirectUrl = `${window.location.origin}/payment-result?order=${encodeURIComponent(data.order_number)}`;
+        const {
+          data: tokenData,
+          error: tokenError,
+        } = await supabase.functions.invoke('create-dpo-service-payment', {
+          body: {
+            orderNumber: data.order_number,
+            amount: calculateTotal(),
+            currency: 'UGX',
+            serviceName: `Shop Order ${data.order_number}`,
+            customer: {
+              fullName: formData.customer_name,
+              email: formData.customer_email,
+              phone: formData.customer_phone,
+            },
+            redirectUrl,
+          },
+        });
+
+        if (tokenError) {
+          const detail = await describeFunctionsHttpError(tokenError);
+          throw new Error(detail || tokenError.message);
+        }
+
+        type CreateDpoServicePaymentResponse = {
+          redirectUrl?: string;
+          transRef?: string;
+        };
+
+        const tokenResponse = tokenData as CreateDpoServicePaymentResponse | null;
+        const dpoRedirectUrl = tokenResponse?.redirectUrl;
+        const transRef = tokenResponse?.transRef;
+
+        if (!dpoRedirectUrl) throw new Error('Failed to create DPO payment session.');
+
+        if (transRef) {
+          await adminSupabase
+            .from('orders')
+            .update({ payment_reference: transRef })
+            .eq('id', data.id);
+        }
+
+        clearCart();
+        window.location.href = dpoRedirectUrl;
+        return;
+      }
+
       setOrderNumber(data.order_number);
       setSubmitted(true);
       
       // Clear cart only after the order record is created.
       clearCart();
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error submitting order:', err);
-      setError('Sorry, we couldn’t place your order. Please check your details and try again.');
+      const fromHttp = await describeFunctionsHttpError(err);
+      setError(
+        fromHttp ??
+          (err instanceof Error ? err.message : null) ??
+          'Sorry, we couldn’t place your order. Please check your details and try again.',
+      );
     } finally {
       setSubmitting(false);
     }
@@ -346,6 +411,7 @@ export default function Checkout({ onClose }: CheckoutProps) {
                 </h2>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
                   {[
+                    { value: 'dpo', label: 'DPO Pay', icon: CreditCard },
                     { value: 'mobile_money', label: 'Mobile Money', icon: Smartphone },
                     { value: 'bank_transfer', label: 'Bank Transfer', icon: Building2 },
                     { value: 'cash', label: 'Cash', icon: Wallet },
@@ -394,8 +460,11 @@ export default function Checkout({ onClose }: CheckoutProps) {
                   <p className="mt-1 text-xs text-slate-500">
                     {isPaymentReferenceRequired
                       ? 'Required for Mobile Money and Bank Transfer.'
-                      : 'You can leave this blank if paying cash.'}
+                      : 'You can leave this blank if paying with DPO, cash, or other methods.'}
                   </p>
+                  {formData.payment_method === 'dpo' && isDpoTestMode() && (
+                    <DpoSandboxTestCards className="mt-4" />
+                  )}
                 </div>
               </div>
 
@@ -463,7 +532,7 @@ export default function Checkout({ onClose }: CheckoutProps) {
                 ) : (
                   <>
                     <CreditCard size={24} />
-                    Place Order
+                    {formData.payment_method === 'dpo' ? 'Proceed to DPO Pay' : 'Place Order'}
                   </>
                 )}
               </button>

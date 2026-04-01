@@ -1,0 +1,16 @@
+# Browser preflight (OPTIONS) does not carry a Supabase JWT the same way as POST.
+# With verify_jwt left at default true, the gateway can return 401 before your code runs,
+# and the browser surfaces that as a CORS failure.
+#
+# Redeploy affected functions after changing this file:
+#   supabase functions deploy create-dpo-service-payment
+#   supabase functions deploy dpo-service-payment-callback
+#
+# Or in Dashboard: Edge Functions → [function] → disable "Enforce JWT verification".
+
+[functions.create-dpo-service-payment]
+verify_jwt = false
+
+# DPO’s servers call this URL; they do not send a Supabase user JWT.
+[functions.dpo-service-payment-callback]
+verify_jwt = false

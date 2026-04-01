@@ -77,3 +77,9 @@ To learn more about the technologies used:
 - [React Documentation](https://react.dev/)
 - [Supabase Documentation](https://supabase.com/docs)
 - [Tailwind CSS Documentation](https://tailwindcss.com/)
+
+## DPO Checkout
+
+For DPO payment setup (secrets, migration, function deploy, and end-to-end test flow), see:
+
+- `DPO_CHECKOUT_SETUP.md`

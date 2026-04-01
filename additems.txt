@@ -1,0 +1,80 @@
+Understanding the Fields
+Company Token
+Unique identifier for a sandbox merchant account. Used to authenticate API requests.
+
+Service Type ID
+Identifies the product or service being purchased. You must supply one of these IDs when creating a payment.
+
+Hosted Payment Page
+After successfully creating a payment token via the API, redirect the customer to the hosted payment page:
+
+
+https://secure.3gdirectpay.com/payv3.php?ID={paymentToken}
+Replace {paymentToken} with the token returned in the API response.
+
+Test card details
+The following test card numbers can be used to simulate successful payments in the sandbox environment.
+
+Supported card schemes
+
+Visa
+
+Mastercard
+
+American Express (Amex)
+
+Cardholder details
+
+Use any valid cardholder name.
+
+Test card details
+
+Field
+
+Value
+
+Cardholder name
+
+Any valid name
+
+Card numbers
+
+5436 8862 6984 8367
+4012 8888 8888 1881
+3456 7890 1234 564
+
+Expiry date
+
+"MM/YY" Any Future Date
+
+CVV
+
+123
+
+Test behaviour
+Transactions using these cards will always return a successful payment result
+
+Decline scenarios and error handling are not supported in the sandbox environment
+
+3D Secure testing is handled separately on a case-by-case basis
+
+Important Notes
+Sandbox transactions are not processed by real banks.
+
+Do not use production credentials in the sandbox environment.
+
+Company Tokens provided here are for testing purposes only.
+
+Production credentials will be issued during onboarding.
+
+Next Steps
+Choose a sandbox test account from the table above
+
+Use the sandbox API endpoint to create a payment request
+
+Redirect the customer to the hosted payment page
+
+Complete the payment using test card details
+
+Verify the transaction result in your integration
+

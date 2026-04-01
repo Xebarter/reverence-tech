@@ -2,13 +2,35 @@ import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type, x-supabase-api-version",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+};
+
+// DPO sits behind CloudFront/WAF. Bare server fetches (e.g. from Supabase Edge) are sometimes
+// blocked unless the request looks like a normal client. Match DPO docs + browser-like UA.
+const dpoUpstreamHeaders: Record<string, string> = {
+  "Content-Type": "application/xml; charset=utf-8",
+  Accept: "application/xml",
+  "User-Agent":
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
+  "Accept-Language": "en-US,en;q=0.9",
 };
 
 function extractXmlValue(xml: string, tagName: string): string | null {
-  const re = new RegExp(`<${tagName}>([\\s\\S]*?)<\\/${tagName}>`);
+  // DPO responses are XML, but tag casing can vary; make matching case-insensitive.
+  const re = new RegExp(`<${tagName}>([\\s\\S]*?)<\\/${tagName}>`, "i");
   const match = xml.match(re);
   return match?.[1]?.trim() ?? null;
+}
+
+function escapeXml(text: string): string {
+  return text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&apos;");
 }
 
 function splitName(fullName: string | undefined | null): {
@@ -82,6 +104,9 @@ serve(async (req) => {
   const serviceType = Deno.env.get("DPO_SERVICE_TYPE");
   const backUrlBase = Deno.env.get("DPO_BACK_URL");
   const apiUrl = Deno.env.get("DPO_API_URL") || "https://secure.3gdirectpay.com/API/v6/";
+  // Hosted page for v6 API tokens (override with DPO_PAYMENT_URL if DPO instructs otherwise)
+  const paymentUrlBase =
+    Deno.env.get("DPO_PAYMENT_URL") || "https://secure.3gdirectpay.com/payv3.php?ID=";
 
   if (!companyToken || !serviceType || !backUrlBase) {
     return new Response(
@@ -99,7 +124,11 @@ serve(async (req) => {
   const delimiter = backUrlBase.includes("?") ? "&" : "?";
   const backUrl = `${backUrlBase}${delimiter}order=${encodeURIComponent(orderNumber)}`;
 
-  const paymentAmount = amount.toFixed(2);
+  // UGX has no minor units; some DPO setups reject "500000.00" — send a whole amount.
+  const paymentAmount =
+    currency.toUpperCase() === "UGX"
+      ? String(Math.max(0, Math.round(amount)))
+      : amount.toFixed(2);
 
   // DPO wants a service date in the example payload; it may be optional, but we include it.
   const now = new Date();
@@ -116,23 +145,23 @@ serve(async (req) => {
   <Transaction>
     <PaymentAmount>${paymentAmount}</PaymentAmount>
     <PaymentCurrency>${currency}</PaymentCurrency>
-    <CompanyRef>${orderNumber}</CompanyRef>
+    <CompanyRef>${escapeXml(String(orderNumber))}</CompanyRef>
 
-    <RedirectURL>${redirectUrl}</RedirectURL>
-    <BackURL>${backUrl}</BackURL>
+    <RedirectURL>${escapeXml(redirectUrl)}</RedirectURL>
+    <BackURL>${escapeXml(backUrl)}</BackURL>
 
     <CompanyRefUnique>0</CompanyRefUnique>
     <PTL>5</PTL>
 
-    <customerFirstName>${firstName}</customerFirstName>
-    <customerLastName>${lastName}</customerLastName>
-    <customerEmail>${customerEmail}</customerEmail>
+    <customerFirstName>${escapeXml(firstName)}</customerFirstName>
+    <customerLastName>${escapeXml(lastName)}</customerLastName>
+    <customerEmail>${escapeXml(customerEmail)}</customerEmail>
   </Transaction>
 
   <Services>
     <Service>
       <ServiceType>${serviceType}</ServiceType>
-      <ServiceDescription>${serviceName}</ServiceDescription>
+      <ServiceDescription>${escapeXml(serviceName)}</ServiceDescription>
       <ServiceDate>${serviceDate}</ServiceDate>
     </Service>
   </Services>
@@ -140,12 +169,21 @@ serve(async (req) => {
 
   const resp = await fetch(apiUrl, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/xml; charset=utf-8",
-      Accept: "application/xml",
-    },
+    headers: dpoUpstreamHeaders,
     body: xmlBody,
+  }).catch((e) => {
+    console.error("[create-dpo-service-payment] Fetch to DPO failed", e);
+    return null;
   });
+
+  if (!resp) {
+    return new Response(
+      JSON.stringify({
+        error: "Failed to reach DPO API",
+      }),
+      { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+    );
+  }
 
   const responseText = await resp.text();
 
@@ -154,7 +192,45 @@ serve(async (req) => {
   const transToken = extractXmlValue(responseText, "TransToken");
   const transRef = extractXmlValue(responseText, "TransRef");
 
+  // If we can't parse the expected XML shape, return a preview for debugging.
+  if (!result && !transToken) {
+    const httpStatus = resp.status;
+    const contentType = resp.headers.get("content-type");
+    const cloudFront403 =
+      httpStatus === 403 &&
+      (responseText.includes("cloudfront") || responseText.toLowerCase().includes("request blocked"));
+
+    console.error("[create-dpo-service-payment] Unexpected DPO response", {
+      httpStatus,
+      contentType,
+      bodyPreview: responseText.slice(0, 800),
+    });
+
+    const hint = cloudFront403
+      ? "DPO returned HTTP 403 from CloudFront (often blocks API calls from cloud datacenters like Supabase Edge). If this persists after deploy, contact DPO support to allow server-to-server access from your host, or run createToken from a small VPS/proxy with an allowed egress IP."
+      : httpStatus >= 400
+        ? "DPO did not return XML (check DPO_API_URL, network reachability, and Supabase function logs)."
+        : undefined;
+
+    return new Response(
+      JSON.stringify({
+        error: "Unexpected response from DPO",
+        httpStatus,
+        contentType,
+        bodyPreview: responseText.slice(0, 800),
+        ...(hint ? { hint } : {}),
+      }),
+      { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+    );
+  }
+
   if (result !== "000") {
+    console.error("[create-dpo-service-payment] DPO non-success", {
+      result,
+      resultExplanation,
+      httpStatus: resp.status,
+      bodyPreview: responseText.slice(0, 400),
+    });
     return new Response(
       JSON.stringify({
         error: "DPO createToken failed",
@@ -165,7 +241,19 @@ serve(async (req) => {
     );
   }
 
-  const redirect = `https://secure.3gdirectpay.com/pay.asp?ID=${transToken}`;
+  if (!transToken) {
+    console.error("[create-dpo-service-payment] Missing TransToken", responseText.slice(0, 500));
+    return new Response(
+      JSON.stringify({
+        error: "DPO response missing payment token",
+        result,
+        resultExplanation,
+      }),
+      { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+    );
+  }
+
+  const redirect = `${paymentUrlBase}${transToken}`;
 
   return new Response(
     JSON.stringify({
