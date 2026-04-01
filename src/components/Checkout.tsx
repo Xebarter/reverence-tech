@@ -4,8 +4,6 @@ import { motion } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
 import { adminSupabase } from '../lib/supabase';
 import { useCart } from '../CartContext';
-import { isDpoTestMode } from '../lib/dpoTestMode';
-import DpoSandboxTestCards from './DpoSandboxTestCards';
 import { describeFunctionsHttpError } from '../lib/describeFunctionsHttpError';
 import { initiateDpoCheckout } from '../lib/initiateDpoCheckout';
 
@@ -435,9 +433,6 @@ export default function Checkout({ onClose }: CheckoutProps) {
                       ? 'Required for Mobile Money and Bank Transfer.'
                       : 'You can leave this blank if paying with DPO, cash, or other methods.'}
                   </p>
-                  {formData.payment_method === 'dpo' && isDpoTestMode() && (
-                    <DpoSandboxTestCards className="mt-4" />
-                  )}
                 </div>
               </div>
 

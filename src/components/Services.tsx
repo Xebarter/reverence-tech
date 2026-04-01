@@ -12,10 +12,8 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../lib/supabase';
-import { isDpoTestMode } from '../lib/dpoTestMode';
 import { describeFunctionsHttpError } from '../lib/describeFunctionsHttpError';
 import { initiateDpoCheckout } from '../lib/initiateDpoCheckout';
-import DpoSandboxTestCards from './DpoSandboxTestCards';
 
 /* -------------------- Types -------------------- */
 interface Service {
@@ -754,8 +752,6 @@ export default function Services() {
                         our system updates your order status automatically. Keep the order reference shown during processing so you can check status anytime.
                       </div>
                     </div>
-
-                    {isDpoTestMode() && <DpoSandboxTestCards className="mt-1" />}
 
                     <div className="flex gap-4">
                       <button
