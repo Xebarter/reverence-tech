@@ -14,6 +14,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../lib/supabase';
 import { isDpoTestMode } from '../lib/dpoTestMode';
 import { describeFunctionsHttpError } from '../lib/describeFunctionsHttpError';
+import { initiateDpoCheckout } from '../lib/initiateDpoCheckout';
 import DpoSandboxTestCards from './DpoSandboxTestCards';
 
 /* -------------------- Types -------------------- */
@@ -231,37 +232,18 @@ export default function Services() {
       // the server-to-server call comes from your Vercel deployment (not the browser).
       const redirectUrl = `${window.location.origin}/payment-result`;
 
-      const resp = await fetch('/api/dpo/create-token', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          order: orderData,
-          payment: {
-            amount: formData.amount,
-            currency: 'UGX',
-            serviceName: selectedService.package_name,
-            customer: {
-              fullName: formData.full_name,
-              email: formData.email,
-              phone: formData.phone,
-              company: formData.company || null,
-            },
-            redirectUrl,
-          },
-        }),
+      const { orderNumber, redirectUrl: dpoRedirectUrl } = await initiateDpoCheckout(orderData, {
+        amount: formData.amount,
+        currency: 'UGX',
+        serviceName: selectedService.package_name,
+        customer: {
+          fullName: formData.full_name,
+          email: formData.email,
+          phone: formData.phone,
+          company: formData.company || null,
+        },
+        redirectUrl,
       });
-
-      const json = (await resp.json().catch(() => null)) as
-        | { orderNumber?: string; redirectUrl?: string; error?: string; hint?: string }
-        | null;
-
-      if (!resp.ok) {
-        throw new Error(json?.hint || json?.error || `Failed to initiate payment (HTTP ${resp.status})`);
-      }
-
-      const orderNumber = json?.orderNumber;
-      const dpoRedirectUrl = json?.redirectUrl;
-      if (!orderNumber || !dpoRedirectUrl) throw new Error('Failed to create DPO payment session.');
 
       setPendingOrderNumber(orderNumber);
 

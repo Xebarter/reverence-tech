@@ -7,6 +7,7 @@ import { useCart } from '../CartContext';
 import { isDpoTestMode } from '../lib/dpoTestMode';
 import DpoSandboxTestCards from './DpoSandboxTestCards';
 import { describeFunctionsHttpError } from '../lib/describeFunctionsHttpError';
+import { initiateDpoCheckout } from '../lib/initiateDpoCheckout';
 
 interface CheckoutProps {
   onClose?: () => void;
@@ -150,39 +151,20 @@ export default function Checkout({ onClose }: CheckoutProps) {
       if (isDpoPayment) {
         const redirectUrl = `${window.location.origin}/payment-result`;
 
-        const resp = await fetch('/api/dpo/create-token', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            order: orderData,
-            payment: {
-              amount: calculateTotal(),
-              currency: 'UGX',
-              serviceName: 'Shop Order',
-              customer: {
-                fullName: formData.customer_name,
-                email: formData.customer_email,
-                phone: formData.customer_phone,
-              },
-              redirectUrl,
-            },
-          }),
+        const { redirectUrl: dpoRedirectUrl } = await initiateDpoCheckout(orderData, {
+          amount: calculateTotal(),
+          currency: 'UGX',
+          serviceName: 'Shop Order',
+          customer: {
+            fullName: formData.customer_name,
+            email: formData.customer_email,
+            phone: formData.customer_phone,
+          },
+          redirectUrl,
         });
 
-        const json = (await resp.json().catch(() => null)) as
-          | { orderNumber?: string; redirectUrl?: string; error?: string; hint?: string }
-          | null;
-
-        if (!resp.ok) {
-          throw new Error(json?.hint || json?.error || `Failed to initiate payment (HTTP ${resp.status})`);
-        }
-
-        const orderNumberFromApi = json?.orderNumber;
-        const dpoRedirectUrl = json?.redirectUrl;
-        if (!orderNumberFromApi || !dpoRedirectUrl) throw new Error('Failed to create DPO payment session.');
-
         clearCart();
-        window.location.href = `${dpoRedirectUrl}`;
+        window.location.href = dpoRedirectUrl;
         return;
       }
 

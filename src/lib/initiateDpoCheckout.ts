@@ -1,0 +1,106 @@
+import { adminSupabase, supabase } from './supabase';
+
+export type DpoCheckoutOrderPayload = Record<string, unknown>;
+
+export type DpoCheckoutPaymentPayload = {
+  amount: number;
+  currency?: string;
+  serviceName: string;
+  redirectUrl: string;
+  customer?: {
+    fullName?: string;
+    email?: string;
+    phone?: string;
+    company?: string | null;
+  };
+};
+
+type ApiSuccess = { orderNumber: string; redirectUrl: string; transRef?: string; transToken?: string };
+type ApiFailure = { error?: string; hint?: string };
+
+function isProbablyMissingApiRoute(resp: Response): boolean {
+  // Vite dev server commonly returns 404 (or 405) for /api/* when not proxying to Vercel functions.
+  return resp.status === 404 || resp.status === 405;
+}
+
+async function tryCreateViaApi(order: DpoCheckoutOrderPayload, payment: DpoCheckoutPaymentPayload): Promise<ApiSuccess> {
+  const resp = await fetch('/api/dpo/create-token', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ order, payment }),
+  });
+
+  const json = (await resp.json().catch(() => null)) as (ApiSuccess & ApiFailure) | null;
+
+  if (!resp.ok) {
+    if (isProbablyMissingApiRoute(resp)) {
+      throw new Error('__DPO_FALLBACK_TO_EDGE_FUNCTION__');
+    }
+    throw new Error(json?.hint || json?.error || `Failed to initiate payment (HTTP ${resp.status})`);
+  }
+
+  const orderNumber = json?.orderNumber;
+  const redirectUrl = json?.redirectUrl;
+  if (!orderNumber || !redirectUrl) throw new Error('Failed to create DPO payment session.');
+
+  return { orderNumber, redirectUrl, transRef: json?.transRef, transToken: json?.transToken };
+}
+
+async function createViaEdgeFunction(order: DpoCheckoutOrderPayload, payment: DpoCheckoutPaymentPayload): Promise<ApiSuccess> {
+  // 1) Create order in DB (needs elevated privileges; this project already uses adminSupabase client-side)
+  const { data: inserted, error: insertError } = await adminSupabase
+    .from('orders')
+    .insert([order])
+    .select('order_number')
+    .single();
+
+  if (insertError) {
+    throw new Error(insertError.message);
+  }
+
+  const orderNumber = (inserted as any)?.order_number as string | undefined;
+  if (!orderNumber) throw new Error('Order created but missing order_number');
+
+  // 2) Ask Supabase Edge Function to create the DPO payment token
+  const { data, error } = await supabase.functions.invoke('create-dpo-service-payment', {
+    body: {
+      orderNumber,
+      amount: payment.amount,
+      currency: payment.currency || 'UGX',
+      serviceName: payment.serviceName,
+      redirectUrl: payment.redirectUrl,
+      customer: payment.customer,
+    },
+  });
+
+  if (error) {
+    throw new Error(error.message || 'Failed to initiate payment');
+  }
+
+  const redirectUrl = (data as any)?.redirectUrl as string | undefined;
+  if (!redirectUrl) throw new Error('Failed to create DPO payment session.');
+
+  return {
+    orderNumber,
+    redirectUrl,
+    transRef: (data as any)?.transRef,
+    transToken: (data as any)?.transToken,
+  };
+}
+
+export async function initiateDpoCheckout(order: DpoCheckoutOrderPayload, payment: DpoCheckoutPaymentPayload): Promise<ApiSuccess> {
+  try {
+    return await tryCreateViaApi(order, payment);
+  } catch (e) {
+    if (e instanceof Error && e.message === '__DPO_FALLBACK_TO_EDGE_FUNCTION__') {
+      return await createViaEdgeFunction(order, payment);
+    }
+    // Network error / CORS / etc: also try edge function once (helps local dev)
+    try {
+      return await createViaEdgeFunction(order, payment);
+    } catch {
+      throw e;
+    }
+  }
+}
+
