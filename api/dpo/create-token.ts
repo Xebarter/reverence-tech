@@ -60,6 +60,17 @@ function splitName(fullName: string | undefined | null): { firstName: string; la
   return { firstName: parts[0], lastName: parts.slice(1).join(' ') };
 }
 
+function withOrderParam(input: string, orderNumber: string): string {
+  try {
+    const url = new URL(input);
+    url.searchParams.set('order', orderNumber);
+    return url.toString();
+  } catch {
+    const delimiter = input.includes('?') ? '&' : '?';
+    return `${input}${delimiter}order=${encodeURIComponent(orderNumber)}`;
+  }
+}
+
 type CreateTokenBody = {
   // Order payload to insert into `orders` (server-side using service role)
   order: Record<string, unknown>;
@@ -159,6 +170,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const delimiter = backUrlBase.includes('?') ? '&' : '?';
   const backUrl = `${backUrlBase}${delimiter}order=${encodeURIComponent(orderNumber)}`;
 
+  // Ensure the customer returns to a URL that includes the order number,
+  // since the frontend status page relies on `?order=` to look up the record.
+  const redirectUrlWithOrder = withOrderParam(redirectUrl, orderNumber);
+
   // DPO docs show decimals; UGX often expects whole numbers. Keep UGX whole, others fixed(2).
   const paymentAmount = currency.toUpperCase() === 'UGX' ? String(Math.round(amount)) : amount.toFixed(2);
 
@@ -178,7 +193,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     <PaymentCurrency>${escapeXml(currency)}</PaymentCurrency>
     <CompanyRef>${escapeXml(orderNumber)}</CompanyRef>
 
-    <RedirectURL>${escapeXml(redirectUrl)}</RedirectURL>
+    <RedirectURL>${escapeXml(redirectUrlWithOrder)}</RedirectURL>
     <BackURL>${escapeXml(backUrl)}</BackURL>
 
     <CompanyRefUnique>0</CompanyRefUnique>

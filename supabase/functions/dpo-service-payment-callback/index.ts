@@ -2,7 +2,8 @@ import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.4";
 
 function extractXmlValue(xml: string, tagName: string): string | null {
-  const re = new RegExp(`<${tagName}>([\\s\\S]*?)<\\/${tagName}>`);
+  // DPO tag casing can vary; match case-insensitively.
+  const re = new RegExp(`<${tagName}>([\\s\\S]*?)<\\/${tagName}>`, "i");
   const match = xml.match(re);
   return match?.[1]?.trim() ?? null;
 }
@@ -74,8 +75,20 @@ serve(async (req) => {
       );
     }
 
-    const { error: updateError } = await query;
+    // Select a lightweight column so we can detect "matched 0 rows" and surface it.
+    const { data: updatedRows, error: updateError } = await query.select("id");
     if (updateError) throw updateError;
+    if (!updatedRows || updatedRows.length === 0) {
+      return new Response(
+        JSON.stringify({
+          error: "No matching order found to update.",
+          result,
+          transRef,
+          orderNumber,
+        }),
+        { status: 404, headers: { "Content-Type": "application/json" } },
+      );
+    }
 
     return new Response(
       JSON.stringify({

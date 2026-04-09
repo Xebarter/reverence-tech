@@ -73,6 +73,17 @@ function splitName(fullName: string | undefined | null): {
   return { firstName: parts[0], lastName: parts.slice(1).join(" ") };
 }
 
+function withOrderParam(input: string, orderNumber: string): string {
+  try {
+    const url = new URL(input);
+    url.searchParams.set("order", orderNumber);
+    return url.toString();
+  } catch {
+    const delimiter = input.includes("?") ? "&" : "?";
+    return `${input}${delimiter}order=${encodeURIComponent(orderNumber)}`;
+  }
+}
+
 type CreateDpoServicePaymentPayload = {
   orderNumber: string;
   amount: number;
@@ -154,6 +165,9 @@ serve(async (req) => {
   const delimiter = backUrlBase.includes("?") ? "&" : "?";
   const backUrl = `${backUrlBase}${delimiter}order=${encodeURIComponent(orderNumber)}`;
 
+  // Ensure the customer returns with `?order=` so the frontend status page can load the order.
+  const redirectUrlWithOrder = withOrderParam(redirectUrl, orderNumber);
+
   // UGX has no minor units; some DPO setups reject "500000.00" — send a whole amount.
   const paymentAmount =
     currency.toUpperCase() === "UGX"
@@ -177,7 +191,7 @@ serve(async (req) => {
     <PaymentCurrency>${currency}</PaymentCurrency>
     <CompanyRef>${escapeXml(String(orderNumber))}</CompanyRef>
 
-    <RedirectURL>${escapeXml(redirectUrl)}</RedirectURL>
+    <RedirectURL>${escapeXml(redirectUrlWithOrder)}</RedirectURL>
     <BackURL>${escapeXml(backUrl)}</BackURL>
 
     <CompanyRefUnique>0</CompanyRefUnique>
