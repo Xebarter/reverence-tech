@@ -205,7 +205,8 @@ serve(async (req) => {
 
   const result = extractXmlValue(responseText, "Result");
   const resultExplanation = extractXmlValue(responseText, "ResultExplanation");
-  const transToken = extractXmlValue(responseText, "TransToken");
+  const transTokenRaw = extractXmlValue(responseText, "TransToken");
+  const transToken = transTokenRaw ? transTokenRaw.replace(/^TransToken/i, "").trim() : null;
   const transRef = extractXmlValue(responseText, "TransRef");
 
   // If we can't parse the expected XML shape, return a preview for debugging.

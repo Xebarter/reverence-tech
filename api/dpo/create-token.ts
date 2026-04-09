@@ -199,7 +199,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const responseText = await dpoResp.text();
   const result = extractXmlValue(responseText, 'Result');
   const resultExplanation = extractXmlValue(responseText, 'ResultExplanation');
-  const transToken = extractXmlValue(responseText, 'TransToken');
+  const transTokenRaw = extractXmlValue(responseText, 'TransToken');
+  // Some integrations/documentation prefix the UUID with "TransToken". The hosted payment page
+  // expects the raw token value (usually a UUID).
+  const transToken = transTokenRaw ? transTokenRaw.replace(/^TransToken/i, '').trim() : null;
   const transRef = extractXmlValue(responseText, 'TransRef');
 
   if (!result && !transToken) {
