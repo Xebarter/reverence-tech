@@ -13,6 +13,8 @@ function isProbablyMissingApiRoute(resp: Response): boolean {
   return resp.status === 404 || resp.status === 405;
 }
 
+// ── Read-only status fetch (unchanged) ──
+
 async function fetchViaApi(orderNumber: string, token: string): Promise<OrderStatusSnapshot> {
   const resp = await fetch(
     `/api/orders/status?order=${encodeURIComponent(orderNumber)}&t=${encodeURIComponent(token)}`,
@@ -69,3 +71,68 @@ export async function fetchOrderStatus(orderNumber: string, token: string): Prom
   }
 }
 
+// ── Active confirmation: tells the server to verify with DPO + update DB now ──
+
+export type ConfirmDpoResultParams = {
+  orderNumber: string;
+  statusToken: string;
+  dpoResult: string;
+  transRef?: string;
+};
+
+async function confirmViaApi(params: ConfirmDpoResultParams): Promise<OrderStatusSnapshot> {
+  const resp = await fetch('/api/orders/confirm-dpo-result', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(params),
+  });
+
+  const json = (await resp.json().catch(() => null)) as (ApiOk & ApiErr) | null;
+
+  if (!resp.ok) {
+    if (isProbablyMissingApiRoute(resp)) {
+      throw new Error('__CONFIRM_FALLBACK_TO_EDGE_FUNCTION__');
+    }
+    throw new Error(json?.error || `Confirm failed (HTTP ${resp.status})`);
+  }
+
+  return {
+    payment_status: (json?.payment_status as OrderStatusSnapshot['payment_status']) ?? null,
+    payment_reference: (json?.payment_reference as string | null) ?? null,
+    order_status: (json?.order_status as string | null) ?? null,
+  };
+}
+
+async function confirmViaEdgeFunction(params: ConfirmDpoResultParams): Promise<OrderStatusSnapshot> {
+  const { data, error } = await supabase.functions.invoke('confirm-dpo-result', {
+    body: params,
+  });
+
+  if (error) {
+    throw new Error(error.message || 'Failed to confirm payment');
+  }
+
+  return {
+    payment_status: ((data as any)?.payment_status as OrderStatusSnapshot['payment_status']) ?? null,
+    payment_reference: ((data as any)?.payment_reference as string | null) ?? null,
+    order_status: ((data as any)?.order_status as string | null) ?? null,
+  };
+}
+
+export async function confirmDpoResult(params: ConfirmDpoResultParams): Promise<OrderStatusSnapshot> {
+  try {
+    return await confirmViaApi(params);
+  } catch (e) {
+    if (e instanceof Error && e.message === '__CONFIRM_FALLBACK_TO_EDGE_FUNCTION__') {
+      return await confirmViaEdgeFunction(params);
+    }
+    if (import.meta.env.DEV) {
+      try {
+        return await confirmViaEdgeFunction(params);
+      } catch {
+        throw e;
+      }
+    }
+    throw e;
+  }
+}

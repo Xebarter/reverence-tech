@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { CheckCircle2, Clock, XCircle, ShieldCheck, RefreshCw } from 'lucide-react';
-import { fetchOrderStatus } from '../lib/fetchOrderStatus';
+import { CheckCircle2, Clock, XCircle, RefreshCw } from 'lucide-react';
+import { fetchOrderStatus, confirmDpoResult } from '../lib/fetchOrderStatus';
 import { adminSupabase } from '../lib/supabase';
 
 type PaymentStatus = 'paid' | 'failed' | 'pending' | 'refunded' | null;
@@ -10,32 +10,68 @@ type PaymentStatus = 'paid' | 'failed' | 'pending' | 'refunded' | null;
 export default function PaymentResult() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+
   const orderNumber = searchParams.get('order') || '';
   const statusToken = searchParams.get('t') || '';
 
-  // DPO appends Result + TransRef to the RedirectURL after payment.
-  // Result=000 → success, 002/003 → failed, 001 → not paid yet.
-  const dpoResultInUrl = searchParams.get('Result') || searchParams.get('result') || '';
-  const dpoTransRefInUrl = searchParams.get('TransRef') || searchParams.get('transRef') || '';
-  const dpoSaysSuccess = dpoResultInUrl === '000';
-  const dpoSaysFailed = dpoResultInUrl === '002' || dpoResultInUrl === '003';
+  // DPO appends these to the RedirectURL after payment completes.
+  const dpoResult = searchParams.get('Result') || searchParams.get('result') || '';
+  const dpoTransRef = searchParams.get('TransRef') || searchParams.get('transRef') || '';
+
+  const dpoSaysSuccess = dpoResult === '000';
+  const dpoSaysFailed = dpoResult === '002' || dpoResult === '003';
 
   const canFetch = useMemo(() => Boolean(orderNumber && statusToken), [orderNumber, statusToken]);
 
+  // When DPO says success in the URL, show paid *immediately* — don't wait for the DB.
+  const [paymentStatus, setPaymentStatus] = useState<PaymentStatus>(
+    dpoSaysSuccess ? 'paid' : dpoSaysFailed ? 'failed' : null,
+  );
+  const [paymentReference, setPaymentReference] = useState<string | null>(dpoTransRef || null);
+  const [orderStatus, setOrderStatus] = useState<string | null>(
+    dpoSaysSuccess ? 'confirmed' : null,
+  );
   const [loading, setLoading] = useState(false);
-  const [paymentStatus, setPaymentStatus] = useState<PaymentStatus>(null);
-  const [paymentReference, setPaymentReference] = useState<string | null>(null);
-  const [orderStatus, setOrderStatus] = useState<string | null>(null);
   const [error, setError] = useState('');
   const [polling, setPolling] = useState(false);
-  const [refreshNonce, setRefreshNonce] = useState(0);
   const [lastCheckedAt, setLastCheckedAt] = useState<string | null>(null);
 
-  // Track interval externally so manual refresh can cancel it immediately.
   const intervalRef = useRef<number | undefined>(undefined);
+  const confirmFired = useRef(false);
 
+  const now = () =>
+    new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+
+  // ── Path A: DPO gave us a result in the URL → confirm with server immediately ──
+  useEffect(() => {
+    if (!orderNumber || !statusToken || confirmFired.current) return;
+    if (!dpoSaysSuccess && !dpoSaysFailed) return;
+
+    confirmFired.current = true;
+
+    (async () => {
+      try {
+        const snapshot = await confirmDpoResult({
+          orderNumber,
+          statusToken,
+          dpoResult,
+          transRef: dpoTransRef || undefined,
+        });
+
+        setPaymentStatus((snapshot.payment_status as PaymentStatus) || paymentStatus);
+        setPaymentReference(snapshot.payment_reference || dpoTransRef || null);
+        setOrderStatus(snapshot.order_status || orderStatus);
+        setLastCheckedAt(now());
+      } catch {
+        // Server couldn't confirm — the optimistic UI from DPO's redirect still shows.
+        // The DB will eventually catch up via the BackURL callback.
+        setLastCheckedAt(now());
+      }
+    })();
+  }, [orderNumber, statusToken, dpoResult, dpoTransRef]);
+
+  // ── Path B: No DPO result in URL (e.g. user navigated here manually) → poll ──
   const handleRefresh = () => {
-    // Cancel any running poll so the new fetch isn't blocked.
     if (intervalRef.current !== undefined) {
       window.clearInterval(intervalRef.current);
       intervalRef.current = undefined;
@@ -44,17 +80,20 @@ export default function PaymentResult() {
     setRefreshNonce((n) => n + 1);
   };
 
+  const [refreshNonce, setRefreshNonce] = useState(0);
+
   useEffect(() => {
+    // Skip polling entirely when DPO already told us the result.
+    if (dpoSaysSuccess || dpoSaysFailed) return;
     if (!orderNumber) return;
 
     let isMounted = true;
     let attempts = 0;
-    const maxAttempts = 24; // ~2 minutes at 5 s intervals
+    const maxAttempts = 24;
     const intervalMs = 5000;
 
     const fetchStatus = async () => {
       if (!isMounted) return null;
-
       setError('');
       try {
         const snapshot = canFetch
@@ -73,27 +112,17 @@ export default function PaymentResult() {
               };
             })();
 
-        const nextStatus = (snapshot?.payment_status as PaymentStatus) || null;
-        const nextRef = snapshot?.payment_reference ?? null;
-        const nextOrderStatus = snapshot?.order_status ?? null;
-
         if (!isMounted) return null;
 
-        setPaymentStatus(nextStatus);
-        setPaymentReference(nextRef || dpoTransRefInUrl || null);
-        setOrderStatus(nextOrderStatus);
-        setLastCheckedAt(
-          new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
-        );
-
-        return nextStatus;
+        const next = (snapshot?.payment_status as PaymentStatus) || null;
+        setPaymentStatus(next);
+        setPaymentReference(snapshot?.payment_reference ?? null);
+        setOrderStatus(snapshot?.order_status ?? null);
+        setLastCheckedAt(now());
+        return next;
       } catch {
-        if (isMounted) {
-          setError('Failed to check payment status. Please try again.');
-          setLastCheckedAt(
-            new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
-          );
-        }
+        if (isMounted) setError('Failed to check payment status. Please try again.');
+        setLastCheckedAt(now());
         return null;
       }
     };
@@ -102,20 +131,16 @@ export default function PaymentResult() {
       setLoading(true);
       setError('');
       setPolling(false);
-      setLastCheckedAt(null);
 
-      const initialStatus = await fetchStatus();
+      const initial = await fetchStatus();
       if (!isMounted) return;
       setLoading(false);
 
-      const isTerminal = initialStatus && initialStatus !== 'pending';
-      if (isTerminal) return;
+      if (initial && initial !== 'pending') return;
 
-      // Only auto-poll if status is still uncertain.
       setPolling(true);
       intervalRef.current = window.setInterval(async () => {
         if (!isMounted) return;
-
         attempts += 1;
         if (attempts >= maxAttempts) {
           window.clearInterval(intervalRef.current);
@@ -123,7 +148,6 @@ export default function PaymentResult() {
           if (isMounted) setPolling(false);
           return;
         }
-
         const next = await fetchStatus();
         if (next && next !== 'pending') {
           window.clearInterval(intervalRef.current);
@@ -140,31 +164,28 @@ export default function PaymentResult() {
         intervalRef.current = undefined;
       }
     };
-  }, [canFetch, orderNumber, refreshNonce, statusToken]);
+  }, [canFetch, orderNumber, refreshNonce, statusToken, dpoSaysSuccess, dpoSaysFailed]);
 
+  // ── Auto-navigate to orders page after paid ──
   useEffect(() => {
     if (paymentStatus !== 'paid' || !orderNumber) return;
     const id = window.setTimeout(() => {
       navigate(`/orders?order=${encodeURIComponent(orderNumber)}`);
-    }, 2500);
+    }, 3000);
     return () => window.clearTimeout(id);
   }, [navigate, orderNumber, paymentStatus]);
 
-  // --- Derive display status (DB is authoritative; DPO URL is a hint only) ---
-  const displayStatus: PaymentStatus =
-    paymentStatus ??
-    (dpoSaysSuccess ? 'pending' : dpoSaysFailed ? 'failed' : null);
-
+  // ── UI rendering ──
   const statusConfig =
-    displayStatus === 'paid'
-      ? { icon: CheckCircle2, label: 'Payment received', tone: 'emerald' }
-      : displayStatus === 'failed'
+    paymentStatus === 'paid'
+      ? { icon: CheckCircle2, label: 'Payment successful', tone: 'emerald' }
+      : paymentStatus === 'failed'
         ? { icon: XCircle, label: 'Payment failed', tone: 'red' }
-        : displayStatus === 'refunded'
+        : paymentStatus === 'refunded'
           ? { icon: XCircle, label: 'Payment refunded', tone: 'slate' }
-          : displayStatus === 'pending'
+          : paymentStatus === 'pending'
             ? { icon: Clock, label: 'Payment pending', tone: 'amber' }
-            : { icon: ShieldCheck, label: 'Verifying payment…', tone: 'slate' };
+            : { icon: Clock, label: 'Checking payment status…', tone: 'slate' };
 
   const Icon = statusConfig.icon;
 
@@ -177,7 +198,7 @@ export default function PaymentResult() {
           ? 'text-amber-600'
           : 'text-slate-600';
 
-  const showRefresh = displayStatus === 'pending' || displayStatus === null;
+  const showRefresh = !dpoSaysSuccess && (paymentStatus === 'pending' || paymentStatus === null);
 
   return (
     <section className="py-24 px-4 bg-gradient-to-b from-slate-50 to-white min-h-screen">
@@ -188,27 +209,17 @@ export default function PaymentResult() {
           viewport={{ once: true }}
           className="text-center"
         >
-          <h1 className="text-4xl font-extrabold text-slate-900 mb-4">
+          <div className="flex items-center justify-center mb-4">
+            <Icon size={48} className={iconClass} />
+          </div>
+
+          <h1 className="text-4xl font-extrabold text-slate-900 mb-2">
             {statusConfig.label}
           </h1>
 
-          <div className="flex items-center justify-center gap-3 mb-6">
-            <Icon size={20} className={iconClass} />
-            <div className="text-sm text-slate-600">
-              {orderNumber ? (
-                <>
-                  Order: <span className="font-mono font-bold">{orderNumber}</span>
-                </>
-              ) : (
-                'Payment session completed'
-              )}
-            </div>
-          </div>
-
-          {/* DPO URL hint banner — shown only while DB status hasn't resolved yet */}
-          {dpoSaysSuccess && (displayStatus === 'pending' || displayStatus === null) && !loading && (
-            <div className="mb-4 p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-sm text-emerald-800 font-medium">
-              DPO reports the payment was successful — confirming with our system…
+          {orderNumber && (
+            <div className="text-sm text-slate-500 mb-6">
+              Order: <span className="font-mono font-bold text-slate-700">{orderNumber}</span>
             </div>
           )}
 
@@ -241,30 +252,28 @@ export default function PaymentResult() {
           )}
 
           <div className="bg-white rounded-2xl shadow-lg border-2 border-slate-100 p-6 text-left">
-            {displayStatus === 'paid' ? (
+            {paymentStatus === 'paid' ? (
               <p className="text-slate-700">
-                Thanks for your payment. Our team will follow up with next steps for your service
-                request.
+                Thanks for your payment! Our team will follow up with next steps for your order.
+                Redirecting to order tracking…
               </p>
-            ) : displayStatus === 'failed' ? (
+            ) : paymentStatus === 'failed' ? (
               <p className="text-slate-700">
                 The payment did not complete. Please try again, or contact us with your order
                 reference.
               </p>
-            ) : displayStatus === 'refunded' ? (
+            ) : paymentStatus === 'refunded' ? (
               <p className="text-slate-700">
                 Your payment was refunded. If you were charged, your bank may take a few days to
                 show the refund.
               </p>
-            ) : displayStatus === 'pending' ? (
+            ) : paymentStatus === 'pending' ? (
               <p className="text-slate-700">
-                Your payment is being processed. This page updates automatically once our system
-                receives confirmation from DPO Pay.
+                Your payment is being processed. This page checks automatically.
               </p>
             ) : (
               <p className="text-slate-700">
-                We couldn't verify your payment status yet. Please keep your order reference and
-                check again shortly.
+                We're verifying your payment status. Please wait a moment…
               </p>
             )}
 
@@ -286,10 +295,11 @@ export default function PaymentResult() {
               </div>
             )}
 
-            <div className="mt-4 text-xs text-slate-500 text-center">
-              {lastCheckedAt ? `Last checked: ${lastCheckedAt}. ` : ''}
-              {polling ? 'Checking automatically every 5 seconds…' : 'Status updates automatically once DPO Pay confirms.'}
-            </div>
+            {lastCheckedAt && (
+              <div className="mt-4 text-xs text-slate-500 text-center">
+                Last checked: {lastCheckedAt}
+              </div>
+            )}
 
             <div className="mt-6 flex gap-3 justify-center">
               <Link
