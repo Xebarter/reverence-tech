@@ -18,6 +18,31 @@ export type DpoCheckoutPaymentPayload = {
 type ApiSuccess = { orderNumber: string; redirectUrl: string; transRef?: string; transToken?: string };
 type ApiFailure = { error?: string; hint?: string };
 
+function sanitizeDpoRedirectUrl(input: string): string {
+  const trimmed = (input || '').trim();
+  if (!trimmed) return trimmed;
+
+  // Normalize any legacy hosted payment pages to the expected `dpopayment.php?ID=<token>`
+  // and remove the common erroneous "TransToken" prefix from the ID value.
+  try {
+    const url = new URL(trimmed);
+    if (/(^|\.)3gdirectpay\.com$/i.test(url.hostname)) {
+      // Some configs/old docs use payv2/payv3/pay.asp; force the correct page.
+      url.pathname = '/dpopayment.php';
+
+      const id = url.searchParams.get('ID');
+      if (id) {
+        url.searchParams.set('ID', id.trim().replace(/^TransToken/i, '').trim());
+      }
+      return url.toString();
+    }
+  } catch {
+    // If it's not a valid absolute URL, do a safe string-level cleanup.
+  }
+
+  return trimmed.replace(/(\bID=)\s*TransToken/gi, '$1');
+}
+
 function isProbablyMissingApiRoute(resp: Response): boolean {
   // Vite dev server commonly returns 404 (or 405) for /api/* when not proxying to Vercel functions.
   return resp.status === 404 || resp.status === 405;
@@ -40,7 +65,7 @@ async function tryCreateViaApi(order: DpoCheckoutOrderPayload, payment: DpoCheck
   }
 
   const orderNumber = json?.orderNumber;
-  const redirectUrl = json?.redirectUrl;
+  const redirectUrl = sanitizeDpoRedirectUrl(json?.redirectUrl || '');
   if (!orderNumber || !redirectUrl) throw new Error('Failed to create DPO payment session.');
 
   return { orderNumber, redirectUrl, transRef: json?.transRef, transToken: json?.transToken };
@@ -77,7 +102,7 @@ async function createViaEdgeFunction(order: DpoCheckoutOrderPayload, payment: Dp
     throw new Error(error.message || 'Failed to initiate payment');
   }
 
-  const redirectUrl = (data as any)?.redirectUrl as string | undefined;
+  const redirectUrl = sanitizeDpoRedirectUrl(((data as any)?.redirectUrl as string | undefined) || '');
   if (!redirectUrl) throw new Error('Failed to create DPO payment session.');
 
   return {
