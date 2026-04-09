@@ -21,6 +21,20 @@ function normalizeDpoPaymentUrlBase(input: string): string {
   const trimmed = (input || "").trim();
   if (!trimmed) return "https://secure.3gdirectpay.com/dpopayment.php?ID=";
 
+  // Normalize legacy hosted pages (payv2/payv3/pay.asp) to `dpopayment.php?ID=`.
+  // This prevents config mistakes like `.../payv2.php?ID=TransToken` from leaking into the redirect URL.
+  try {
+    const url = new URL(trimmed);
+    if (/(^|\.)3gdirectpay\.com$/i.test(url.hostname)) {
+      url.pathname = "/dpopayment.php";
+      url.search = "?ID=";
+      url.hash = "";
+      return url.toString();
+    }
+  } catch {
+    // Fall back to string normalization below for non-URL inputs.
+  }
+
   // Strip common placeholder mistakes like ...?ID=token or ...?ID={token}
   const stripped = trimmed.replace(/(ID=)(token|transtoken|\{token\}|<token>)\s*$/i, "$1");
 
@@ -206,7 +220,7 @@ serve(async (req) => {
   const result = extractXmlValue(responseText, "Result");
   const resultExplanation = extractXmlValue(responseText, "ResultExplanation");
   const transTokenRaw = extractXmlValue(responseText, "TransToken");
-  const transToken = transTokenRaw ? transTokenRaw.replace(/^TransToken/i, "").trim() : null;
+  const transToken = transTokenRaw ? transTokenRaw.trim().replace(/^TransToken/i, "").trim() : null;
   const transRef = extractXmlValue(responseText, "TransRef");
 
   // If we can't parse the expected XML shape, return a preview for debugging.

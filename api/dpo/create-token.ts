@@ -12,6 +12,20 @@ function normalizeDpoPaymentUrlBase(input: string): string {
   // https://secure.3gdirectpay.com/dpopayment.php?ID=<TransToken>
   if (!trimmed) return 'https://secure.3gdirectpay.com/dpopayment.php?ID=';
 
+  // Normalize legacy hosted pages (payv2/payv3/pay.asp) to the expected `dpopayment.php?ID=`.
+  // This prevents env/config mistakes like `.../payv2.php?ID=TransToken` from leaking into the redirect URL.
+  try {
+    const url = new URL(trimmed);
+    if (/(^|\.)3gdirectpay\.com$/i.test(url.hostname)) {
+      url.pathname = '/dpopayment.php';
+      url.search = '?ID=';
+      url.hash = '';
+      return url.toString();
+    }
+  } catch {
+    // Fall back to string normalization below for non-URL inputs.
+  }
+
   // If it ends with a placeholder token, strip it.
   const stripped = trimmed.replace(/(ID=)(token|transtoken|\{token\}|<token>)\s*$/i, '$1');
 
@@ -202,7 +216,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const transTokenRaw = extractXmlValue(responseText, 'TransToken');
   // Some integrations/documentation prefix the UUID with "TransToken". The hosted payment page
   // expects the raw token value (usually a UUID).
-  const transToken = transTokenRaw ? transTokenRaw.replace(/^TransToken/i, '').trim() : null;
+  const transToken = transTokenRaw ? transTokenRaw.trim().replace(/^TransToken/i, '').trim() : null;
   const transRef = extractXmlValue(responseText, 'TransRef');
 
   if (!result && !transToken) {
