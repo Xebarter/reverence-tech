@@ -22,7 +22,7 @@ function normalizeDpoPaymentUrlBase(input: string): string {
   if (!trimmed) return "https://secure.3gdirectpay.com/dpopayment.php?ID=";
 
   // Strip common placeholder mistakes like ...?ID=token or ...?ID={token}
-  const stripped = trimmed.replace(/(ID=)(token|\{token\}|<token>)\s*$/i, "$1");
+  const stripped = trimmed.replace(/(ID=)(token|transtoken|\{token\}|<token>)\s*$/i, "$1");
 
   // Ensure we end with ID= so `${base}${transToken}` is valid.
   if (/([?&]ID=)$/i.test(stripped)) return stripped;
