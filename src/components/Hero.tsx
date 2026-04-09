@@ -4,23 +4,66 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../lib/supabase';
 
 /* ---------------- IMAGE OPTIMIZATION HELPERS ---------------- */
+const withSearchParams = (rawUrl: string, params: Record<string, string | number>) => {
+  try {
+    const u = new URL(rawUrl);
+    Object.entries(params).forEach(([k, v]) => u.searchParams.set(k, String(v)));
+    return u.toString();
+  } catch {
+    return rawUrl;
+  }
+};
+
 const getOptimizedImageUrl = (url: string, width: number): string => {
   if (!url) return url;
   const quality = width < 600 ? 70 : 80;
+
   if (url.includes('unsplash.com')) {
-    return `${url}&w=${width}&q=${quality}&auto=format&fit=crop&fm=webp`;
+    const separator = url.includes('?') ? '&' : '?';
+    return `${url}${separator}w=${width}&q=${quality}&auto=format&fit=crop&fm=webp`;
   }
-  if (url.includes('supabase.co')) {
-    return `${url}?width=${width}&quality=${quality}&resize=cover&format=webp`;
+
+  // Supabase Storage public (or signed) URLs should use the render endpoint for transforms.
+  // Many hero images are stored as: /storage/v1/object/public/<bucket>/<path>
+  // Transform endpoint:        /storage/v1/render/image/public/<bucket>/<path>
+  if (url.includes('/storage/v1/object/')) {
+    try {
+      const u = new URL(url);
+      u.pathname = u.pathname.replace('/storage/v1/object/public/', '/storage/v1/render/image/public/');
+      u.pathname = u.pathname.replace('/storage/v1/object/sign/', '/storage/v1/render/image/sign/');
+      return withSearchParams(u.toString(), { width, quality, resize: 'cover', format: 'webp' });
+    } catch {
+      return url;
+    }
   }
+
+  // Fallback: don't try to transform unknown URLs.
   return url;
+};
+
+type HeroImage = {
+  id: string;
+  image_url: string;
+  title?: string | null;
+  created_at?: string;
+};
+
+type Testimonial = {
+  id: string;
+  name: string;
+  content: string;
+  rating: number;
+  avatar_url?: string | null;
+  role?: string | null;
+  company?: string | null;
+  created_at?: string;
 };
 
 /* ---------------- COMPONENT ---------------- */
 export default function Hero() {
-  const [heroImages, setHeroImages] = useState<any[]>([]);
+  const [heroImages, setHeroImages] = useState<HeroImage[]>([]);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [testimonials, setTestimonials] = useState<any[]>([]);
+  const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
   const [currentTestimonialIndex, setCurrentTestimonialIndex] = useState(0);
   const testimonialsRef = useRef<HTMLDivElement>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -35,7 +78,7 @@ export default function Hero() {
 
       if (error) throw error;
       if (data?.length) {
-        setHeroImages(data.filter((d: any) => d.image_url?.trim()));
+        setHeroImages((data as HeroImage[]).filter((d) => d.image_url?.trim()));
       }
     } catch {
       setHeroImages([
@@ -252,7 +295,7 @@ export default function Hero() {
             initial={{ opacity: 0, x: 30 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.7, delay: 0.15, ease: 'easeOut' }}
-            className="relative hidden lg:block"
+            className="relative w-full max-w-md mx-auto mt-12 lg:mt-0 lg:max-w-none"
           >
             {/* Decorative ring */}
             <div className="absolute -inset-4 rounded-[2.5rem] border border-white/10 pointer-events-none" />

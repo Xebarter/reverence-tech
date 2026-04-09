@@ -19,7 +19,7 @@ const dpoUpstreamHeaders: Record<string, string> = {
 
 function normalizeDpoPaymentUrlBase(input: string): string {
   const trimmed = (input || "").trim();
-  if (!trimmed) return "https://secure.3gdirectpay.com/payv3.php?ID=";
+  if (!trimmed) return "https://secure.3gdirectpay.com/dpopayment.php?ID=";
 
   // Strip common placeholder mistakes like ...?ID=token or ...?ID={token}
   const stripped = trimmed.replace(/(ID=)(token|\{token\}|<token>)\s*$/i, "$1");
@@ -121,7 +121,7 @@ serve(async (req) => {
   const apiUrl = Deno.env.get("DPO_API_URL") || "https://secure.3gdirectpay.com/API/v6/";
   // Hosted page for v6 API tokens (override with DPO_PAYMENT_URL if DPO instructs otherwise)
   const paymentUrlBase = normalizeDpoPaymentUrlBase(
-    Deno.env.get("DPO_PAYMENT_URL") || "https://secure.3gdirectpay.com/payv3.php?ID=",
+    Deno.env.get("DPO_PAYMENT_URL") || "https://secure.3gdirectpay.com/dpopayment.php?ID=",
   );
 
   if (!companyToken || !serviceType || !backUrlBase) {

@@ -8,7 +8,9 @@ function normalizeDpoPaymentUrlBase(input: string): string {
   // - https://.../payv3.php?ID={token} (placeholder)
   // - https://.../payv3.php?ID=<token>
   const trimmed = (input || '').trim();
-  if (!trimmed) return 'https://secure.3gdirectpay.com/payv3.php?ID=';
+  // DPO support often provides links like:
+  // https://secure.3gdirectpay.com/dpopayment.php?ID=<TransToken>
+  if (!trimmed) return 'https://secure.3gdirectpay.com/dpopayment.php?ID=';
 
   // If it ends with a placeholder token, strip it.
   const stripped = trimmed.replace(/(ID=)(token|\{token\}|<token>)\s*$/i, '$1');
@@ -79,7 +81,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const backUrlBase = process.env.DPO_BACK_URL;
   const apiUrl = process.env.DPO_API_URL || 'https://secure.3gdirectpay.com/API/v6/';
   const paymentUrlBase = normalizeDpoPaymentUrlBase(
-    process.env.DPO_PAYMENT_URL || 'https://secure.3gdirectpay.com/payv3.php?ID=',
+    process.env.DPO_PAYMENT_URL || 'https://secure.3gdirectpay.com/dpopayment.php?ID=',
   );
 
   if (!supabaseUrl || !serviceRoleKey) {
