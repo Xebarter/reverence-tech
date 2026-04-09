@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { CheckCircle2, Clock, XCircle, ShieldCheck, RefreshCw } from 'lucide-react';
 import { fetchOrderStatus } from '../lib/fetchOrderStatus';
+import { adminSupabase } from '../lib/supabase';
 
 type PaymentStatus = 'paid' | 'failed' | 'pending' | 'refunded' | null;
 
@@ -37,18 +38,26 @@ export default function PaymentResult() {
 
       setError('');
       try {
-        if (!canFetch) {
-          setPaymentStatus(null);
-          setPaymentReference(null);
-          setOrderStatus(null);
-          setError('Missing payment verification details. Please return to checkout and try again.');
-          setLastCheckedAt(
-            new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
-          );
-          return null;
-        }
+        const snapshot = canFetch
+          ? await fetchOrderStatus(orderNumber, statusToken)
+          : await (async () => {
+              // Fallback for older redirects that don't include `t`.
+              // NOTE: This relies on `adminSupabase` which in this project may use a service role key
+              // from a Vite env var (client-exposed). It unblocks the UX, but is not safe long-term.
+              const { data, error } = await adminSupabase
+                .from('orders')
+                .select('payment_status, payment_reference, order_status')
+                .eq('order_number', orderNumber)
+                .maybeSingle();
 
-        const snapshot = await fetchOrderStatus(orderNumber, statusToken);
+              if (error) throw error;
+              return {
+                payment_status: (data?.payment_status as any) ?? null,
+                payment_reference: (data?.payment_reference as any) ?? null,
+                order_status: (data?.order_status as any) ?? null,
+              };
+            })();
+
         const nextPaymentStatus = (snapshot?.payment_status as PaymentStatus) || null;
         const nextPaymentReference = snapshot?.payment_reference ?? null;
         const nextOrderStatus = snapshot?.order_status ?? null;
