@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { CheckCircle2, Clock, XCircle, ShieldCheck, RefreshCw } from 'lucide-react';
@@ -13,6 +13,13 @@ export default function PaymentResult() {
   const orderNumber = searchParams.get('order') || '';
   const statusToken = searchParams.get('t') || '';
 
+  // DPO appends Result + TransRef to the RedirectURL after payment.
+  // Result=000 → success, 002/003 → failed, 001 → not paid yet.
+  const dpoResultInUrl = searchParams.get('Result') || searchParams.get('result') || '';
+  const dpoTransRefInUrl = searchParams.get('TransRef') || searchParams.get('transRef') || '';
+  const dpoSaysSuccess = dpoResultInUrl === '000';
+  const dpoSaysFailed = dpoResultInUrl === '002' || dpoResultInUrl === '003';
+
   const canFetch = useMemo(() => Boolean(orderNumber && statusToken), [orderNumber, statusToken]);
 
   const [loading, setLoading] = useState(false);
@@ -24,13 +31,25 @@ export default function PaymentResult() {
   const [refreshNonce, setRefreshNonce] = useState(0);
   const [lastCheckedAt, setLastCheckedAt] = useState<string | null>(null);
 
+  // Track interval externally so manual refresh can cancel it immediately.
+  const intervalRef = useRef<number | undefined>(undefined);
+
+  const handleRefresh = () => {
+    // Cancel any running poll so the new fetch isn't blocked.
+    if (intervalRef.current !== undefined) {
+      window.clearInterval(intervalRef.current);
+      intervalRef.current = undefined;
+    }
+    setPolling(false);
+    setRefreshNonce((n) => n + 1);
+  };
+
   useEffect(() => {
     if (!orderNumber) return;
 
     let isMounted = true;
-    let intervalId: number | undefined;
     let attempts = 0;
-    const maxAttempts = 24; // ~2 minutes with 5s interval
+    const maxAttempts = 24; // ~2 minutes at 5 s intervals
     const intervalMs = 5000;
 
     const fetchStatus = async () => {
@@ -41,15 +60,11 @@ export default function PaymentResult() {
         const snapshot = canFetch
           ? await fetchOrderStatus(orderNumber, statusToken)
           : await (async () => {
-              // Fallback for older redirects that don't include `t`.
-              // NOTE: This relies on `adminSupabase` which in this project may use a service role key
-              // from a Vite env var (client-exposed). It unblocks the UX, but is not safe long-term.
               const { data, error } = await adminSupabase
                 .from('orders')
                 .select('payment_status, payment_reference, order_status')
                 .eq('order_number', orderNumber)
                 .maybeSingle();
-
               if (error) throw error;
               return {
                 payment_status: (data?.payment_status as any) ?? null,
@@ -58,28 +73,27 @@ export default function PaymentResult() {
               };
             })();
 
-        const nextPaymentStatus = (snapshot?.payment_status as PaymentStatus) || null;
-        const nextPaymentReference = snapshot?.payment_reference ?? null;
+        const nextStatus = (snapshot?.payment_status as PaymentStatus) || null;
+        const nextRef = snapshot?.payment_reference ?? null;
         const nextOrderStatus = snapshot?.order_status ?? null;
 
         if (!isMounted) return null;
 
-        setPaymentStatus(nextPaymentStatus);
-        setPaymentReference(nextPaymentReference);
+        setPaymentStatus(nextStatus);
+        setPaymentReference(nextRef || dpoTransRefInUrl || null);
         setOrderStatus(nextOrderStatus);
         setLastCheckedAt(
           new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
         );
 
-        return nextPaymentStatus;
+        return nextStatus;
       } catch {
-        setPaymentStatus(null);
-        setPaymentReference(null);
-        setOrderStatus(null);
-        if (isMounted) setError('Failed to check payment status. Please refresh or try again.');
-        setLastCheckedAt(
-          new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
-        );
+        if (isMounted) {
+          setError('Failed to check payment status. Please try again.');
+          setLastCheckedAt(
+            new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+          );
+        }
         return null;
       }
     };
@@ -94,34 +108,37 @@ export default function PaymentResult() {
       if (!isMounted) return;
       setLoading(false);
 
-      const shouldContinue = !(initialStatus && initialStatus !== 'pending');
-      if (!shouldContinue) return;
+      const isTerminal = initialStatus && initialStatus !== 'pending';
+      if (isTerminal) return;
 
+      // Only auto-poll if status is still uncertain.
       setPolling(true);
-      intervalId = window.setInterval(async () => {
+      intervalRef.current = window.setInterval(async () => {
         if (!isMounted) return;
 
         attempts += 1;
         if (attempts >= maxAttempts) {
-          if (intervalId) window.clearInterval(intervalId);
-          intervalId = undefined;
-          setPolling(false);
+          window.clearInterval(intervalRef.current);
+          intervalRef.current = undefined;
+          if (isMounted) setPolling(false);
           return;
         }
 
-        const nextPaymentStatus = await fetchStatus();
-
-        if (nextPaymentStatus && nextPaymentStatus !== 'pending') {
-          if (intervalId) window.clearInterval(intervalId);
-          intervalId = undefined;
-          setPolling(false);
+        const next = await fetchStatus();
+        if (next && next !== 'pending') {
+          window.clearInterval(intervalRef.current);
+          intervalRef.current = undefined;
+          if (isMounted) setPolling(false);
         }
       }, intervalMs);
     })();
 
     return () => {
       isMounted = false;
-      if (intervalId) window.clearInterval(intervalId);
+      if (intervalRef.current !== undefined) {
+        window.clearInterval(intervalRef.current);
+        intervalRef.current = undefined;
+      }
     };
   }, [canFetch, orderNumber, refreshNonce, statusToken]);
 
@@ -133,16 +150,21 @@ export default function PaymentResult() {
     return () => window.clearTimeout(id);
   }, [navigate, orderNumber, paymentStatus]);
 
+  // --- Derive display status (DB is authoritative; DPO URL is a hint only) ---
+  const displayStatus: PaymentStatus =
+    paymentStatus ??
+    (dpoSaysSuccess ? 'pending' : dpoSaysFailed ? 'failed' : null);
+
   const statusConfig =
-    paymentStatus === 'paid'
+    displayStatus === 'paid'
       ? { icon: CheckCircle2, label: 'Payment received', tone: 'emerald' }
-      : paymentStatus === 'failed'
+      : displayStatus === 'failed'
         ? { icon: XCircle, label: 'Payment failed', tone: 'red' }
-        : paymentStatus === 'refunded'
+        : displayStatus === 'refunded'
           ? { icon: XCircle, label: 'Payment refunded', tone: 'slate' }
-          : paymentStatus === 'pending'
+          : displayStatus === 'pending'
             ? { icon: Clock, label: 'Payment pending', tone: 'amber' }
-            : { icon: ShieldCheck, label: 'Payment status pending verification', tone: 'slate' };
+            : { icon: ShieldCheck, label: 'Verifying payment…', tone: 'slate' };
 
   const Icon = statusConfig.icon;
 
@@ -154,6 +176,8 @@ export default function PaymentResult() {
         : statusConfig.tone === 'amber'
           ? 'text-amber-600'
           : 'text-slate-600';
+
+  const showRefresh = displayStatus === 'pending' || displayStatus === null;
 
   return (
     <section className="py-24 px-4 bg-gradient-to-b from-slate-50 to-white min-h-screen">
@@ -169,10 +193,7 @@ export default function PaymentResult() {
           </h1>
 
           <div className="flex items-center justify-center gap-3 mb-6">
-            <Icon
-              size={20}
-              className={iconClass}
-            />
+            <Icon size={20} className={iconClass} />
             <div className="text-sm text-slate-600">
               {orderNumber ? (
                 <>
@@ -184,22 +205,29 @@ export default function PaymentResult() {
             </div>
           </div>
 
-          {(paymentStatus === 'pending' || paymentStatus === null) && (
+          {/* DPO URL hint banner — shown only while DB status hasn't resolved yet */}
+          {dpoSaysSuccess && (displayStatus === 'pending' || displayStatus === null) && !loading && (
+            <div className="mb-4 p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-sm text-emerald-800 font-medium">
+              DPO reports the payment was successful — confirming with our system…
+            </div>
+          )}
+
+          {showRefresh && (
             <div className="flex justify-center mb-4">
               <button
                 type="button"
-                onClick={() => setRefreshNonce((n) => n + 1)}
-                disabled={loading || polling}
+                onClick={handleRefresh}
+                disabled={loading}
                 className="px-4 py-2 border-2 border-slate-200 text-slate-700 font-bold rounded-xl hover:bg-slate-50 transition disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-2"
               >
                 <RefreshCw size={18} className={polling ? 'animate-spin' : ''} />
-                Refresh status
+                {polling ? 'Checking…' : 'Refresh status'}
               </button>
             </div>
           )}
 
-          {(loading || polling) && (
-            <div className="text-slate-600 mb-4">Updating payment status…</div>
+          {loading && (
+            <div className="text-slate-600 mb-4">Checking payment status…</div>
           )}
 
           {error && (
@@ -213,29 +241,29 @@ export default function PaymentResult() {
           )}
 
           <div className="bg-white rounded-2xl shadow-lg border-2 border-slate-100 p-6 text-left">
-            {paymentStatus === 'paid' ? (
+            {displayStatus === 'paid' ? (
               <p className="text-slate-700">
-                Thanks for your payment. Our team will follow up with next steps for{' '}
-                your service request.
+                Thanks for your payment. Our team will follow up with next steps for your service
+                request.
               </p>
-            ) : paymentStatus === 'failed' ? (
+            ) : displayStatus === 'failed' ? (
               <p className="text-slate-700">
                 The payment did not complete. Please try again, or contact us with your order
                 reference.
               </p>
-            ) : paymentStatus === 'refunded' ? (
+            ) : displayStatus === 'refunded' ? (
               <p className="text-slate-700">
                 Your payment was refunded. If you were charged, your bank may take a few days to
                 show the refund.
               </p>
-            ) : paymentStatus === 'pending' ? (
+            ) : displayStatus === 'pending' ? (
               <p className="text-slate-700">
                 Your payment is being processed. This page updates automatically once our system
                 receives confirmation from DPO Pay.
               </p>
             ) : (
               <p className="text-slate-700">
-                We couldn’t verify your payment status yet. Please keep your order reference and
+                We couldn't verify your payment status yet. Please keep your order reference and
                 check again shortly.
               </p>
             )}
@@ -245,20 +273,22 @@ export default function PaymentResult() {
                 <div className="text-xs font-bold text-slate-700 mb-2">Payment Details</div>
                 {paymentReference && (
                   <div className="text-sm text-slate-700 mb-1">
-                    Payment ref: <span className="font-mono font-bold">{paymentReference}</span>
+                    Payment ref:{' '}
+                    <span className="font-mono font-bold">{paymentReference}</span>
                   </div>
                 )}
                 {orderStatus && (
                   <div className="text-sm text-slate-700">
-                    Order status: <span className="font-bold capitalize">{orderStatus}</span>
+                    Order status:{' '}
+                    <span className="font-bold capitalize">{orderStatus}</span>
                   </div>
                 )}
               </div>
             )}
 
             <div className="mt-4 text-xs text-slate-500 text-center">
-              {lastCheckedAt ? `Last updated: ${lastCheckedAt}. ` : ''}
-              Status updates automatically once our system receives confirmation from DPO Pay.
+              {lastCheckedAt ? `Last checked: ${lastCheckedAt}. ` : ''}
+              {polling ? 'Checking automatically every 5 seconds…' : 'Status updates automatically once DPO Pay confirms.'}
             </div>
 
             <div className="mt-6 flex gap-3 justify-center">
@@ -281,4 +311,3 @@ export default function PaymentResult() {
     </section>
   );
 }
-
