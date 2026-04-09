@@ -74,12 +74,26 @@ export default function Hero() {
       const { data, error } = await supabase
         .from('hero_images')
         .select('*')
+        .eq('is_active', true)
+        .order('display_order', { ascending: true })
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      if (data?.length) {
-        setHeroImages((data as HeroImage[]).filter((d) => d.image_url?.trim()));
+      const cleaned = (data as HeroImage[] | null | undefined)?.filter((d) => d.image_url?.trim()) ?? [];
+      if (cleaned.length) {
+        setHeroImages(cleaned);
+        return;
       }
+
+      // If the table is reachable but has no active/valid images, still show a safe fallback.
+      setHeroImages([
+        {
+          id: 'fallback',
+          image_url:
+            'https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=2000&q=80',
+          title: 'Default',
+        },
+      ]);
     } catch {
       setHeroImages([
         {
@@ -314,6 +328,12 @@ export default function Hero() {
                     transition={{ duration: 0.9, ease: 'easeInOut' }}
                     className="absolute inset-0 w-full h-full object-cover"
                     alt="Web design and software development in Kampala Uganda – Reverence Technology"
+                    onError={(e) => {
+                      const img = e.currentTarget;
+                      const fallback =
+                        'https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=2000&q=80';
+                      if (img.src !== fallback) img.src = fallback;
+                    }}
                   />
                 )}
               </AnimatePresence>

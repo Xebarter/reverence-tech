@@ -95,12 +95,17 @@ export async function initiateDpoCheckout(order: DpoCheckoutOrderPayload, paymen
     if (e instanceof Error && e.message === '__DPO_FALLBACK_TO_EDGE_FUNCTION__') {
       return await createViaEdgeFunction(order, payment);
     }
-    // Network error / CORS / etc: also try edge function once (helps local dev)
-    try {
-      return await createViaEdgeFunction(order, payment);
-    } catch {
-      throw e;
+    // For production (e.g. Vercel), do NOT silently fall back to Supabase Edge Functions:
+    // DPO can block Supabase Edge egress, and it also makes failures harder to diagnose.
+    // In dev, an extra fallback helps when the local serverless route isn't available.
+    if (import.meta.env.DEV) {
+      try {
+        return await createViaEdgeFunction(order, payment);
+      } catch {
+        throw e;
+      }
     }
+    throw e;
   }
 }
 
