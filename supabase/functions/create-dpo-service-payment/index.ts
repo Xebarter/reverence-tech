@@ -17,6 +17,21 @@ const dpoUpstreamHeaders: Record<string, string> = {
   "Accept-Language": "en-US,en;q=0.9",
 };
 
+function normalizeDpoPaymentUrlBase(input: string): string {
+  const trimmed = (input || "").trim();
+  if (!trimmed) return "https://secure.3gdirectpay.com/payv3.php?ID=";
+
+  // Strip common placeholder mistakes like ...?ID=token or ...?ID={token}
+  const stripped = trimmed.replace(/(ID=)(token|\{token\}|<token>)\s*$/i, "$1");
+
+  // Ensure we end with ID= so `${base}${transToken}` is valid.
+  if (/([?&]ID=)$/i.test(stripped)) return stripped;
+  if (/([?&]ID=)/i.test(stripped)) return stripped.replace(/([?&]ID=).*/i, "$1");
+
+  // If they provided the page without query, append ID=
+  return stripped.includes("?") ? `${stripped}&ID=` : `${stripped}?ID=`;
+}
+
 function extractXmlValue(xml: string, tagName: string): string | null {
   // DPO responses are XML, but tag casing can vary; make matching case-insensitive.
   const re = new RegExp(`<${tagName}>([\\s\\S]*?)<\\/${tagName}>`, "i");
@@ -105,8 +120,9 @@ serve(async (req) => {
   const backUrlBase = Deno.env.get("DPO_BACK_URL");
   const apiUrl = Deno.env.get("DPO_API_URL") || "https://secure.3gdirectpay.com/API/v6/";
   // Hosted page for v6 API tokens (override with DPO_PAYMENT_URL if DPO instructs otherwise)
-  const paymentUrlBase =
-    Deno.env.get("DPO_PAYMENT_URL") || "https://secure.3gdirectpay.com/payv3.php?ID=";
+  const paymentUrlBase = normalizeDpoPaymentUrlBase(
+    Deno.env.get("DPO_PAYMENT_URL") || "https://secure.3gdirectpay.com/payv3.php?ID=",
+  );
 
   if (!companyToken || !serviceType || !backUrlBase) {
     return new Response(

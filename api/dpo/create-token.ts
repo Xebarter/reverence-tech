@@ -1,6 +1,26 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { createClient } from '@supabase/supabase-js';
 
+function normalizeDpoPaymentUrlBase(input: string): string {
+  // Accept common env formats:
+  // - https://.../payv3.php?ID=
+  // - https://.../payv3.php?ID=token   (placeholder mistake)
+  // - https://.../payv3.php?ID={token} (placeholder)
+  // - https://.../payv3.php?ID=<token>
+  const trimmed = (input || '').trim();
+  if (!trimmed) return 'https://secure.3gdirectpay.com/payv3.php?ID=';
+
+  // If it ends with a placeholder token, strip it.
+  const stripped = trimmed.replace(/(ID=)(token|\{token\}|<token>)\s*$/i, '$1');
+
+  // Ensure we end with ID= so `${base}${transToken}` works.
+  if (/([?&]ID=)$/i.test(stripped)) return stripped;
+  if (/([?&]ID=)/i.test(stripped)) return stripped.replace(/([?&]ID=).*/i, '$1');
+
+  // If they provided the page without query, append ID=
+  return stripped.includes('?') ? `${stripped}&ID=` : `${stripped}?ID=`;
+}
+
 function extractXmlValue(xml: string, tagName: string): string | null {
   const re = new RegExp(`<${tagName}>([\\s\\S]*?)<\\/${tagName}>`, 'i');
   const match = xml.match(re);
@@ -58,7 +78,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const serviceType = process.env.DPO_SERVICE_TYPE;
   const backUrlBase = process.env.DPO_BACK_URL;
   const apiUrl = process.env.DPO_API_URL || 'https://secure.3gdirectpay.com/API/v6/';
-  const paymentUrlBase = process.env.DPO_PAYMENT_URL || 'https://secure.3gdirectpay.com/payv3.php?ID=';
+  const paymentUrlBase = normalizeDpoPaymentUrlBase(
+    process.env.DPO_PAYMENT_URL || 'https://secure.3gdirectpay.com/payv3.php?ID=',
+  );
 
   if (!supabaseUrl || !serviceRoleKey) {
     return res.status(500).json({ error: 'Supabase env vars missing (SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)' });
