@@ -84,12 +84,24 @@ function withOrderParam(input: string, orderNumber: string): string {
   }
 }
 
+function withTokenParam(input: string, token: string): string {
+  try {
+    const url = new URL(input);
+    url.searchParams.set("t", token);
+    return url.toString();
+  } catch {
+    const delimiter = input.includes("?") ? "&" : "?";
+    return `${input}${delimiter}t=${encodeURIComponent(token)}`;
+  }
+}
+
 type CreateDpoServicePaymentPayload = {
   orderNumber: string;
   amount: number;
   currency?: string;
   serviceName: string;
   redirectUrl: string;
+  statusToken?: string;
   customer?: {
     fullName?: string;
     email?: string;
@@ -166,7 +178,11 @@ serve(async (req) => {
   const backUrl = `${backUrlBase}${delimiter}order=${encodeURIComponent(orderNumber)}`;
 
   // Ensure the customer returns with `?order=` so the frontend status page can load the order.
-  const redirectUrlWithOrder = withOrderParam(redirectUrl, orderNumber);
+  const redirectUrlWithOrder = (() => {
+    const base = withOrderParam(redirectUrl, orderNumber);
+    const token = String((payload as any)?.statusToken || "").trim();
+    return token ? withTokenParam(base, token) : base;
+  })();
 
   // UGX has no minor units; some DPO setups reject "500000.00" — send a whole amount.
   const paymentAmount =

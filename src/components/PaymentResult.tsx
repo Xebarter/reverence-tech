@@ -1,14 +1,18 @@
-import { useEffect, useState } from 'react';
-import { useSearchParams, Link } from 'react-router-dom';
+import { useEffect, useMemo, useState } from 'react';
+import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { CheckCircle2, Clock, XCircle, ShieldCheck, RefreshCw } from 'lucide-react';
-import { supabase } from '../lib/supabase';
+import { fetchOrderStatus } from '../lib/fetchOrderStatus';
 
 type PaymentStatus = 'paid' | 'failed' | 'pending' | 'refunded' | null;
 
 export default function PaymentResult() {
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const orderNumber = searchParams.get('order') || '';
+  const statusToken = searchParams.get('t') || '';
+
+  const canFetch = useMemo(() => Boolean(orderNumber && statusToken), [orderNumber, statusToken]);
 
   const [loading, setLoading] = useState(false);
   const [paymentStatus, setPaymentStatus] = useState<PaymentStatus>(null);
@@ -33,28 +37,21 @@ export default function PaymentResult() {
 
       setError('');
       try {
-        const { data, error: fetchError } = await supabase
-          .from('orders')
-          .select('payment_status, payment_reference, order_status')
-          .eq('order_number', orderNumber)
-          .maybeSingle();
-
-        if (fetchError) {
+        if (!canFetch) {
           setPaymentStatus(null);
           setPaymentReference(null);
           setOrderStatus(null);
-          if (isMounted) {
-            setError('We’re still waiting for payment confirmation. Please try again in a moment.');
-          }
+          setError('Missing payment verification details. Please return to checkout and try again.');
           setLastCheckedAt(
-            new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+            new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
           );
           return null;
         }
 
-        const nextPaymentStatus = (data?.payment_status as PaymentStatus) || null;
-        const nextPaymentReference = (data?.payment_reference as string | null) || null;
-        const nextOrderStatus = (data?.order_status as string | null) || null;
+        const snapshot = await fetchOrderStatus(orderNumber, statusToken);
+        const nextPaymentStatus = (snapshot?.payment_status as PaymentStatus) || null;
+        const nextPaymentReference = snapshot?.payment_reference ?? null;
+        const nextOrderStatus = snapshot?.order_status ?? null;
 
         if (!isMounted) return null;
 
@@ -62,7 +59,7 @@ export default function PaymentResult() {
         setPaymentReference(nextPaymentReference);
         setOrderStatus(nextOrderStatus);
         setLastCheckedAt(
-          new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+          new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
         );
 
         return nextPaymentStatus;
@@ -117,7 +114,15 @@ export default function PaymentResult() {
       isMounted = false;
       if (intervalId) window.clearInterval(intervalId);
     };
-  }, [orderNumber, refreshNonce]);
+  }, [canFetch, orderNumber, refreshNonce, statusToken]);
+
+  useEffect(() => {
+    if (paymentStatus !== 'paid' || !orderNumber) return;
+    const id = window.setTimeout(() => {
+      navigate(`/orders?order=${encodeURIComponent(orderNumber)}`);
+    }, 2500);
+    return () => window.clearTimeout(id);
+  }, [navigate, orderNumber, paymentStatus]);
 
   const statusConfig =
     paymentStatus === 'paid'

@@ -7,6 +7,7 @@ export type DpoCheckoutPaymentPayload = {
   currency?: string;
   serviceName: string;
   redirectUrl: string;
+  statusToken?: string;
   customer?: {
     fullName?: string;
     email?: string;
@@ -94,6 +95,7 @@ async function createViaEdgeFunction(order: DpoCheckoutOrderPayload, payment: Dp
       currency: payment.currency || 'UGX',
       serviceName: payment.serviceName,
       redirectUrl: payment.redirectUrl,
+      statusToken: payment.statusToken,
       customer: payment.customer,
     },
   });

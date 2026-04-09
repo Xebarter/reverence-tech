@@ -71,6 +71,17 @@ function withOrderParam(input: string, orderNumber: string): string {
   }
 }
 
+function withTokenParam(input: string, token: string): string {
+  try {
+    const url = new URL(input);
+    url.searchParams.set('t', token);
+    return url.toString();
+  } catch {
+    const delimiter = input.includes('?') ? '&' : '?';
+    return `${input}${delimiter}t=${encodeURIComponent(token)}`;
+  }
+}
+
 type CreateTokenBody = {
   // Order payload to insert into `orders` (server-side using service role)
   order: Record<string, unknown>;
@@ -146,10 +157,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   const supabase = createClient(supabaseUrl, serviceRoleKey, { auth: { persistSession: false } });
 
+  const statusToken = crypto.randomUUID();
+
   // 1) Create order
   const { data: inserted, error: insertError } = await supabase
     .from('orders')
-    .insert([order])
+    .insert([{ ...order, status_token: statusToken }])
     .select()
     .single();
 
@@ -172,7 +185,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   // Ensure the customer returns to a URL that includes the order number,
   // since the frontend status page relies on `?order=` to look up the record.
-  const redirectUrlWithOrder = withOrderParam(redirectUrl, orderNumber);
+  const redirectUrlWithOrder = withTokenParam(withOrderParam(redirectUrl, orderNumber), statusToken);
 
   // DPO docs show decimals; UGX often expects whole numbers. Keep UGX whole, others fixed(2).
   const paymentAmount = currency.toUpperCase() === 'UGX' ? String(Math.round(amount)) : amount.toFixed(2);
@@ -282,6 +295,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     redirectUrl: redirect,
     transRef,
     transToken,
+    statusToken,
   });
 }
 

@@ -121,6 +121,10 @@ export default function Checkout({ onClose }: CheckoutProps) {
 
     try {
       const isDpoPayment = formData.payment_method === 'dpo';
+      const statusToken = (typeof crypto !== 'undefined' && 'randomUUID' in crypto)
+        ? crypto.randomUUID()
+        : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+
       const orderData = {
         customer_name: formData.customer_name,
         customer_email: formData.customer_email,
@@ -132,6 +136,7 @@ export default function Checkout({ onClose }: CheckoutProps) {
         payment_reference: isDpoPayment ? null : formData.payment_reference || null,
         payment_status: 'pending',
         order_status: 'pending',
+        status_token: statusToken,
         total_amount: calculateTotal(),
         shipping_fee: calculateShipping(),
         items: cartItems.map(item => ({
@@ -153,6 +158,7 @@ export default function Checkout({ onClose }: CheckoutProps) {
           amount: calculateTotal(),
           currency: 'UGX',
           serviceName: 'Shop Order',
+          statusToken,
           customer: {
             fullName: formData.customer_name,
             email: formData.customer_email,
