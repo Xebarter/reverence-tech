@@ -285,9 +285,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   const redirect = `${paymentUrlBase}${transToken}`;
 
-  // Save DPO TransRef on the order for later callback reconciliation
-  if (transRef) {
-    await supabase.from('orders').update({ payment_reference: transRef }).eq('id', orderId);
+  // Save DPO TransRef + TransToken so the status endpoint can later call
+  // verifyToken directly — making payment confirmation resilient to BackURL failures.
+  if (transRef || transToken) {
+    await supabase
+      .from('orders')
+      .update({
+        ...(transRef ? { payment_reference: transRef } : {}),
+        ...(transToken ? { trans_token: transToken } : {}),
+      })
+      .eq('id', orderId);
   }
 
   return res.status(200).json({
