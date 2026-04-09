@@ -86,6 +86,7 @@ export default function Services() {
   const [processing, setProcessing] = useState(false);
   const [error, setError] = useState('');
   const [pendingOrderNumber, setPendingOrderNumber] = useState<string>('');
+  const [pendingStatusToken, setPendingStatusToken] = useState<string>('');
 
   const inputClass =
     'w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all';
@@ -100,6 +101,7 @@ export default function Services() {
     setProcessing(false);
     setError('');
     setPendingOrderNumber('');
+    setPendingStatusToken('');
   }, []);
 
   useEffect(() => {
@@ -199,6 +201,11 @@ export default function Services() {
     setError('');
 
     try {
+      const statusToken =
+        typeof crypto !== 'undefined' && 'randomUUID' in crypto
+          ? crypto.randomUUID()
+          : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+
       const orderData = {
         customer_name: formData.full_name,
         customer_email: formData.email,
@@ -210,6 +217,7 @@ export default function Services() {
         payment_reference: null,
         payment_status: 'pending' as const,
         order_status: 'pending' as const,
+        status_token: statusToken,
         total_amount: formData.amount,
         shipping_fee: 0,
         items: [
@@ -234,6 +242,7 @@ export default function Services() {
         amount: formData.amount,
         currency: 'UGX',
         serviceName: selectedService.package_name,
+        statusToken,
         customer: {
           fullName: formData.full_name,
           email: formData.email,
@@ -244,6 +253,7 @@ export default function Services() {
       });
 
       setPendingOrderNumber(orderNumber);
+      setPendingStatusToken(statusToken);
 
       setCheckoutStep('processing');
       window.location.href = dpoRedirectUrl;
@@ -258,6 +268,7 @@ export default function Services() {
       setProcessing(false);
       setCheckoutStep('confirm');
       setPendingOrderNumber('');
+      setPendingStatusToken('');
     }
   };
 
@@ -759,6 +770,7 @@ export default function Services() {
                         onClick={() => {
                           setCheckoutStep('details');
                           setPendingOrderNumber('');
+                          setPendingStatusToken('');
                         }}
                         className="flex-1 py-4 border-2 border-slate-200 text-slate-700 font-bold rounded-2xl hover:bg-slate-50 transition"
                       >
@@ -798,7 +810,7 @@ export default function Services() {
                     {pendingOrderNumber && (
                       <div className="mt-5 flex gap-3 justify-center">
                         <Link
-                          to={`/payment-result?order=${encodeURIComponent(pendingOrderNumber)}`}
+                          to={`/payment-result?order=${encodeURIComponent(pendingOrderNumber)}&t=${encodeURIComponent(pendingStatusToken)}`}
                           className="px-5 py-2 bg-[#1C3D5A] text-white font-bold rounded-xl hover:bg-[#152f45] transition"
                         >
                           Check payment status
