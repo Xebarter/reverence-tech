@@ -1,51 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { createClient } from '@supabase/supabase-js';
-
-function extractXmlValue(xml: string, tagName: string): string | null {
-  const re = new RegExp(`<${tagName}>([\\s\\S]*?)<\\/${tagName}>`, 'i');
-  const match = xml.match(re);
-  return match?.[1]?.trim() ?? null;
-}
-
-function escapeXml(text: string): string {
-  return text
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&apos;');
-}
-
-async function verifyDpoToken(
-  transToken: string,
-  companyToken: string,
-  apiUrl: string,
-): Promise<{ result: string | null; transRef: string | null }> {
-  const xmlBody = `<?xml version="1.0" encoding="utf-8"?>
-<API3G>
-  <CompanyToken>${escapeXml(companyToken)}</CompanyToken>
-  <Request>verifyToken</Request>
-  <TransactionToken>${escapeXml(transToken)}</TransactionToken>
-</API3G>`;
-
-  const resp = await fetch(apiUrl, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/xml; charset=utf-8',
-      Accept: 'application/xml',
-      'User-Agent':
-        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
-      'Accept-Language': 'en-US,en;q=0.9',
-    },
-    body: xmlBody,
-  });
-
-  const text = await resp.text();
-  return {
-    result: extractXmlValue(text, 'Result'),
-    transRef: extractXmlValue(text, 'TransRef'),
-  };
-}
+import { setCorsHeaders, getSupabaseEnv, getDpoEnv, verifyDpoToken } from '../lib/dpo';
 
 type ConfirmBody = {
   orderNumber: string;
@@ -55,9 +10,7 @@ type ConfirmBody = {
 };
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST,OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'content-type');
+  setCorsHeaders(res);
 
   if (req.method === 'OPTIONS') return res.status(200).send('ok');
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
@@ -72,8 +25,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(400).json({ error: 'Missing orderNumber or statusToken' });
   }
 
-  const supabaseUrl = process.env.SUPABASE_URL;
-  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const { url: supabaseUrl, serviceRoleKey } = getSupabaseEnv();
   if (!supabaseUrl || !serviceRoleKey) {
     return res.status(500).json({ error: 'Supabase env vars missing' });
   }
@@ -90,7 +42,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (error) return res.status(500).json({ error: 'Failed to fetch order' });
   if (!data) return res.status(404).json({ error: 'Order not found' });
 
-  // Already in a terminal state — just return it.
+  // Already terminal -- return as-is
   if (data.payment_status === 'paid' || data.payment_status === 'refunded') {
     return res.status(200).json({
       payment_status: data.payment_status,
@@ -99,19 +51,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     });
   }
 
-  // ── Try server-side DPO verifyToken (most trustworthy) ──
-  const companyToken = process.env.DPO_COMPANY_TOKEN;
-  const apiUrl = process.env.DPO_API_URL || 'https://secure.3gdirectpay.com/API/v6/';
+  // --- Strategy 1: Server-side verifyToken (most trustworthy) ---
+  const { companyToken, apiUrl } = getDpoEnv();
 
   if (data.trans_token && companyToken) {
     try {
-      const { result: dpoVerifyResult, transRef: verifiedRef } = await verifyDpoToken(
+      const { result, transRef: verifiedRef } = await verifyDpoToken(
         data.trans_token,
         companyToken,
         apiUrl,
       );
 
-      if (dpoVerifyResult === '000') {
+      if (result === '000') {
         const ref = verifiedRef || clientTransRef || data.payment_reference;
         await supabase
           .from('orders')
@@ -130,7 +81,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         });
       }
 
-      if (dpoVerifyResult === '002' || dpoVerifyResult === '003') {
+      if (result === '002' || result === '003') {
         await supabase
           .from('orders')
           .update({ payment_status: 'failed', updated_at: new Date().toISOString() })
@@ -142,15 +93,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           order_status: data.order_status,
         });
       }
-      // 001 (not paid) or 004 (expired) — fall through
+      // 001 / 004 -- fall through
     } catch {
-      // DPO network issue — fall through to redirect-result logic
+      // DPO unreachable -- fall through to redirect-result logic
     }
   }
 
-  // ── Fallback: trust the DPO redirect Result ──
-  // The user can only call this with the correct statusToken (secret UUID),
-  // and DPO appended Result=000 to the redirect they control.
+  // --- Strategy 2: Trust DPO redirect Result (statusToken acts as auth) ---
   if (dpoResult === '000') {
     const ref = clientTransRef || data.payment_reference;
     await supabase
@@ -183,7 +132,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     });
   }
 
-  // No DPO info to act on — return current DB state
+  // No actionable info -- return current DB state
   return res.status(200).json({
     payment_status: data.payment_status ?? null,
     payment_reference: data.payment_reference ?? null,

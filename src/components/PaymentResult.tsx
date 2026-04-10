@@ -1,9 +1,8 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { CheckCircle2, Clock, XCircle, RefreshCw } from 'lucide-react';
-import { fetchOrderStatus, confirmDpoResult } from '../lib/fetchOrderStatus';
-import { adminSupabase } from '../lib/supabase';
+import { fetchOrderStatus, confirmDpoResult } from '../lib/dpo';
 
 type PaymentStatus = 'paid' | 'failed' | 'pending' | 'refunded' | null;
 
@@ -14,16 +13,12 @@ export default function PaymentResult() {
   const orderNumber = searchParams.get('order') || '';
   const statusToken = searchParams.get('t') || '';
 
-  // DPO appends these to the RedirectURL after payment completes.
   const dpoResult = searchParams.get('Result') || searchParams.get('result') || '';
   const dpoTransRef = searchParams.get('TransRef') || searchParams.get('transRef') || '';
 
   const dpoSaysSuccess = dpoResult === '000';
   const dpoSaysFailed = dpoResult === '002' || dpoResult === '003';
 
-  const canFetch = useMemo(() => Boolean(orderNumber && statusToken), [orderNumber, statusToken]);
-
-  // When DPO says success in the URL, show paid *immediately* — don't wait for the DB.
   const [paymentStatus, setPaymentStatus] = useState<PaymentStatus>(
     dpoSaysSuccess ? 'paid' : dpoSaysFailed ? 'failed' : null,
   );
@@ -35,6 +30,7 @@ export default function PaymentResult() {
   const [error, setError] = useState('');
   const [polling, setPolling] = useState(false);
   const [lastCheckedAt, setLastCheckedAt] = useState<string | null>(null);
+  const [refreshNonce, setRefreshNonce] = useState(0);
 
   const intervalRef = useRef<number | undefined>(undefined);
   const confirmFired = useRef(false);
@@ -42,7 +38,7 @@ export default function PaymentResult() {
   const now = () =>
     new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
 
-  // ── Path A: DPO gave us a result in the URL → confirm with server immediately ──
+  // -- Path A: DPO gave us a result in the URL -> confirm with server immediately --
   useEffect(() => {
     if (!orderNumber || !statusToken || confirmFired.current) return;
     if (!dpoSaysSuccess && !dpoSaysFailed) return;
@@ -63,14 +59,12 @@ export default function PaymentResult() {
         setOrderStatus(snapshot.order_status || orderStatus);
         setLastCheckedAt(now());
       } catch {
-        // Server couldn't confirm — the optimistic UI from DPO's redirect still shows.
-        // The DB will eventually catch up via the BackURL callback.
         setLastCheckedAt(now());
       }
     })();
   }, [orderNumber, statusToken, dpoResult, dpoTransRef]);
 
-  // ── Path B: No DPO result in URL (e.g. user navigated here manually) → poll ──
+  // -- Path B: No DPO result in URL -> poll via /api/orders/status --
   const handleRefresh = () => {
     if (intervalRef.current !== undefined) {
       window.clearInterval(intervalRef.current);
@@ -80,12 +74,9 @@ export default function PaymentResult() {
     setRefreshNonce((n) => n + 1);
   };
 
-  const [refreshNonce, setRefreshNonce] = useState(0);
-
   useEffect(() => {
-    // Skip polling entirely when DPO already told us the result.
     if (dpoSaysSuccess || dpoSaysFailed) return;
-    if (!orderNumber) return;
+    if (!orderNumber || !statusToken) return;
 
     let isMounted = true;
     let attempts = 0;
@@ -96,22 +87,7 @@ export default function PaymentResult() {
       if (!isMounted) return null;
       setError('');
       try {
-        const snapshot = canFetch
-          ? await fetchOrderStatus(orderNumber, statusToken)
-          : await (async () => {
-              const { data, error } = await adminSupabase
-                .from('orders')
-                .select('payment_status, payment_reference, order_status')
-                .eq('order_number', orderNumber)
-                .maybeSingle();
-              if (error) throw error;
-              return {
-                payment_status: (data?.payment_status as any) ?? null,
-                payment_reference: (data?.payment_reference as any) ?? null,
-                order_status: (data?.order_status as any) ?? null,
-              };
-            })();
-
+        const snapshot = await fetchOrderStatus(orderNumber, statusToken);
         if (!isMounted) return null;
 
         const next = (snapshot?.payment_status as PaymentStatus) || null;
@@ -164,9 +140,9 @@ export default function PaymentResult() {
         intervalRef.current = undefined;
       }
     };
-  }, [canFetch, orderNumber, refreshNonce, statusToken, dpoSaysSuccess, dpoSaysFailed]);
+  }, [orderNumber, refreshNonce, statusToken, dpoSaysSuccess, dpoSaysFailed]);
 
-  // ── Auto-navigate to orders page after paid ──
+  // -- Auto-navigate to orders page after paid --
   useEffect(() => {
     if (paymentStatus !== 'paid' || !orderNumber) return;
     const id = window.setTimeout(() => {
@@ -175,7 +151,7 @@ export default function PaymentResult() {
     return () => window.clearTimeout(id);
   }, [navigate, orderNumber, paymentStatus]);
 
-  // ── UI rendering ──
+  // -- UI rendering --
   const statusConfig =
     paymentStatus === 'paid'
       ? { icon: CheckCircle2, label: 'Payment successful', tone: 'emerald' }

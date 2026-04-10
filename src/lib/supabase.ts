@@ -223,6 +223,8 @@ export interface Order {
     quantity: number;
     subtotal: number;
   }>;
+  status_token: string | null;
+  trans_token: string | null;
   notes: string | null;
   admin_notes: string | null;
   tracking_number: string | null;

@@ -13,7 +13,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../lib/supabase';
 import { describeFunctionsHttpError } from '../lib/describeFunctionsHttpError';
-import { initiateDpoCheckout } from '../lib/initiateDpoCheckout';
+import { initiateDpoCheckout } from '../lib/dpo';
 
 /* -------------------- Types -------------------- */
 interface Service {

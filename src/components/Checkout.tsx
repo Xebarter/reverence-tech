@@ -5,7 +5,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { adminSupabase } from '../lib/supabase';
 import { useCart } from '../CartContext';
 import { describeFunctionsHttpError } from '../lib/describeFunctionsHttpError';
-import { initiateDpoCheckout } from '../lib/initiateDpoCheckout';
+import { initiateDpoCheckout } from '../lib/dpo';
 
 interface CheckoutProps {
   onClose?: () => void;
