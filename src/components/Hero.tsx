@@ -4,16 +4,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../lib/supabase';
 
 /* ---------------- IMAGE OPTIMIZATION HELPERS ---------------- */
-const withSearchParams = (rawUrl: string, params: Record<string, string | number>) => {
-  try {
-    const u = new URL(rawUrl);
-    Object.entries(params).forEach(([k, v]) => u.searchParams.set(k, String(v)));
-    return u.toString();
-  } catch {
-    return rawUrl;
-  }
-};
-
 const getOptimizedImageUrl = (url: string, width: number): string => {
   if (!url) return url;
   const quality = width < 600 ? 70 : 80;
@@ -23,21 +13,9 @@ const getOptimizedImageUrl = (url: string, width: number): string => {
     return `${url}${separator}w=${width}&q=${quality}&auto=format&fit=crop&fm=webp`;
   }
 
-  // Supabase Storage public (or signed) URLs should use the render endpoint for transforms.
-  // Many hero images are stored as: /storage/v1/object/public/<bucket>/<path>
-  // Transform endpoint:        /storage/v1/render/image/public/<bucket>/<path>
-  if (url.includes('/storage/v1/object/')) {
-    try {
-      const u = new URL(url);
-      u.pathname = u.pathname.replace('/storage/v1/object/public/', '/storage/v1/render/image/public/');
-      u.pathname = u.pathname.replace('/storage/v1/object/sign/', '/storage/v1/render/image/sign/');
-      return withSearchParams(u.toString(), { width, quality, resize: 'cover', format: 'webp' });
-    } catch {
-      return url;
-    }
-  }
-
-  // Fallback: don't try to transform unknown URLs.
+  // Supabase Storage URLs – serve the original public URL directly.
+  // The /render/image/ transform endpoint requires a Pro plan; using the raw
+  // object URL ensures images work on all Supabase tiers.
   return url;
 };
 
@@ -329,9 +307,14 @@ export default function Hero() {
                     alt="Web design and software development in Kampala Uganda – Reverence Technology"
                     onError={(e) => {
                       const img = e.currentTarget;
+                      const original = heroImages[currentImageIndex]?.image_url;
                       const fallback =
                         'https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=2000&q=80';
-                      if (img.src !== fallback) img.src = fallback;
+                      if (original && img.src !== original && img.src !== fallback) {
+                        img.src = original;
+                      } else if (img.src !== fallback) {
+                        img.src = fallback;
+                      }
                     }}
                   />
                 )}

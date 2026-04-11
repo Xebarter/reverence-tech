@@ -18,7 +18,7 @@ export default function HeroImages() {
   const [formData, setFormData] = useState({
     title: '',
     image_url: '',
-    is_active: false,
+    is_active: true,
   });
   const [uploading, setUploading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -136,7 +136,7 @@ export default function HeroImages() {
     setFormData({
       title: '',
       image_url: '',
-      is_active: false,
+      is_active: true,
     });
     setEditingImage(null);
     setShowForm(false);
