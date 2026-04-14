@@ -4,7 +4,6 @@ import { createClient } from '@supabase/supabase-js';
 // Validate that environment variables are set
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-const supabaseServiceRoleKey = import.meta.env.VITE_SUPABASE_SERVICE_ROLE_KEY;
 
 if (!supabaseUrl) {
   console.error('VITE_SUPABASE_URL is not set. Please add it to your .env file.');
@@ -16,10 +15,6 @@ if (!supabaseAnonKey) {
   throw new Error('VITE_SUPABASE_ANON_KEY is not set');
 }
 
-if (!supabaseServiceRoleKey) {
-  console.warn('VITE_SUPABASE_SERVICE_ROLE_KEY is not set. Admin operations will be limited.');
-}
-
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
     storageKey: 'supabase_auth',
@@ -28,14 +23,9 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   }
 });
 
-// Admin client with service role key (bypasses RLS)
-export const adminSupabase = createClient(supabaseUrl, supabaseServiceRoleKey || supabaseAnonKey, {
-  auth: {
-    storageKey: 'supabase_admin_auth',
-    persistSession: false,
-    autoRefreshToken: false,
-  },
-});
+// IMPORTANT: Never use the Supabase service role key in the browser. "Admin" operations must be
+// performed via server routes / edge functions that hold `SUPABASE_SERVICE_ROLE_KEY`.
+export const adminSupabase = supabase;
 
 export interface Service {
   id: string;

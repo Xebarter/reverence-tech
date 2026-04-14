@@ -1,4 +1,4 @@
-import { adminSupabase, supabase } from './supabase';
+import { supabase } from './supabase';
 
 export type DpoCheckoutOrderPayload = Record<string, unknown>;
 
@@ -88,24 +88,10 @@ async function tryCreateViaApi(order: DpoCheckoutOrderPayload, payment: DpoCheck
 }
 
 async function createViaEdgeFunction(order: DpoCheckoutOrderPayload, payment: DpoCheckoutPaymentPayload): Promise<ApiSuccess> {
-  // 1) Create order in DB (needs elevated privileges; this project already uses adminSupabase client-side)
-  const { data: inserted, error: insertError } = await adminSupabase
-    .from('orders')
-    .insert([order])
-    .select('order_number')
-    .single();
-
-  if (insertError) {
-    throw new Error(insertError.message);
-  }
-
-  const orderNumber = (inserted as any)?.order_number as string | undefined;
-  if (!orderNumber) throw new Error('Order created but missing order_number');
-
-  // 2) Ask Supabase Edge Function to create the DPO payment token
+  // Ask Supabase Edge Function to create both the order (server-side) and the DPO payment token.
   const { data, error } = await supabase.functions.invoke('create-dpo-service-payment', {
     body: {
-      orderNumber,
+      order,
       amount: payment.amount,
       currency: payment.currency || 'UGX',
       serviceName: payment.serviceName,
@@ -119,6 +105,8 @@ async function createViaEdgeFunction(order: DpoCheckoutOrderPayload, payment: Dp
     throw new Error(error.message || 'Failed to initiate payment');
   }
 
+  const orderNumber = (data as any)?.orderNumber as string | undefined;
+  if (!orderNumber) throw new Error('Order created but missing orderNumber');
   const redirectUrl = sanitizeDpoRedirectUrl(((data as any)?.redirectUrl as string | undefined) || '');
   if (!redirectUrl) throw new Error('Failed to create DPO payment session.');
 

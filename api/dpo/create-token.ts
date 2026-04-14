@@ -10,7 +10,7 @@ function normalizeDpoPaymentUrlBase(input: string): string {
   const trimmed = (input || '').trim();
   if (!trimmed) return DEFAULT_DPO_PAYMENT_PAGE_BASE;
 
-  // Keep the path DPO gave you (payv3.php, dpopayment.php, pay.asp, etc.); only fix query/placeholders.
+  // Keep the path DPO gave me (payv3.php, dpopayment.php, pay.asp, etc.); only fix query/placeholders.
   try {
     const url = new URL(trimmed);
     if (/(^|\.)3gdirectpay\.com$/i.test(url.hostname)) {

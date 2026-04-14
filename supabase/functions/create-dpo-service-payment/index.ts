@@ -114,7 +114,10 @@ async function markOrderDpoInitFailed(orderNumber: string): Promise<void> {
 }
 
 type CreateDpoServicePaymentPayload = {
-  orderNumber: string;
+  orderNumber?: string;
+  // Optional: allow the edge function to create the order server-side (service role key),
+  // so the browser never needs elevated Supabase credentials.
+  order?: Record<string, unknown>;
   amount: number;
   currency?: string;
   serviceName: string;
@@ -150,15 +153,16 @@ serve(async (req) => {
     });
   }
 
-  const orderNumber = payload?.orderNumber;
+  const orderPayload = payload?.order;
+  let orderNumber = payload?.orderNumber;
   const amount = Number(payload?.amount);
   const currency = (payload?.currency || "UGX").toString();
   const serviceName = payload?.serviceName || "Service Payment";
   const redirectUrl = payload?.redirectUrl;
   const customer = payload?.customer || {};
 
-  if (!orderNumber || !amount || amount <= 0) {
-    return new Response(JSON.stringify({ error: "Missing/invalid orderNumber or amount" }), {
+  if ((!orderNumber && !orderPayload) || !amount || amount <= 0) {
+    return new Response(JSON.stringify({ error: "Missing/invalid orderNumber (or order) or amount" }), {
       status: 400,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
@@ -168,6 +172,46 @@ serve(async (req) => {
       status: 400,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
+  }
+
+  const supabaseUrl = Deno.env.get("SUPABASE_URL");
+  const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  if (!supabaseUrl || !serviceRoleKey) {
+    return new Response(
+      JSON.stringify({ error: "Supabase env vars missing (SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)" }),
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+    );
+  }
+  const adminSupabase = createClient(supabaseUrl, serviceRoleKey, { auth: { persistSession: false } });
+
+  // If the caller didn't provide an order number, create the order server-side.
+  if (!orderNumber && orderPayload && typeof orderPayload === "object") {
+    const statusToken = String(payload?.statusToken || "").trim();
+    const insertRow = {
+      ...orderPayload,
+      ...(statusToken ? { status_token: statusToken } : {}),
+    };
+
+    const { data: inserted, error: insertError } = await adminSupabase
+      .from("orders")
+      .insert([insertRow])
+      .select("order_number")
+      .single();
+
+    if (insertError) {
+      return new Response(JSON.stringify({ error: insertError.message || "Failed to create order" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    orderNumber = (inserted as any)?.order_number as string | undefined;
+    if (!orderNumber) {
+      return new Response(JSON.stringify({ error: "Order created but missing order_number" }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
   }
 
   const companyToken = Deno.env.get("DPO_COMPANY_TOKEN");
@@ -201,6 +245,13 @@ serve(async (req) => {
       }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
+  }
+
+  if (!orderNumber) {
+    return new Response(JSON.stringify({ error: "Missing orderNumber" }), {
+      status: 400,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
 
   const { firstName, lastName } = splitName(customer?.fullName);
