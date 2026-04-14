@@ -80,6 +80,6 @@ To learn more about the technologies used:
 
 ## DPO Checkout
 
-For DPO payment setup (secrets, migration, function deploy, and end-to-end test flow), see:
+For DPO payment setup (Vercel env, callback URL, migrations, and post-deploy verification), see:
 
 - `DPO_CHECKOUT_SETUP.md`

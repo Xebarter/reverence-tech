@@ -1,7 +1,8 @@
 /**
- * Set VITE_DPO_TEST_MODE=true in .env to show DPO sandbox test card hints in checkout UIs.
- * Does not enable sandbox on the server; configure Supabase secrets (DPO_COMPANY_TOKEN, etc.) separately.
+ * Production builds: always false unless explicitly overridden.
+ * Set VITE_DPO_TEST_MODE=true only in local .env when using DPO sandbox credentials.
+ * Never enable for production deployments.
  */
-export function isDpoTestMode(): boolean {
+export function isDpoTestModeEnabled(): boolean {
   return import.meta.env.VITE_DPO_TEST_MODE === 'true';
 }

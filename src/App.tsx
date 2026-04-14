@@ -200,7 +200,7 @@ function App() {
             </div>
           } />
           <Route path="/unauthorized" element={<Unauthorized />} />
-          <Route path="/test-admin" element={<TestAdminUsers />} />
+
           {/* Admin routes */}
           <Route path="/admin" element={<AdminLayout />}>
             <Route index element={<AdminDashboard />} />
@@ -212,32 +212,41 @@ function App() {
             <Route path="blog" element={<BlogManagement />} />
             <Route path="users" element={<UserManagement />} />
             <Route path="careers" element={<CareersManagement />} />
-            <Route path="test-admin-users" element={<TestAdminUsers />} />
+            {import.meta.env.DEV ? (
+              <Route path="test-admin-users" element={<TestAdminUsers />} />
+            ) : null}
             <Route path="scheduled-calls" element={<ScheduledCalls />} />
             <Route path="shop" element={<ShopManagement />} />
             <Route path="deposits" element={<DepositsManagement />} />
             <Route path="orders" element={<OrdersManagement />} />
           </Route>
-          
-          {/* Temporary admin route for testing without admin checks */}
-          <Route path="/admin-temp" element={
-            <div className="min-h-screen">
-              <AdminLayout />
-            </div>
-          }>
-            <Route index element={<AdminDashboard />} />
-            <Route path="messages" element={<Messages />} />
-            <Route path="services" element={<ServicesManagement />} />
-            <Route path="hero-images" element={<HeroImages />} />
-            <Route path="testimonials" element={<TestimonialsManagement />} />
-            <Route path="careers" element={<CareersManagement />} />
-            <Route path="blog" element={<BlogManagement />} />
-            <Route path="users" element={<UserManagement />} />
-            <Route path="scheduled-calls" element={<ScheduledCalls />} />
-            <Route path="shop" element={<ShopManagement />} />
-            <Route path="deposits" element={<DepositsManagement />} />
-            <Route path="orders" element={<OrdersManagement />} />
-          </Route>
+
+          {import.meta.env.DEV ? (
+            <>
+              <Route path="/test-admin" element={<TestAdminUsers />} />
+              {/* Unauthenticated admin shell — never expose in production builds */}
+              <Route path="/admin-temp"
+                element={
+                  <div className="min-h-screen">
+                    <AdminLayout />
+                  </div>
+                }
+              >
+                <Route index element={<AdminDashboard />} />
+                <Route path="messages" element={<Messages />} />
+                <Route path="services" element={<ServicesManagement />} />
+                <Route path="hero-images" element={<HeroImages />} />
+                <Route path="testimonials" element={<TestimonialsManagement />} />
+                <Route path="careers" element={<CareersManagement />} />
+                <Route path="blog" element={<BlogManagement />} />
+                <Route path="users" element={<UserManagement />} />
+                <Route path="scheduled-calls" element={<ScheduledCalls />} />
+                <Route path="shop" element={<ShopManagement />} />
+                <Route path="deposits" element={<DepositsManagement />} />
+                <Route path="orders" element={<OrdersManagement />} />
+              </Route>
+            </>
+          ) : null}
           
           <Route path="/admin/auth" element={<AdminAuth />} />
         </Routes>

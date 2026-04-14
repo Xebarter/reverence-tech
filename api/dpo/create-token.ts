@@ -2,25 +2,23 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import { setPaymentApiCorsHeaders } from '../lib/corsAllowOrigin';
 
-function normalizeDpoPaymentUrlBase(input: string): string {
-  // Accept common env formats:
-  // - https://.../payv3.php?ID=
-  // - https://.../payv3.php?ID=token   (placeholder mistake)
-  // - https://.../payv3.php?ID={token} (placeholder)
-  // - https://.../payv3.php?ID=<token>
-  const trimmed = (input || '').trim();
-  // DPO support often provides links like:
-  // https://secure.3gdirectpay.com/dpopayment.php?ID=<TransToken>
-  if (!trimmed) return 'https://secure.3gdirectpay.com/dpopayment.php?ID=';
+/** DPO often emails `...payv3.php?ID=token` where `token` is a placeholder — env must end at `ID=`. */
+const DEFAULT_DPO_PAYMENT_PAGE_BASE = 'https://secure.3gdirectpay.com/payv3.php?ID=';
 
-  // Normalize legacy hosted pages (payv2/payv3/pay.asp) to the expected `dpopayment.php?ID=`.
-  // This prevents env/config mistakes like `.../payv2.php?ID=TransToken` from leaking into the redirect URL.
+function normalizeDpoPaymentUrlBase(input: string): string {
+  const trimmed = (input || '').trim();
+  if (!trimmed) return DEFAULT_DPO_PAYMENT_PAGE_BASE;
+
+  // Keep the path DPO gave you (payv3.php, dpopayment.php, pay.asp, etc.); only fix query/placeholders.
   try {
     const url = new URL(trimmed);
     if (/(^|\.)3gdirectpay\.com$/i.test(url.hostname)) {
-      url.pathname = '/dpopayment.php';
-      url.search = '?ID=';
       url.hash = '';
+      let id = url.searchParams.get('ID') ?? url.searchParams.get('id') ?? '';
+      id = id.trim().replace(/^TransToken/i, '').trim();
+      if (/^(token|transtoken|\{token\}|<token>)$/i.test(id)) id = '';
+      url.search = '';
+      url.searchParams.set('ID', id);
       return url.toString();
     }
   } catch {
@@ -127,7 +125,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const backUrlBase = process.env.DPO_BACK_URL;
   const apiUrl = process.env.DPO_API_URL || 'https://secure.3gdirectpay.com/API/v6/';
   const paymentUrlBase = normalizeDpoPaymentUrlBase(
-    process.env.DPO_PAYMENT_URL || 'https://secure.3gdirectpay.com/dpopayment.php?ID=',
+    process.env.DPO_PAYMENT_URL || DEFAULT_DPO_PAYMENT_PAGE_BASE,
   );
 
   if (!supabaseUrl || !serviceRoleKey) {

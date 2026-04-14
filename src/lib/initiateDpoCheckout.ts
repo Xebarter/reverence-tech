@@ -35,9 +35,6 @@ function sanitizeDpoRedirectUrl(input: string): string {
   try {
     const url = new URL(trimmed);
     if (/(^|\.)3gdirectpay\.com$/i.test(url.hostname)) {
-      // Some configs/old docs use payv2/payv3/pay.asp; force the correct page.
-      url.pathname = '/dpopayment.php';
-
       const id = url.searchParams.get('ID');
       if (id) {
         url.searchParams.set('ID', id.trim().replace(/^TransToken/i, '').trim());

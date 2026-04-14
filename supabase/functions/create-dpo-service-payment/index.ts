@@ -18,18 +18,21 @@ const dpoUpstreamHeaders: Record<string, string> = {
   "Accept-Language": "en-US,en;q=0.9",
 };
 
+const DEFAULT_DPO_PAYMENT_PAGE_BASE = "https://secure.3gdirectpay.com/payv3.php?ID=";
+
 function normalizeDpoPaymentUrlBase(input: string): string {
   const trimmed = (input || "").trim();
-  if (!trimmed) return "https://secure.3gdirectpay.com/dpopayment.php?ID=";
+  if (!trimmed) return DEFAULT_DPO_PAYMENT_PAGE_BASE;
 
-  // Normalize legacy hosted pages (payv2/payv3/pay.asp) to `dpopayment.php?ID=`.
-  // This prevents config mistakes like `.../payv2.php?ID=TransToken` from leaking into the redirect URL.
   try {
     const url = new URL(trimmed);
     if (/(^|\.)3gdirectpay\.com$/i.test(url.hostname)) {
-      url.pathname = "/dpopayment.php";
-      url.search = "?ID=";
       url.hash = "";
+      let id = url.searchParams.get("ID") ?? url.searchParams.get("id") ?? "";
+      id = id.trim().replace(/^TransToken/i, "").trim();
+      if (/^(token|transtoken|\{token\}|<token>)$/i.test(id)) id = "";
+      url.search = "";
+      url.searchParams.set("ID", id);
       return url.toString();
     }
   } catch {
@@ -173,7 +176,7 @@ serve(async (req) => {
   const apiUrl = Deno.env.get("DPO_API_URL") || "https://secure.3gdirectpay.com/API/v6/";
   // Hosted page for v6 API tokens (override with DPO_PAYMENT_URL if DPO instructs otherwise)
   const paymentUrlBase = normalizeDpoPaymentUrlBase(
-    Deno.env.get("DPO_PAYMENT_URL") || "https://secure.3gdirectpay.com/dpopayment.php?ID=",
+    Deno.env.get("DPO_PAYMENT_URL") || DEFAULT_DPO_PAYMENT_PAGE_BASE,
   );
 
   if (!companyToken || !serviceType || !backUrlBase) {

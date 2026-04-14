@@ -1,48 +1,48 @@
-# DPO Checkout Setup
+# DPO checkout (production)
 
-This project now supports DPO checkout from the shop checkout page.
+Live payments use **DPO Pay** credentials and **HTTPS** URLs. There is no separate sandbox URL in this app: use the endpoints DPO gives you for your **live** company token (often `https://secure.3gdirectpay.com/API/v6/` and `dpopayment.php?ID=`).
 
-## 1) Set Supabase Edge Function secrets
+## 1) Vercel (primary)
 
-Set these in your Supabase project (Dashboard or CLI):
+Set these in the Vercel project **Production** environment:
 
-- `DPO_COMPANY_TOKEN` = your DPO test company token
-- `DPO_SERVICE_TYPE` = your DPO test service ID
-- `DPO_API_URL` = your DPO API endpoint (for example `https://secure.3gdirectpay.com/API/v6/`)
-- `DPO_PAYMENT_URL` = your DPO payment base URL (for example `https://secure.3gdirectpay.com/pay.asp?ID=`)
-- `DPO_BACK_URL` = public callback URL for `dpo-service-payment-callback`
+| Variable | Purpose |
+|----------|---------|
+| `DPO_COMPANY_TOKEN` | Live company token from DPO |
+| `DPO_SERVICE_TYPE` | Live service ID from DPO |
+| `DPO_API_URL` | e.g. `https://secure.3gdirectpay.com/API/v6/` |
+| `DPO_PAYMENT_URL` | Exact hosted page from DPO, e.g. `https://secure.3gdirectpay.com/payv3.php?ID=` (see note below) |
+| `DPO_BACK_URL` | Public **BackURL** callback, e.g. `https://yourdomain.com/api/dpo/callback` |
+| `SUPABASE_URL` | Supabase project URL |
+| `SUPABASE_SERVICE_ROLE_KEY` | Service role key (server only) |
+| `ALLOWED_ORIGINS` | Optional. Comma-separated site origins for payment API CORS |
 
-`DPO_BACK_URL` should look like:
+**Payment URL:** When DPO sends `https://secure.3gdirectpay.com/payv3.php?ID=token`, the word `token` is only documentation — your env value must be **`...payv3.php?ID=`** with nothing after `=`. The API appends the real `TransToken`. If you paste `...ID=token`, the app strips that placeholder.
 
-`https://<project-ref>.functions.supabase.co/dpo-service-payment-callback`
+`createToken` runs on **`/api/dpo/create-token`**. The DPO server callback is **`/api/dpo/callback`** (same behavior as the Supabase Edge function `dpo-service-payment-callback`, if you still deploy it for local/dev fallback).
 
-## 2) Apply database migration
+## 2) Supabase Edge (optional / dev fallback)
 
-This migration allows `dpo` in the `orders.payment_method` constraint:
-
-- `supabase/migrations/20260327000100_add_dpo_payment_method_to_orders.sql`
-
-Run your normal migration flow (local or remote).
-
-## 3) Deploy/redeploy edge functions
-
-Deploy both functions:
+If you use `supabase functions invoke` from the browser in development, set the same `DPO_*` values as **secrets** on the Supabase project:
 
 - `create-dpo-service-payment`
-- `dpo-service-payment-callback`
+- `dpo-service-payment-callback` (only if you point `DPO_BACK_URL` at Supabase instead of Vercel)
 
-## 4) Test flow
+## 3) Database
 
-1. Add products to cart.
-2. Open checkout.
-3. Keep payment method as **DPO Pay**.
-4. Submit checkout.
-5. Confirm browser redirects to DPO.
-6. Complete test payment in DPO.
-7. Confirm redirect back to `/payment-result?order=<ORDER_NUMBER>`.
-8. Confirm order status changes from `pending` to `paid` after callback.
+Ensure migration is applied:
 
-## Notes
+- `supabase/migrations/20260327000100_add_dpo_payment_method_to_orders.sql`
+- `supabase/migrations/20260409200000_add_trans_token_to_orders.sql` (if not already applied)
 
-- Manual payment methods (mobile money, bank transfer, cash, other) still work.
-- DPO transaction reference is saved into `orders.payment_reference` when available.
+## 4) Verify after deploy
+
+1. Use the **real** storefront URL (same origin as production).
+2. Checkout with **DPO Pay**, complete a **small** live or pilot payment.
+3. Confirm redirect to `/payment-result?order=…&t=…` and order becomes **paid** in the admin orders view.
+4. Check Vercel logs for `/api/dpo/create-token` and `/api/dpo/callback`.
+
+## 5) Frontend
+
+- Do **not** set `VITE_DPO_TEST_MODE=true` in production. Leave it unset or `false`.
+- Production builds **do not** register `/test-admin`, `/admin-temp`, or `/admin/test-admin-users` (development only).
