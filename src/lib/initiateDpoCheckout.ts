@@ -68,7 +68,8 @@ async function tryCreateViaApi(order: DpoCheckoutOrderPayload, payment: DpoCheck
   const json = (await resp.json().catch(() => null)) as (ApiSuccess & ApiFailure) | null;
 
   if (!resp.ok) {
-    if (isProbablyMissingApiRoute(resp)) {
+    // Only fall back in local development where /api routes might not exist.
+    if (import.meta.env.DEV && isProbablyMissingApiRoute(resp)) {
       throw new Error('__DPO_FALLBACK_TO_EDGE_FUNCTION__');
     }
     throw new Error(json?.hint || json?.error || `Failed to initiate payment (HTTP ${resp.status})`);
@@ -126,16 +127,6 @@ export async function initiateDpoCheckout(order: DpoCheckoutOrderPayload, paymen
   } catch (e) {
     if (e instanceof Error && e.message === '__DPO_FALLBACK_TO_EDGE_FUNCTION__') {
       return await createViaEdgeFunction(order, payment);
-    }
-    // For production (e.g. Vercel), do NOT silently fall back to Supabase Edge Functions:
-    // DPO can block Supabase Edge egress, and it also makes failures harder to diagnose.
-    // In dev, an extra fallback helps when the local serverless route isn't available.
-    if (import.meta.env.DEV) {
-      try {
-        return await createViaEdgeFunction(order, payment);
-      } catch {
-        throw e;
-      }
     }
     throw e;
   }
