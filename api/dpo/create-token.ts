@@ -111,71 +111,74 @@ type CreateTokenBody = {
 };
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  setPaymentApiCorsHeaders(req, res);
-  res.setHeader('Access-Control-Allow-Methods', 'POST,OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'content-type');
-
-  if (req.method === 'OPTIONS') return res.status(200).send('ok');
-  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
-
-  const supabaseUrl = process.env.SUPABASE_URL;
-  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-  const companyToken = process.env.DPO_COMPANY_TOKEN;
-  const serviceType = process.env.DPO_SERVICE_TYPE;
-  const backUrlBase = process.env.DPO_BACK_URL;
-  const apiUrl = process.env.DPO_API_URL || 'https://secure.3gdirectpay.com/API/v6/';
-  const paymentUrlBase = normalizeDpoPaymentUrlBase(
-    process.env.DPO_PAYMENT_URL || DEFAULT_DPO_PAYMENT_PAGE_BASE,
-  );
-
-  const dpoConfigError = validateDpoServerConfig({
-    apiUrl,
-    paymentPageBase: paymentUrlBase,
-    vercelEnv: process.env.VERCEL_ENV,
-  });
-  if (dpoConfigError) {
-    return res.status(500).json({ error: dpoConfigError });
-  }
-
-  if (!supabaseUrl || !serviceRoleKey) {
-    return res.status(500).json({ error: 'Supabase env vars missing (SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)' });
-  }
-
-  if (!companyToken || !serviceType || !backUrlBase) {
-    return res.status(500).json({
-      error: 'DPO env vars missing. Set DPO_COMPANY_TOKEN, DPO_SERVICE_TYPE, DPO_BACK_URL.',
-    });
-  }
-
-  let body: CreateTokenBody | null = null;
   try {
-    body = req.body as CreateTokenBody;
-  } catch {
-    body = null;
-  }
+    setPaymentApiCorsHeaders(req, res);
+    res.setHeader('Access-Control-Allow-Methods', 'POST,OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'content-type');
 
-  const order = body?.order;
-  const payment = body?.payment;
-  const amount = Number(payment?.amount);
-  const currency = (payment?.currency || 'UGX').toString();
-  const redirectUrl = payment?.redirectUrl;
-  const serviceName = payment?.serviceName || 'Service Payment';
-  const customer = payment?.customer || {};
+    if (req.method === 'OPTIONS') return res.status(200).send('ok');
+    if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  if (!order || typeof order !== 'object') {
-    return res.status(400).json({ error: 'Missing order payload' });
-  }
-  if (!amount || amount <= 0) {
-    return res.status(400).json({ error: 'Missing/invalid amount' });
-  }
-  if (!redirectUrl) {
-    return res.status(400).json({ error: 'Missing redirectUrl' });
-  }
+    const supabaseUrl = process.env.SUPABASE_URL;
+    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-  const supabase = createClient(supabaseUrl, serviceRoleKey, { auth: { persistSession: false } });
+    const companyToken = process.env.DPO_COMPANY_TOKEN;
+    const serviceType = process.env.DPO_SERVICE_TYPE;
+    const backUrlBase = process.env.DPO_BACK_URL;
+    const apiUrl = process.env.DPO_API_URL || 'https://secure.3gdirectpay.com/API/v6/';
+    const paymentUrlBase = normalizeDpoPaymentUrlBase(
+      process.env.DPO_PAYMENT_URL || DEFAULT_DPO_PAYMENT_PAGE_BASE,
+    );
 
-  const statusToken = crypto.randomUUID();
+    const dpoConfigError = validateDpoServerConfig({
+      apiUrl,
+      paymentPageBase: paymentUrlBase,
+      vercelEnv: process.env.VERCEL_ENV,
+    });
+    if (dpoConfigError) {
+      return res.status(500).json({ error: dpoConfigError });
+    }
+
+    if (!supabaseUrl || !serviceRoleKey) {
+      return res
+        .status(500)
+        .json({ error: 'Supabase env vars missing (SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)' });
+    }
+
+    if (!companyToken || !serviceType || !backUrlBase) {
+      return res.status(500).json({
+        error: 'DPO env vars missing. Set DPO_COMPANY_TOKEN, DPO_SERVICE_TYPE, DPO_BACK_URL.',
+      });
+    }
+
+    let body: CreateTokenBody | null = null;
+    try {
+      body = req.body as CreateTokenBody;
+    } catch {
+      body = null;
+    }
+
+    const order = body?.order;
+    const payment = body?.payment;
+    const amount = Number(payment?.amount);
+    const currency = (payment?.currency || 'UGX').toString();
+    const redirectUrl = payment?.redirectUrl;
+    const serviceName = payment?.serviceName || 'Service Payment';
+    const customer = payment?.customer || {};
+
+    if (!order || typeof order !== 'object') {
+      return res.status(400).json({ error: 'Missing order payload' });
+    }
+    if (!amount || amount <= 0) {
+      return res.status(400).json({ error: 'Missing/invalid amount' });
+    }
+    if (!redirectUrl) {
+      return res.status(400).json({ error: 'Missing redirectUrl' });
+    }
+
+    const supabase = createClient(supabaseUrl, serviceRoleKey, { auth: { persistSession: false } });
+
+    const statusToken = crypto.randomUUID();
 
   // 1) Create order
   const { data: inserted, error: insertError } = await supabase
@@ -326,12 +329,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       .eq('id', orderId);
   }
 
-  return res.status(200).json({
-    orderNumber,
-    redirectUrl: redirect,
-    transRef,
-    transToken,
-    statusToken,
-  });
+    return res.status(200).json({
+      orderNumber,
+      redirectUrl: redirect,
+      transRef,
+      transToken,
+      statusToken,
+    });
+  } catch (e: unknown) {
+    const message = e instanceof Error ? e.message : 'Unexpected error';
+    return res.status(500).json({ error: message });
+  }
 }
 

@@ -65,14 +65,24 @@ async function tryCreateViaApi(order: DpoCheckoutOrderPayload, payment: DpoCheck
     body: JSON.stringify({ order, payment }),
   });
 
-  const json = (await resp.json().catch(() => null)) as (ApiSuccess & ApiFailure) | null;
+  const ct = resp.headers.get('content-type') ?? '';
+  const json = (ct.includes('application/json')
+    ? await resp.json().catch(() => null)
+    : null) as (ApiSuccess & ApiFailure) | null;
+  const textPreview =
+    !json ? await resp.text().then((t) => t.slice(0, 500)).catch(() => '') : '';
 
   if (!resp.ok) {
     // Only fall back in local development where /api routes might not exist.
     if (import.meta.env.DEV && isProbablyMissingApiRoute(resp)) {
       throw new Error('__DPO_FALLBACK_TO_EDGE_FUNCTION__');
     }
-    throw new Error(json?.hint || json?.error || `Failed to initiate payment (HTTP ${resp.status})`);
+    throw new Error(
+      json?.hint ||
+        json?.error ||
+        (textPreview ? `Failed to initiate payment (HTTP ${resp.status}): ${textPreview}` : null) ||
+        `Failed to initiate payment (HTTP ${resp.status})`,
+    );
   }
 
   const orderNumber = json?.orderNumber;
