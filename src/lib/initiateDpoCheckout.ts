@@ -30,8 +30,11 @@ function sanitizeDpoRedirectUrl(input: string): string {
   const trimmed = (input || '').trim();
   if (!trimmed) return trimmed;
 
-  // Normalize any legacy hosted payment pages to the expected `dpopayment.php?ID=<token>`
-  // and remove the common erroneous "TransToken" prefix from the ID value.
+  // Ensure the returned redirect is a clean DPO hosted checkout URL and
+  // remove the common erroneous "TransToken" prefix from the ID value.
+  //
+  // Some merchants/accounts see multiple hosted page entrypoints (payv3.php, pay.asp, dpopayment.php).
+  // This project standardizes on `payv3.php?ID=<token>` so the browser is always sent to the same path.
   try {
     const url = new URL(trimmed);
     if (/(^|\.)3gdirectpay\.com$/i.test(url.hostname)) {
@@ -39,6 +42,8 @@ function sanitizeDpoRedirectUrl(input: string): string {
       if (id) {
         url.searchParams.set('ID', id.trim().replace(/^TransToken/i, '').trim());
       }
+      // Force the payment page path to payv3.php.
+      url.pathname = '/payv3.php';
       return url.toString();
     }
   } catch {
