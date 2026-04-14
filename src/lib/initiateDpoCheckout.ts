@@ -102,7 +102,8 @@ async function createViaEdgeFunction(order: DpoCheckoutOrderPayload, payment: Dp
   });
 
   if (error) {
-    throw new Error(error.message || 'Failed to initiate payment');
+    // Preserve the original FunctionsHttpError so callers can read the JSON body via `context`.
+    throw error;
   }
 
   const orderNumber = (data as any)?.orderNumber as string | undefined;
