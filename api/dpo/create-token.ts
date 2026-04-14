@@ -1,5 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
+import { randomUUID } from 'node:crypto';
 import { setPaymentApiCorsHeaders } from '../lib/corsAllowOrigin';
 import { validateDpoServerConfig } from '../lib/dpoEnv';
 
@@ -153,7 +154,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     let body: CreateTokenBody | null = null;
     try {
-      body = req.body as CreateTokenBody;
+      // Vercel may provide `req.body` as an object (already parsed) or as a JSON string.
+      const raw = (req as any)?.body;
+      if (typeof raw === 'string') {
+        body = JSON.parse(raw) as CreateTokenBody;
+      } else {
+        body = raw as CreateTokenBody;
+      }
     } catch {
       body = null;
     }
@@ -178,7 +185,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const supabase = createClient(supabaseUrl, serviceRoleKey, { auth: { persistSession: false } });
 
-    const statusToken = crypto.randomUUID();
+    const statusToken = randomUUID();
 
   // 1) Create order
   const { data: inserted, error: insertError } = await supabase
