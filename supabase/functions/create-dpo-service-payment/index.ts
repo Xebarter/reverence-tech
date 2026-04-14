@@ -282,35 +282,28 @@ serve(async (req) => {
 
   const customerPhone = String(customer?.phone || "").trim();
 
+  // Use the v6 `createToken` XML shape shown in DPO docs (flat fields at root).
   const xmlBody = `<?xml version="1.0" encoding="utf-8"?>
 <API3G>
   <CompanyToken>${escapeXml(companyToken)}</CompanyToken>
   <Request>createToken</Request>
-
-  <Transaction>
-    <PaymentAmount>${escapeXml(paymentAmount)}</PaymentAmount>
-    <PaymentCurrency>${escapeXml(currency)}</PaymentCurrency>
-    <CompanyRef>${escapeXml(String(orderNumber))}</CompanyRef>
-
-    <RedirectURL>${escapeXml(redirectUrlWithOrder)}</RedirectURL>
-    <BackURL>${escapeXml(backUrl)}</BackURL>
-
-    <CompanyRefUnique>0</CompanyRefUnique>
-    <PTL>5</PTL>
-
-    <customerFirstName>${escapeXml(firstName)}</customerFirstName>
-    <customerLastName>${escapeXml(lastName)}</customerLastName>
-    <customerEmail>${escapeXml(customerEmail)}</customerEmail>
-    <customerPhone>${escapeXml(customerPhone)}</customerPhone>
-  </Transaction>
-
-  <Services>
-    <Service>
-      <ServiceType>${escapeXml(serviceType)}</ServiceType>
-      <ServiceDescription>${escapeXml(serviceName)}</ServiceDescription>
-      <ServiceDate>${escapeXml(serviceDate)}</ServiceDate>
-    </Service>
-  </Services>
+  <PaymentAmount>${escapeXml(paymentAmount)}</PaymentAmount>
+  <PaymentCurrency>${escapeXml(currency)}</PaymentCurrency>
+  <CompanyRef>${escapeXml(String(orderNumber))}</CompanyRef>
+  <RedirectURL>${escapeXml(redirectUrlWithOrder)}</RedirectURL>
+  <BackURL>${escapeXml(backUrl)}</BackURL>
+  <PTL>5</PTL>
+  <ServiceType>${escapeXml(serviceType)}</ServiceType>
+  <Description>${escapeXml(serviceName)}</Description>
+  <customerFirstName>${escapeXml(firstName)}</customerFirstName>
+  <customerLastName>${escapeXml(lastName)}</customerLastName>
+  <customerEmail>${escapeXml(customerEmail)}</customerEmail>
+  <customerPhone>${escapeXml(customerPhone)}</customerPhone>
+  <Booking>
+    <BookingRef>${escapeXml(String(orderNumber))}</BookingRef>
+    <Description>${escapeXml(serviceName)}</Description>
+    <Date>${escapeXml(serviceDate)}</Date>
+  </Booking>
 </API3G>`;
 
   const resp = await fetch(apiUrl, {
