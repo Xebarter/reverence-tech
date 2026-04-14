@@ -1,6 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import { setPaymentApiCorsHeaders } from '../lib/corsAllowOrigin';
+import { validateDpoServerConfig } from '../lib/dpoEnv';
 
 /** DPO often emails `...payv3.php?ID=token` where `token` is a placeholder — env must end at `ID=`. */
 const DEFAULT_DPO_PAYMENT_PAGE_BASE = 'https://secure.3gdirectpay.com/payv3.php?ID=';
@@ -127,6 +128,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const paymentUrlBase = normalizeDpoPaymentUrlBase(
     process.env.DPO_PAYMENT_URL || DEFAULT_DPO_PAYMENT_PAGE_BASE,
   );
+
+  const dpoConfigError = validateDpoServerConfig({
+    apiUrl,
+    paymentPageBase: paymentUrlBase,
+    vercelEnv: process.env.VERCEL_ENV,
+  });
+  if (dpoConfigError) {
+    return res.status(500).json({ error: dpoConfigError });
+  }
 
   if (!supabaseUrl || !serviceRoleKey) {
     return res.status(500).json({ error: 'Supabase env vars missing (SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)' });

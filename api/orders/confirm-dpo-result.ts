@@ -1,6 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { createClient } from '@supabase/supabase-js';
 import { setPaymentApiCorsHeaders } from '../lib/corsAllowOrigin';
+import { validateDpoServerConfig } from '../lib/dpoEnv';
 
 function extractXmlValue(xml: string, tagName: string): string | null {
   const re = new RegExp(`<${tagName}>([\\s\\S]*?)<\\/${tagName}>`, 'i');
@@ -79,6 +80,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(500).json({ error: 'Supabase env vars missing' });
   }
 
+  const apiUrl = process.env.DPO_API_URL || 'https://secure.3gdirectpay.com/API/v6/';
+  const dpoConfigError = validateDpoServerConfig({
+    apiUrl,
+    paymentPageBase: process.env.DPO_PAYMENT_URL || '',
+    vercelEnv: process.env.VERCEL_ENV,
+  });
+  if (dpoConfigError) {
+    return res.status(500).json({ error: dpoConfigError });
+  }
+
   const supabase = createClient(supabaseUrl, serviceRoleKey, { auth: { persistSession: false } });
 
   const { data, error } = await supabase
@@ -102,7 +113,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   // ── Try server-side DPO verifyToken (most trustworthy) ──
   const companyToken = process.env.DPO_COMPANY_TOKEN;
-  const apiUrl = process.env.DPO_API_URL || 'https://secure.3gdirectpay.com/API/v6/';
 
   if (data.trans_token && companyToken) {
     try {

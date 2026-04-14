@@ -1,6 +1,10 @@
 # DPO checkout (production)
 
-Live payments use **DPO Pay** credentials and **HTTPS** URLs. There is no separate sandbox URL in this app: use the endpoints DPO gives you for your **live** company token (often `https://secure.3gdirectpay.com/API/v6/` and `dpopayment.php?ID=`).
+Live payments use **DPO Pay** credentials and **HTTPS** URLs. **TransToken** is always created for the **CompanyToken** you send — the app cannot force “production” tokens if your `DPO_COMPANY_TOKEN` is still a test account. Use **live** token and **live** service ID from DPO on Production.
+
+- **`DPO_MERCHANT_MODE`** — Defaults to **`production`**. In that mode, `/api/dpo/create-token` **rejects** URLs containing `sandbox`. Set `DPO_MERCHANT_MODE=sandbox` only for local/preview when you intentionally use sandbox hosts. **Vercel Production** must not use `sandbox` mode (the handler returns 500).
+
+Use the endpoints DPO gives you for your live account (often `https://secure.3gdirectpay.com/API/v6/` and `payv3.php?ID=`).
 
 ## 1) Vercel (primary)
 
@@ -8,6 +12,7 @@ Set these in the Vercel project **Production** environment:
 
 | Variable | Purpose |
 |----------|---------|
+| `DPO_MERCHANT_MODE` | `production` (default) or `sandbox` — never `sandbox` on Vercel Production |
 | `DPO_COMPANY_TOKEN` | Live company token from DPO |
 | `DPO_SERVICE_TYPE` | Live service ID from DPO |
 | `DPO_API_URL` | e.g. `https://secure.3gdirectpay.com/API/v6/` |

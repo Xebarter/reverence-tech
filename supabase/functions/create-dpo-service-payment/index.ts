@@ -179,6 +179,20 @@ serve(async (req) => {
     Deno.env.get("DPO_PAYMENT_URL") || DEFAULT_DPO_PAYMENT_PAGE_BASE,
   );
 
+  const dpoMode = (Deno.env.get("DPO_MERCHANT_MODE") || "production").toLowerCase().trim();
+  if (dpoMode !== "sandbox") {
+    const blob = `${apiUrl} ${paymentUrlBase}`.toLowerCase();
+    if (blob.includes("sandbox")) {
+      return new Response(
+        JSON.stringify({
+          error:
+            "DPO_MERCHANT_MODE is production but DPO_API_URL or DPO_PAYMENT_URL contains sandbox. Use live hosts or set DPO_MERCHANT_MODE=sandbox only for non-production.",
+        }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
+  }
+
   if (!companyToken || !serviceType || !backUrlBase) {
     return new Response(
       JSON.stringify({
