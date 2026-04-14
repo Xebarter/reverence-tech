@@ -1,5 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { createClient } from '@supabase/supabase-js';
+import { createClient, type SupabaseClient } from '@supabase/supabase-js';
+import { setPaymentApiCorsHeaders } from '../lib/corsAllowOrigin';
 
 function normalizeDpoPaymentUrlBase(input: string): string {
   // Accept common env formats:
@@ -52,6 +53,16 @@ function escapeXml(text: string): string {
     .replace(/'/g, '&apos;');
 }
 
+async function markOrderDpoInitFailed(supabase: SupabaseClient, orderId: string): Promise<void> {
+  await supabase
+    .from('orders')
+    .update({
+      payment_status: 'failed',
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', orderId);
+}
+
 function splitName(fullName: string | undefined | null): { firstName: string; lastName: string } {
   const trimmed = (fullName || '').trim().replace(/\s+/g, ' ');
   if (!trimmed) return { firstName: '', lastName: '' };
@@ -101,8 +112,7 @@ type CreateTokenBody = {
 };
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  // CORS for local + your deployed site
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  setPaymentApiCorsHeaders(req, res);
   res.setHeader('Access-Control-Allow-Methods', 'POST,OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'content-type');
 
@@ -179,6 +189,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   // 2) Create DPO token
   const { firstName, lastName } = splitName(customer?.fullName);
   const customerEmail = customer?.email || '';
+  const customerPhone = customer?.phone || '';
 
   const delimiter = backUrlBase.includes('?') ? '&' : '?';
   const backUrl = `${backUrlBase}${delimiter}order=${encodeURIComponent(orderNumber)}`;
@@ -215,6 +226,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     <customerFirstName>${escapeXml(firstName)}</customerFirstName>
     <customerLastName>${escapeXml(lastName)}</customerLastName>
     <customerEmail>${escapeXml(customerEmail)}</customerEmail>
+    <customerPhone>${escapeXml(customerPhone)}</customerPhone>
   </Transaction>
 
   <Services>
@@ -226,17 +238,23 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   </Services>
 </API3G>`;
 
-  const dpoResp = await fetch(apiUrl, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/xml; charset=utf-8',
-      Accept: 'application/xml',
-      'User-Agent':
-        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
-      'Accept-Language': 'en-US,en;q=0.9',
-    },
-    body: xmlBody,
-  });
+  let dpoResp: Response;
+  try {
+    dpoResp = await fetch(apiUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/xml; charset=utf-8',
+        Accept: 'application/xml',
+        'User-Agent':
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
+        'Accept-Language': 'en-US,en;q=0.9',
+      },
+      body: xmlBody,
+    });
+  } catch {
+    await markOrderDpoInitFailed(supabase, orderId);
+    return res.status(502).json({ error: 'Could not reach DPO. Try again in a moment.' });
+  }
 
   const responseText = await dpoResp.text();
   const result = extractXmlValue(responseText, 'Result');
@@ -248,6 +266,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const transRef = extractXmlValue(responseText, 'TransRef');
 
   if (!result && !transToken) {
+    await markOrderDpoInitFailed(supabase, orderId);
     const cloudFront403 =
       dpoResp.status === 403 &&
       (responseText.toLowerCase().includes('cloudfront') || responseText.toLowerCase().includes('request blocked'));
@@ -267,6 +286,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   if (result !== '000') {
+    await markOrderDpoInitFailed(supabase, orderId);
     return res.status(400).json({
       error: 'DPO createToken failed',
       result,
@@ -276,6 +296,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   if (!transToken) {
+    await markOrderDpoInitFailed(supabase, orderId);
     return res.status(502).json({
       error: 'DPO response missing payment token',
       result,

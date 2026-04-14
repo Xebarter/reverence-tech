@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.4";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -93,6 +94,20 @@ function withTokenParam(input: string, token: string): string {
     const delimiter = input.includes("?") ? "&" : "?";
     return `${input}${delimiter}t=${encodeURIComponent(token)}`;
   }
+}
+
+async function markOrderDpoInitFailed(orderNumber: string): Promise<void> {
+  const supabaseUrl = Deno.env.get("SUPABASE_URL");
+  const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  if (!supabaseUrl || !serviceRoleKey) return;
+  const supabase = createClient(supabaseUrl, serviceRoleKey, { auth: { persistSession: false } });
+  await supabase
+    .from("orders")
+    .update({
+      payment_status: "failed",
+      updated_at: new Date().toISOString(),
+    })
+    .eq("order_number", orderNumber);
 }
 
 type CreateDpoServicePaymentPayload = {
@@ -197,14 +212,16 @@ serve(async (req) => {
     now.getHours(),
   )}:${pad2(now.getMinutes())}`;
 
+  const customerPhone = String(customer?.phone || "").trim();
+
   const xmlBody = `<?xml version="1.0" encoding="utf-8"?>
 <API3G>
-  <CompanyToken>${companyToken}</CompanyToken>
+  <CompanyToken>${escapeXml(companyToken)}</CompanyToken>
   <Request>createToken</Request>
 
   <Transaction>
-    <PaymentAmount>${paymentAmount}</PaymentAmount>
-    <PaymentCurrency>${currency}</PaymentCurrency>
+    <PaymentAmount>${escapeXml(paymentAmount)}</PaymentAmount>
+    <PaymentCurrency>${escapeXml(currency)}</PaymentCurrency>
     <CompanyRef>${escapeXml(String(orderNumber))}</CompanyRef>
 
     <RedirectURL>${escapeXml(redirectUrlWithOrder)}</RedirectURL>
@@ -216,13 +233,14 @@ serve(async (req) => {
     <customerFirstName>${escapeXml(firstName)}</customerFirstName>
     <customerLastName>${escapeXml(lastName)}</customerLastName>
     <customerEmail>${escapeXml(customerEmail)}</customerEmail>
+    <customerPhone>${escapeXml(customerPhone)}</customerPhone>
   </Transaction>
 
   <Services>
     <Service>
-      <ServiceType>${serviceType}</ServiceType>
+      <ServiceType>${escapeXml(serviceType)}</ServiceType>
       <ServiceDescription>${escapeXml(serviceName)}</ServiceDescription>
-      <ServiceDate>${serviceDate}</ServiceDate>
+      <ServiceDate>${escapeXml(serviceDate)}</ServiceDate>
     </Service>
   </Services>
 </API3G>`;
@@ -237,6 +255,7 @@ serve(async (req) => {
   });
 
   if (!resp) {
+    await markOrderDpoInitFailed(String(orderNumber));
     return new Response(
       JSON.stringify({
         error: "Failed to reach DPO API",
@@ -273,6 +292,7 @@ serve(async (req) => {
         ? "DPO did not return XML (check DPO_API_URL, network reachability, and Supabase function logs)."
         : undefined;
 
+    await markOrderDpoInitFailed(String(orderNumber));
     return new Response(
       JSON.stringify({
         error: "Unexpected response from DPO",
@@ -292,6 +312,7 @@ serve(async (req) => {
       httpStatus: resp.status,
       bodyPreview: responseText.slice(0, 400),
     });
+    await markOrderDpoInitFailed(String(orderNumber));
     return new Response(
       JSON.stringify({
         error: "DPO createToken failed",
@@ -304,6 +325,7 @@ serve(async (req) => {
 
   if (!transToken) {
     console.error("[create-dpo-service-payment] Missing TransToken", responseText.slice(0, 500));
+    await markOrderDpoInitFailed(String(orderNumber));
     return new Response(
       JSON.stringify({
         error: "DPO response missing payment token",
@@ -315,6 +337,19 @@ serve(async (req) => {
   }
 
   const redirect = `${paymentUrlBase}${transToken}`;
+
+  const supabaseUrl = Deno.env.get("SUPABASE_URL");
+  const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  if (supabaseUrl && serviceRoleKey && (transRef || transToken)) {
+    const supabase = createClient(supabaseUrl, serviceRoleKey, { auth: { persistSession: false } });
+    await supabase
+      .from("orders")
+      .update({
+        ...(transRef ? { payment_reference: transRef } : {}),
+        ...(transToken ? { trans_token: transToken } : {}),
+      })
+      .eq("order_number", orderNumber);
+  }
 
   return new Response(
     JSON.stringify({

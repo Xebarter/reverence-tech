@@ -16,7 +16,14 @@ export type DpoCheckoutPaymentPayload = {
   };
 };
 
-type ApiSuccess = { orderNumber: string; redirectUrl: string; transRef?: string; transToken?: string };
+type ApiSuccess = {
+  orderNumber: string;
+  redirectUrl: string;
+  transRef?: string;
+  transToken?: string;
+  /** Secret returned by the server (`/api/dpo/create-token`); must match `t` on `/payment-result`. */
+  statusToken?: string;
+};
 type ApiFailure = { error?: string; hint?: string };
 
 function sanitizeDpoRedirectUrl(input: string): string {
@@ -69,7 +76,13 @@ async function tryCreateViaApi(order: DpoCheckoutOrderPayload, payment: DpoCheck
   const redirectUrl = sanitizeDpoRedirectUrl(json?.redirectUrl || '');
   if (!orderNumber || !redirectUrl) throw new Error('Failed to create DPO payment session.');
 
-  return { orderNumber, redirectUrl, transRef: json?.transRef, transToken: json?.transToken };
+  return {
+    orderNumber,
+    redirectUrl,
+    transRef: json?.transRef,
+    transToken: json?.transToken,
+    statusToken: json?.statusToken,
+  };
 }
 
 async function createViaEdgeFunction(order: DpoCheckoutOrderPayload, payment: DpoCheckoutPaymentPayload): Promise<ApiSuccess> {
@@ -112,6 +125,7 @@ async function createViaEdgeFunction(order: DpoCheckoutOrderPayload, payment: Dp
     redirectUrl,
     transRef: (data as any)?.transRef,
     transToken: (data as any)?.transToken,
+    statusToken: payment.statusToken,
   };
 }
 

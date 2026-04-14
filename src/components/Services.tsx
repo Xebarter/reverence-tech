@@ -238,22 +238,25 @@ export default function Services() {
       // the server-to-server call comes from your Vercel deployment (not the browser).
       const redirectUrl = `${window.location.origin}/payment-result`;
 
-      const { orderNumber, redirectUrl: dpoRedirectUrl } = await initiateDpoCheckout(orderData, {
-        amount: formData.amount,
-        currency: 'UGX',
-        serviceName: selectedService.package_name,
-        statusToken,
-        customer: {
-          fullName: formData.full_name,
-          email: formData.email,
-          phone: formData.phone,
-          company: formData.company || null,
+      const { orderNumber, redirectUrl: dpoRedirectUrl, statusToken: serverStatusToken } = await initiateDpoCheckout(
+        orderData,
+        {
+          amount: formData.amount,
+          currency: 'UGX',
+          serviceName: selectedService.package_name,
+          statusToken,
+          customer: {
+            fullName: formData.full_name,
+            email: formData.email,
+            phone: formData.phone,
+            company: formData.company || null,
+          },
+          redirectUrl,
         },
-        redirectUrl,
-      });
+      );
 
       setPendingOrderNumber(orderNumber);
-      setPendingStatusToken(statusToken);
+      setPendingStatusToken(serverStatusToken || statusToken);
 
       setCheckoutStep('processing');
       window.location.href = dpoRedirectUrl;
