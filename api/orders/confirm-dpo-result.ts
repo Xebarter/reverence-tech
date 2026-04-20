@@ -1,7 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { createClient } from '@supabase/supabase-js';
 import { setPaymentApiCorsHeaders } from '../lib/corsAllowOrigin';
 import { validateDpoServerConfig } from '../lib/dpoEnv';
+import { eq, pgPatch, pgSelect } from '../supabasePostgrest';
 
 function extractXmlValue(xml: string, tagName: string): string | null {
   const re = new RegExp(`<${tagName}>([\\s\\S]*?)<\\/${tagName}>`, 'i');
@@ -64,7 +64,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method === 'OPTIONS') return res.status(200).send('ok');
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  const body = req.body as Partial<ConfirmBody> | null;
+  let body: Partial<ConfirmBody> | null = null;
+  try {
+    const raw = (req as { body?: unknown }).body;
+    if (typeof raw === 'string') {
+      body = JSON.parse(raw) as Partial<ConfirmBody>;
+    } else {
+      body = raw as Partial<ConfirmBody>;
+    }
+  } catch {
+    body = null;
+  }
+
   const orderNumber = (body?.orderNumber || '').trim();
   const statusToken = (body?.statusToken || '').trim();
   const dpoResult = (body?.dpoResult || '').trim();
@@ -90,49 +101,58 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(500).json({ error: dpoConfigError });
   }
 
-  const supabase = createClient(supabaseUrl, serviceRoleKey, { auth: { persistSession: false } });
-
-  const { data, error } = await supabase
-    .from('orders')
-    .select('id, payment_status, payment_reference, order_status, trans_token')
-    .eq('order_number', orderNumber)
-    .eq('status_token', statusToken)
-    .maybeSingle();
+  const selQ = `${eq('order_number', orderNumber)}&${eq('status_token', statusToken)}`;
+  const { rows, error } = await pgSelect(
+    supabaseUrl,
+    serviceRoleKey,
+    'orders',
+    selQ,
+    'id,payment_status,payment_reference,order_status,trans_token',
+  );
 
   if (error) return res.status(500).json({ error: 'Failed to fetch order' });
+  const data = rows[0];
   if (!data) return res.status(404).json({ error: 'Order not found' });
 
-  // Already in a terminal state — just return it.
-  if (data.payment_status === 'paid' || data.payment_status === 'refunded') {
+  const payStatus = data.payment_status != null ? String(data.payment_status) : '';
+  const pref =
+    data.payment_reference != null && data.payment_reference !== ''
+      ? String(data.payment_reference)
+      : null;
+
+  if (payStatus === 'paid' || payStatus === 'refunded') {
     return res.status(200).json({
-      payment_status: data.payment_status,
-      payment_reference: data.payment_reference ?? clientTransRef || null,
-      order_status: data.order_status,
+      payment_status: payStatus,
+      payment_reference: pref ?? (clientTransRef || null),
+      order_status: data.order_status != null ? String(data.order_status) : null,
     });
   }
 
-  // ── Try server-side DPO verifyToken (most trustworthy) ──
   const companyToken = process.env.DPO_COMPANY_TOKEN;
+  const transTok = data.trans_token != null ? String(data.trans_token) : '';
 
-  if (data.trans_token && companyToken) {
+  if (transTok && companyToken) {
     try {
       const { result: dpoVerifyResult, transRef: verifiedRef } = await verifyDpoToken(
-        data.trans_token,
+        transTok,
         companyToken,
         apiUrl,
       );
 
       if (dpoVerifyResult === '000') {
-        const ref = verifiedRef || clientTransRef || data.payment_reference;
-        await supabase
-          .from('orders')
-          .update({
-            payment_status: 'paid',
-            order_status: 'confirmed',
-            ...(ref ? { payment_reference: ref } : {}),
-            updated_at: new Date().toISOString(),
-          })
-          .eq('id', data.id);
+        const ref = verifiedRef || clientTransRef || pref;
+        const patch: Record<string, unknown> = {
+          payment_status: 'paid',
+          order_status: 'confirmed',
+          updated_at: new Date().toISOString(),
+        };
+        if (ref) patch.payment_reference = ref;
+
+        const pr = await pgPatch(supabaseUrl, serviceRoleKey, 'orders', eq('id', String(data.id)), patch);
+        if (pr.error) {
+          console.error('[confirm-dpo-result] patch', pr.error);
+          return res.status(500).json({ error: 'Failed to update order' });
+        }
 
         return res.status(200).json({
           payment_status: 'paid',
@@ -142,37 +162,36 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
 
       if (dpoVerifyResult === '002' || dpoVerifyResult === '003') {
-        await supabase
-          .from('orders')
-          .update({ payment_status: 'failed', updated_at: new Date().toISOString() })
-          .eq('id', data.id);
+        await pgPatch(supabaseUrl, serviceRoleKey, 'orders', eq('id', String(data.id)), {
+          payment_status: 'failed',
+          updated_at: new Date().toISOString(),
+        });
 
         return res.status(200).json({
           payment_status: 'failed',
-          payment_reference: data.payment_reference ?? null,
-          order_status: data.order_status,
+          payment_reference: pref,
+          order_status: data.order_status != null ? String(data.order_status) : null,
         });
       }
-      // 001 (not paid) or 004 (expired) — fall through
     } catch {
-      // DPO network issue — fall through to redirect-result logic
+      /* fall through */
     }
   }
 
-  // ── Fallback: trust the DPO redirect Result ──
-  // The user can only call this with the correct statusToken (secret UUID),
-  // and DPO appended Result=000 to the redirect they control.
   if (dpoResult === '000') {
-    const ref = clientTransRef || data.payment_reference;
-    await supabase
-      .from('orders')
-      .update({
-        payment_status: 'paid',
-        order_status: 'confirmed',
-        ...(ref ? { payment_reference: ref } : {}),
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', data.id);
+    const ref = clientTransRef || pref;
+    const patch: Record<string, unknown> = {
+      payment_status: 'paid',
+      order_status: 'confirmed',
+      updated_at: new Date().toISOString(),
+    };
+    if (ref) patch.payment_reference = ref;
+
+    const pr = await pgPatch(supabaseUrl, serviceRoleKey, 'orders', eq('id', String(data.id)), patch);
+    if (pr.error) {
+      console.error('[confirm-dpo-result] patch', pr.error);
+      return res.status(500).json({ error: 'Failed to update order' });
+    }
 
     return res.status(200).json({
       payment_status: 'paid',
@@ -182,22 +201,21 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   if (dpoResult === '002' || dpoResult === '003') {
-    await supabase
-      .from('orders')
-      .update({ payment_status: 'failed', updated_at: new Date().toISOString() })
-      .eq('id', data.id);
+    await pgPatch(supabaseUrl, serviceRoleKey, 'orders', eq('id', String(data.id)), {
+      payment_status: 'failed',
+      updated_at: new Date().toISOString(),
+    });
 
     return res.status(200).json({
       payment_status: 'failed',
-      payment_reference: data.payment_reference ?? null,
-      order_status: data.order_status,
+      payment_reference: pref,
+      order_status: data.order_status != null ? String(data.order_status) : null,
     });
   }
 
-  // No DPO info to act on — return current DB state
   return res.status(200).json({
-    payment_status: data.payment_status ?? null,
-    payment_reference: data.payment_reference ?? null,
-    order_status: data.order_status ?? null,
+    payment_status: payStatus || null,
+    payment_reference: pref,
+    order_status: data.order_status != null ? String(data.order_status) : null,
   });
 }

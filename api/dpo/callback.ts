@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { createClient } from '@supabase/supabase-js';
+import { eq, pgPatch } from '../supabasePostgrest';
 
 function extractXmlValue(xml: string, tagName: string): string | null {
   const re = new RegExp(`<${tagName}>([\\s\\S]*?)<\\/${tagName}>`, 'i');
@@ -21,10 +21,6 @@ function queryParam(req: VercelRequest, key: string): string {
   return String(q ?? '').trim();
 }
 
-/**
- * DPO may call BackURL with query string, form fields, and/or XML body.
- * Mirrors supabase/functions/dpo-service-payment-callback/index.ts
- */
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
@@ -71,30 +67,35 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(500).json({ error: 'Supabase env vars missing' });
   }
 
-  const supabase = createClient(supabaseUrl, serviceRoleKey, { auth: { persistSession: false } });
+  const updateData: Record<string, unknown> = {
+    payment_status: paymentStatus,
+    payment_reference: transRef || null,
+    order_status: paymentStatus === 'paid' ? 'confirmed' : 'pending',
+    updated_at: new Date().toISOString(),
+  };
 
   try {
-    const updateData = {
-      payment_status: paymentStatus,
-      payment_reference: transRef || null,
-      order_status: paymentStatus === 'paid' ? 'confirmed' : 'pending',
-      updated_at: new Date().toISOString(),
-    };
-
-    let query = supabase.from('orders').update(updateData);
-    if (orderNumber) {
-      query = query.eq('order_number', orderNumber);
-    } else if (transRef) {
-      query = query.eq('payment_reference', transRef);
-    } else {
+    if (!orderNumber && !transRef) {
       return res.status(400).json({
         error: 'Callback missing order reference (order/CompanyRef) and TransRef.',
       });
     }
 
-    const { data: updatedRows, error: updateError } = await query.select('id');
-    if (updateError) throw updateError;
-    if (!updatedRows || updatedRows.length === 0) {
+    let updatedRows: Record<string, unknown>[] = [];
+
+    if (orderNumber) {
+      const r = await pgPatch(supabaseUrl, serviceRoleKey, 'orders', eq('order_number', orderNumber), updateData);
+      if (r.error) throw new Error(r.error);
+      updatedRows = r.rows;
+    }
+
+    if (updatedRows.length === 0 && transRef) {
+      const r = await pgPatch(supabaseUrl, serviceRoleKey, 'orders', eq('payment_reference', transRef), updateData);
+      if (r.error) throw new Error(r.error);
+      updatedRows = r.rows;
+    }
+
+    if (updatedRows.length === 0) {
       return res.status(404).json({
         error: 'No matching order found to update.',
         result,

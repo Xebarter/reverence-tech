@@ -1,7 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { createClient } from '@supabase/supabase-js';
 import { setPaymentApiCorsHeaders } from '../lib/corsAllowOrigin';
 import { validateDpoServerConfig } from '../lib/dpoEnv';
+import { eq, pgPatch, pgSelect } from '../supabasePostgrest';
 
 function extractXmlValue(xml: string, tagName: string): string | null {
   const re = new RegExp(`<${tagName}>([\\s\\S]*?)<\\/${tagName}>`, 'i');
@@ -18,17 +18,6 @@ function escapeXml(text: string): string {
     .replace(/'/g, '&apos;');
 }
 
-/**
- * Call DPO's verifyToken API for an existing TransToken.
- * Returns the DPO Result code and optional TransRef from the response.
- *
- * Result codes:
- *   000 – paid/verified
- *   001 – not paid yet
- *   002 – transaction failed
- *   003 – transaction reversed/cancelled
- *   004 – token expired (but completed payments still return 000)
- */
 async function verifyDpoToken(
   transToken: string,
   companyToken: string,
@@ -93,80 +82,81 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(500).json({ error: dpoConfigError });
   }
 
-  const supabase = createClient(supabaseUrl, serviceRoleKey, { auth: { persistSession: false } });
-
-  const { data, error } = await supabase
-    .from('orders')
-    .select('payment_status, payment_reference, order_status, trans_token')
-    .eq('order_number', orderNumber)
-    .eq('status_token', token)
-    .maybeSingle();
+  const selQ = `${eq('order_number', orderNumber)}&${eq('status_token', token)}`;
+  const { rows, error } = await pgSelect(
+    supabaseUrl,
+    serviceRoleKey,
+    'orders',
+    selQ,
+    'payment_status,payment_reference,order_status,trans_token',
+  );
 
   if (error) {
     return res.status(500).json({ error: 'Failed to fetch order' });
   }
 
+  const data = rows[0];
   if (!data) {
     return res.status(404).json({ error: 'Order not found' });
   }
 
-  // If the order is still pending and we have DPO's TransToken, actively verify
-  // with DPO instead of waiting solely for the BackURL callback to fire.
-  if (data.payment_status === 'pending' && data.trans_token) {
+  const payStatus = data.payment_status != null ? String(data.payment_status) : '';
+  const transTok = data.trans_token != null ? String(data.trans_token) : '';
+  const pref =
+    data.payment_reference != null && data.payment_reference !== ''
+      ? String(data.payment_reference)
+      : null;
+  const ordStat = data.order_status != null ? String(data.order_status) : null;
+
+  if (payStatus === 'pending' && transTok) {
     const companyToken = process.env.DPO_COMPANY_TOKEN;
 
     if (companyToken) {
       try {
-        const { result, transRef } = await verifyDpoToken(data.trans_token, companyToken, apiUrl);
+        const { result, transRef } = await verifyDpoToken(transTok, companyToken, apiUrl);
 
         if (result === '000') {
-          // Payment confirmed by DPO – update DB so BackURL failure is a non-issue.
-          await supabase
-            .from('orders')
-            .update({
-              payment_status: 'paid',
-              order_status: 'confirmed',
-              ...(transRef ? { payment_reference: transRef } : {}),
-              updated_at: new Date().toISOString(),
-            })
-            .eq('order_number', orderNumber)
-            .eq('status_token', token);
+          const patch: Record<string, unknown> = {
+            payment_status: 'paid',
+            order_status: 'confirmed',
+            updated_at: new Date().toISOString(),
+          };
+          if (transRef) patch.payment_reference = transRef;
+
+          const pQ = `${eq('order_number', orderNumber)}&${eq('status_token', token)}`;
+          const pr = await pgPatch(supabaseUrl, serviceRoleKey, 'orders', pQ, patch);
+          if (pr.error) {
+            console.error('[orders/status] patch', pr.error);
+          }
 
           return res.status(200).json({
             payment_status: 'paid',
-            payment_reference: transRef ?? data.payment_reference ?? null,
+            payment_reference: transRef ?? pref,
             order_status: 'confirmed',
           });
         }
 
         if (result === '002' || result === '003') {
-          // Failed or reversed
-          await supabase
-            .from('orders')
-            .update({
-              payment_status: 'failed',
-              updated_at: new Date().toISOString(),
-            })
-            .eq('order_number', orderNumber)
-            .eq('status_token', token);
+          await pgPatch(supabaseUrl, serviceRoleKey, 'orders', selQ, {
+            payment_status: 'failed',
+            updated_at: new Date().toISOString(),
+          });
 
           return res.status(200).json({
             payment_status: 'failed',
-            payment_reference: data.payment_reference ?? null,
-            order_status: data.order_status ?? null,
+            payment_reference: pref,
+            order_status: ordStat,
           });
         }
-
-        // result 001 = not paid yet, 004 = expired — fall through to return DB value
       } catch {
-        // verifyToken network error — fall through and return whatever is in the DB
+        /* fall through */
       }
     }
   }
 
   return res.status(200).json({
-    payment_status: data.payment_status ?? null,
-    payment_reference: data.payment_reference ?? null,
-    order_status: data.order_status ?? null,
+    payment_status: payStatus || null,
+    payment_reference: pref,
+    order_status: ordStat,
   });
 }

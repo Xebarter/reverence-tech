@@ -1,18 +1,15 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import { randomUUID } from 'crypto';
 import { setPaymentApiCorsHeaders } from '../lib/corsAllowOrigin';
 import { validateDpoServerConfig } from '../lib/dpoEnv';
-import { buildDpoDescriptions } from '../lib/dpoCartDescription';
+import { eq, pgInsertRow, pgPatch } from '../supabasePostgrest';
 
-/** DPO often emails `...payv3.php?ID=token` where `token` is a placeholder — env must end at `ID=`. */
 const DEFAULT_DPO_PAYMENT_PAGE_BASE = 'https://secure.3gdirectpay.com/payv3.php?ID=';
 
 function normalizeDpoPaymentUrlBase(input: string): string {
   const trimmed = (input || '').trim();
   if (!trimmed) return DEFAULT_DPO_PAYMENT_PAGE_BASE;
 
-  // Keep the path DPO gave me (payv3.php, dpopayment.php, pay.asp, etc.); only fix query/placeholders.
   try {
     const url = new URL(trimmed);
     if (/(^|\.)3gdirectpay\.com$/i.test(url.hostname)) {
@@ -25,17 +22,12 @@ function normalizeDpoPaymentUrlBase(input: string): string {
       return url.toString();
     }
   } catch {
-    // Fall back to string normalization below for non-URL inputs.
+    /* non-URL */
   }
 
-  // If it ends with a placeholder token, strip it.
   const stripped = trimmed.replace(/(ID=)(token|transtoken|\{token\}|<token>)\s*$/i, '$1');
-
-  // Ensure we end with ID= so `${base}${transToken}` works.
   if (/([?&]ID=)$/i.test(stripped)) return stripped;
   if (/([?&]ID=)/i.test(stripped)) return stripped.replace(/([?&]ID=).*/i, '$1');
-
-  // If they provided the page without query, append ID=
   return stripped.includes('?') ? `${stripped}&ID=` : `${stripped}?ID=`;
 }
 
@@ -54,14 +46,36 @@ function escapeXml(text: string): string {
     .replace(/'/g, '&apos;');
 }
 
-async function markOrderDpoInitFailed(supabase: SupabaseClient, orderId: string): Promise<void> {
-  await supabase
-    .from('orders')
-    .update({
-      payment_status: 'failed',
-      updated_at: new Date().toISOString(),
-    })
-    .eq('id', orderId);
+function cartLinesSummary(items: unknown, maxLines = 15, maxLen = 220): string {
+  if (!Array.isArray(items) || items.length === 0) return '';
+  const parts: string[] = [];
+  for (const raw of items.slice(0, maxLines)) {
+    if (!raw || typeof raw !== 'object') continue;
+    const row = raw as Record<string, unknown>;
+    const name = String(row.product_name ?? row.name ?? 'Item').trim() || 'Item';
+    const qty = Math.max(1, Math.round(Number(row.quantity) || 1));
+    const shortName = name.length > 72 ? `${name.slice(0, 69)}…` : name;
+    parts.push(`${shortName} x${qty}`);
+  }
+  if (parts.length === 0) return '';
+  let s = parts.join(', ');
+  if (items.length > maxLines) s += ', ...';
+  if (s.length > maxLen) s = `${s.slice(0, maxLen - 1)}…`;
+  return s;
+}
+
+function buildDpoDescriptions(serviceName: string, items: unknown): {
+  rootDescription: string;
+  bookingDescription: string;
+} {
+  const lines = cartLinesSummary(items);
+  if (!lines) {
+    return { rootDescription: serviceName, bookingDescription: serviceName };
+  }
+  return {
+    rootDescription: `${serviceName}: ${lines}`,
+    bookingDescription: lines,
+  };
 }
 
 function splitName(fullName: string | undefined | null): { firstName: string; lastName: string } {
@@ -95,9 +109,7 @@ function withTokenParam(input: string, token: string): string {
 }
 
 type CreateTokenBody = {
-  // Order payload to insert into `orders` (server-side using service role)
   order: Record<string, unknown>;
-  // DPO payload
   payment: {
     amount: number;
     currency?: string;
@@ -114,7 +126,6 @@ type CreateTokenBody = {
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
-    // Helps diagnose "FUNCTION_INVOCATION_FAILED" in Vercel logs without leaking secrets.
     console.log('[dpo/create-token] start', { method: req.method });
 
     setPaymentApiCorsHeaders(req, res);
@@ -158,8 +169,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     let body: CreateTokenBody | null = null;
     try {
-      // Vercel may provide `req.body` as an object (already parsed) or as a JSON string.
-      const raw = (req as any)?.body;
+      const raw = (req as { body?: unknown }).body;
       if (typeof raw === 'string') {
         body = JSON.parse(raw) as CreateTokenBody;
       } else {
@@ -189,51 +199,52 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const customer = payment?.customer || {};
     const { rootDescription, bookingDescription } = buildDpoDescriptions(serviceName, order.items);
 
-    const supabase = createClient(supabaseUrl, serviceRoleKey, { auth: { persistSession: false } });
-
     const statusToken = randomUUID();
+    const insertPayload = { ...order, status_token: statusToken };
 
-  // 1) Create order
-  const { data: inserted, error: insertError } = await supabase
-    .from('orders')
-    .insert([{ ...order, status_token: statusToken }])
-    .select()
-    .single();
+    const { row: inserted, error: insertError } = await pgInsertRow(
+      supabaseUrl,
+      serviceRoleKey,
+      'orders',
+      insertPayload,
+    );
 
-  if (insertError) {
-    return res.status(400).json({ error: insertError.message });
-  }
+    if (insertError) {
+      return res.status(400).json({ error: insertError });
+    }
 
-  const orderNumber = (inserted as any)?.order_number as string | undefined;
-  const orderId = (inserted as any)?.id as string | undefined;
-  if (!orderNumber || !orderId) {
-    return res.status(500).json({ error: 'Order created but missing id/order_number' });
-  }
+    const orderNumber = inserted?.order_number != null ? String(inserted.order_number) : '';
+    const orderId = inserted?.id != null ? String(inserted.id) : '';
+    if (!orderNumber || !orderId) {
+      return res.status(500).json({ error: 'Order created but missing id/order_number' });
+    }
 
-  // 2) Create DPO token
-  const { firstName, lastName } = splitName(customer?.fullName);
-  const customerEmail = customer?.email || '';
-  const customerPhone = customer?.phone || '';
+    async function markOrderDpoInitFailed(): Promise<void> {
+      const ts = new Date().toISOString();
+      await pgPatch(supabaseUrl, serviceRoleKey, 'orders', eq('id', orderId), {
+        payment_status: 'failed',
+        updated_at: ts,
+      });
+    }
 
-  const delimiter = backUrlBase.includes('?') ? '&' : '?';
-  const backUrl = `${backUrlBase}${delimiter}order=${encodeURIComponent(orderNumber)}`;
+    const { firstName, lastName } = splitName(customer?.fullName);
+    const customerEmail = customer?.email || '';
+    const customerPhone = customer?.phone || '';
 
-  // Ensure the customer returns to a URL that includes the order number,
-  // since the frontend status page relies on `?order=` to look up the record.
-  const redirectUrlWithOrder = withTokenParam(withOrderParam(redirectUrl, orderNumber), statusToken);
+    const delimiter = backUrlBase.includes('?') ? '&' : '?';
+    const backUrl = `${backUrlBase}${delimiter}order=${encodeURIComponent(orderNumber)}`;
+    const redirectUrlWithOrder = withTokenParam(withOrderParam(redirectUrl, orderNumber), statusToken);
 
-  // DPO docs show decimals; UGX often expects whole numbers. Keep UGX whole, others fixed(2).
-  const paymentAmount = currency.toUpperCase() === 'UGX' ? String(Math.round(amount)) : amount.toFixed(2);
+    const paymentAmount =
+      currency.toUpperCase() === 'UGX' ? String(Math.round(amount)) : amount.toFixed(2);
 
-  const now = new Date();
-  const pad2 = (n: number) => String(n).padStart(2, '0');
-  const serviceDate = `${now.getFullYear()}/${pad2(now.getMonth() + 1)}/${pad2(now.getDate())} ${pad2(
-    now.getHours(),
-  )}:${pad2(now.getMinutes())}`;
+    const now = new Date();
+    const pad2 = (n: number) => String(n).padStart(2, '0');
+    const serviceDate = `${now.getFullYear()}/${pad2(now.getMonth() + 1)}/${pad2(now.getDate())} ${pad2(
+      now.getHours(),
+    )}:${pad2(now.getMinutes())}`;
 
-  // DPO docs for v6 `createToken` show a flat XML payload (no nested Transaction/Services blocks).
-  // Use the documented shape for maximum compatibility across merchant accounts.
-  const xmlBody = `<?xml version="1.0" encoding="utf-8"?>
+    const xmlBody = `<?xml version="1.0" encoding="utf-8"?>
 <API3G>
   <CompanyToken>${escapeXml(companyToken)}</CompanyToken>
   <Request>createToken</Request>
@@ -256,85 +267,81 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   </Booking>
 </API3G>`;
 
-  let dpoResp: Response;
-  try {
-    dpoResp = await fetch(apiUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/xml; charset=utf-8',
-        Accept: 'application/xml',
-        'User-Agent':
-          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
-        'Accept-Language': 'en-US,en;q=0.9',
-      },
-      body: xmlBody,
-    });
-  } catch {
-    await markOrderDpoInitFailed(supabase, orderId);
-    return res.status(502).json({ error: 'Could not reach DPO. Try again in a moment.' });
-  }
+    let dpoResp: Response;
+    try {
+      dpoResp = await fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/xml; charset=utf-8',
+          Accept: 'application/xml',
+          'User-Agent':
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
+          'Accept-Language': 'en-US,en;q=0.9',
+        },
+        body: xmlBody,
+      });
+    } catch {
+      await markOrderDpoInitFailed();
+      return res.status(502).json({ error: 'Could not reach DPO. Try again in a moment.' });
+    }
 
-  const responseText = await dpoResp.text();
-  const result = extractXmlValue(responseText, 'Result');
-  const resultExplanation = extractXmlValue(responseText, 'ResultExplanation');
-  const transTokenRaw = extractXmlValue(responseText, 'TransToken');
-  // Some integrations/documentation prefix the UUID with "TransToken". The hosted payment page
-  // expects the raw token value (usually a UUID).
-  const transToken = transTokenRaw ? transTokenRaw.trim().replace(/^TransToken/i, '').trim() : null;
-  const transRef = extractXmlValue(responseText, 'TransRef');
+    const responseText = await dpoResp.text();
+    const result = extractXmlValue(responseText, 'Result');
+    const resultExplanation = extractXmlValue(responseText, 'ResultExplanation');
+    const transTokenRaw = extractXmlValue(responseText, 'TransToken');
+    const transToken = transTokenRaw ? transTokenRaw.trim().replace(/^TransToken/i, '').trim() : null;
+    const transRef = extractXmlValue(responseText, 'TransRef');
 
-  if (!result && !transToken) {
-    await markOrderDpoInitFailed(supabase, orderId);
-    const cloudFront403 =
-      dpoResp.status === 403 &&
-      (responseText.toLowerCase().includes('cloudfront') || responseText.toLowerCase().includes('request blocked'));
+    if (!result && !transToken) {
+      await markOrderDpoInitFailed();
+      const cloudFront403 =
+        dpoResp.status === 403 &&
+        (responseText.toLowerCase().includes('cloudfront') ||
+          responseText.toLowerCase().includes('request blocked'));
 
-    return res.status(502).json({
-      error: 'Unexpected response from DPO',
-      httpStatus: dpoResp.status,
-      contentType: dpoResp.headers.get('content-type'),
-      bodyPreview: responseText.slice(0, 800),
-      ...(cloudFront403
-        ? {
-            hint:
-              'DPO returned HTTP 403 from CloudFront. If this persists, DPO is blocking this hosting provider egress and you will need DPO to allow your server IP/host or use a backend with an allowed egress IP.',
-          }
-        : {}),
-    });
-  }
+      return res.status(502).json({
+        error: 'Unexpected response from DPO',
+        httpStatus: dpoResp.status,
+        contentType: dpoResp.headers.get('content-type'),
+        bodyPreview: responseText.slice(0, 800),
+        ...(cloudFront403
+          ? {
+              hint:
+                'DPO returned HTTP 403 from CloudFront. If this persists, DPO may be blocking this host; contact DPO support.',
+            }
+          : {}),
+      });
+    }
 
-  if (result !== '000') {
-    await markOrderDpoInitFailed(supabase, orderId);
-    return res.status(400).json({
-      error: 'DPO createToken failed',
-      result,
-      resultExplanation,
-      httpStatus: dpoResp.status,
-    });
-  }
+    if (result !== '000') {
+      await markOrderDpoInitFailed();
+      return res.status(400).json({
+        error: 'DPO createToken failed',
+        result,
+        resultExplanation,
+        httpStatus: dpoResp.status,
+      });
+    }
 
-  if (!transToken) {
-    await markOrderDpoInitFailed(supabase, orderId);
-    return res.status(502).json({
-      error: 'DPO response missing payment token',
-      result,
-      resultExplanation,
-    });
-  }
+    if (!transToken) {
+      await markOrderDpoInitFailed();
+      return res.status(502).json({
+        error: 'DPO response missing payment token',
+        result,
+        resultExplanation,
+      });
+    }
 
-  const redirect = `${paymentUrlBase}${transToken}`;
+    const redirect = `${paymentUrlBase}${transToken}`;
 
-  // Save DPO TransRef + TransToken so the status endpoint can later call
-  // verifyToken directly — making payment confirmation resilient to BackURL failures.
-  if (transRef || transToken) {
-    await supabase
-      .from('orders')
-      .update({
+    if (transRef || transToken) {
+      const ts = new Date().toISOString();
+      await pgPatch(supabaseUrl, serviceRoleKey, 'orders', eq('id', orderId), {
         ...(transRef ? { payment_reference: transRef } : {}),
         ...(transToken ? { trans_token: transToken } : {}),
-      })
-      .eq('id', orderId);
-  }
+        updated_at: ts,
+      });
+    }
 
     return res.status(200).json({
       orderNumber,
@@ -349,4 +356,3 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(500).json({ error: message });
   }
 }
-

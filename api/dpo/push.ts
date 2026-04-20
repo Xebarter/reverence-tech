@@ -1,12 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { createClient } from '@supabase/supabase-js';
-
-/**
- * DPO Push Payments — server-to-server success notification.
- * https://docs.dpopay.com/dpo-pay-by-network/reference/pushpayments
- *
- * We acknowledge with 200 and only mark orders paid after verifyToken (same as BackURL flow).
- */
+import { eq, pgPatch, pgSelect } from '../supabasePostgrest';
 
 function extractXmlValue(xml: string, tagName: string): string | null {
   const re = new RegExp(`<${tagName}>([\\s\\S]*?)<\\/${tagName}>`, 'i');
@@ -160,41 +153,35 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(500).json({ error: 'Supabase env vars missing' });
   }
 
-  const supabase = createClient(supabaseUrl, serviceRoleKey, { auth: { persistSession: false } });
+  const cols = 'id,order_number,payment_status,payment_reference,trans_token';
 
-  let orderRow: {
-    id: string;
-    order_number: string;
-    payment_status: string | null;
-    payment_reference: string | null;
-    trans_token: string | null;
-  } | null = null;
+  let orderRow: Record<string, unknown> | null = null;
 
   if (merchantOrderId) {
-    const { data } = await supabase
-      .from('orders')
-      .select('id, order_number, payment_status, payment_reference, trans_token')
-      .eq('order_number', merchantOrderId)
-      .maybeSingle();
-    if (data) orderRow = data as typeof orderRow;
+    const r = await pgSelect(supabaseUrl, serviceRoleKey, 'orders', eq('order_number', merchantOrderId), cols);
+    if (r.error) {
+      console.error('[dpo/push] select error', r.error);
+      return res.status(500).json({ error: 'Database error' });
+    }
+    orderRow = r.rows[0] ?? null;
   }
 
   if (!orderRow && transactionId) {
-    const { data } = await supabase
-      .from('orders')
-      .select('id, order_number, payment_status, payment_reference, trans_token')
-      .eq('payment_reference', transactionId)
-      .maybeSingle();
-    if (data) orderRow = data as typeof orderRow;
+    const r = await pgSelect(supabaseUrl, serviceRoleKey, 'orders', eq('payment_reference', transactionId), cols);
+    if (r.error) {
+      console.error('[dpo/push] select error', r.error);
+      return res.status(500).json({ error: 'Database error' });
+    }
+    orderRow = r.rows[0] ?? null;
   }
 
   if (!orderRow) {
-    // Acknowledge to limit DPO retries; log for reconciliation.
     console.warn('[dpo/push] no matching order', { merchantOrderId, transactionId, statusRaw });
     return res.status(200).json({ ok: true, matched: false });
   }
 
-  if (orderRow.payment_status === 'paid' || orderRow.payment_status === 'refunded') {
+  const paySt = orderRow.payment_status != null ? String(orderRow.payment_status) : '';
+  if (paySt === 'paid' || paySt === 'refunded') {
     return res.status(200).json({ ok: true, matched: true, alreadyFinal: true });
   }
 
@@ -202,7 +189,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(200).json({ ok: true, matched: true, ignoredStatus: statusRaw });
   }
 
-  if (!orderRow.trans_token || !companyToken) {
+  const transTok = orderRow.trans_token != null ? String(orderRow.trans_token) : '';
+  if (!transTok || !companyToken) {
     console.warn('[dpo/push] cannot verify — missing trans_token or DPO_COMPANY_TOKEN', {
       order: orderRow.order_number,
     });
@@ -210,19 +198,22 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
-    const { result, transRef } = await verifyDpoToken(orderRow.trans_token, companyToken, apiUrl);
+    const { result, transRef } = await verifyDpoToken(transTok, companyToken, apiUrl);
 
     if (result === '000') {
-      const ref = transRef || transactionId || orderRow.payment_reference;
-      await supabase
-        .from('orders')
-        .update({
-          payment_status: 'paid',
-          order_status: 'confirmed',
-          ...(ref ? { payment_reference: ref } : {}),
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', orderRow.id);
+      const ref = transRef || transactionId || (orderRow.payment_reference != null ? String(orderRow.payment_reference) : '');
+      const orderId = String(orderRow.id);
+      const patch: Record<string, unknown> = {
+        payment_status: 'paid',
+        order_status: 'confirmed',
+        updated_at: new Date().toISOString(),
+      };
+      if (ref) patch.payment_reference = ref;
+
+      const pr = await pgPatch(supabaseUrl, serviceRoleKey, 'orders', eq('id', orderId), patch);
+      if (pr.error) {
+        console.error('[dpo/push] patch error', pr.error);
+      }
 
       return res.status(200).json({ ok: true, matched: true, verified: true, payment_status: 'paid' });
     }
