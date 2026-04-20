@@ -340,7 +340,6 @@ serve(async (req) => {
   <customerPhone>${escapeXml(customerPhone)}</customerPhone>
   <Booking>
     <BookingRef>${escapeXml(String(orderNumber))}</BookingRef>
-    <ServiceType>${escapeXml(serviceType)}</ServiceType>
     <Description>${escapeXml(bookingDescription)}</Description>
     <Date>${escapeXml(serviceDate)}</Date>
   </Booking>

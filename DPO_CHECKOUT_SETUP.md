@@ -18,13 +18,18 @@ Set these in the Vercel project **Production** environment:
 | `DPO_API_URL` | e.g. `https://secure.3gdirectpay.com/API/v6/` |
 | `DPO_PAYMENT_URL` | Exact hosted page from DPO, e.g. `https://secure.3gdirectpay.com/payv3.php?ID=` (see note below) |
 | `DPO_BACK_URL` | Public **BackURL** callback, e.g. `https://yourdomain.com/api/dpo/callback` |
+| `DPO_PUSH_SECRET` | Optional. If set, push notifications must include header `X-DPO-Push-Secret: <value>` (or `X-Push-Secret`). |
 | `SUPABASE_URL` | Supabase project URL |
 | `SUPABASE_SERVICE_ROLE_KEY` | Service role key (server only) |
 | `ALLOWED_ORIGINS` | Optional. Comma-separated site origins for payment API CORS |
 
 **Payment URL:** When DPO sends `https://secure.3gdirectpay.com/payv3.php?ID=token`, the word `token` is only documentation — your env value must be **`...payv3.php?ID=`** with nothing after `=`. The API appends the real `TransToken`. If you paste `...ID=token`, the app strips that placeholder.
 
-`createToken` runs on **`/api/dpo/create-token`**. The DPO server callback is **`/api/dpo/callback`** (same behavior as the Supabase Edge function `dpo-service-payment-callback`, if you still deploy it for local/dev fallback).
+`createToken` runs on **`/api/dpo/create-token`**. The DPO **BackURL** server callback is **`/api/dpo/callback`**.
+
+**Push payments (optional):** In the DPO merchant portal, configure the push / server-to-server URL as **`https://yourdomain.com/api/dpo/push`**. The handler acknowledges with HTTP 200 and marks orders **paid** only after **`verifyToken`** succeeds (same trust model as your other DPO endpoints). If you set `DPO_PUSH_SECRET`, configure your proxy or DPO (if supported) to send that value in `X-DPO-Push-Secret`.
+
+The Supabase Edge function **`dpo-service-payment-callback`** mirrors **`/api/dpo/callback`** if you still point `DPO_BACK_URL` there for local/dev fallback.
 
 ## 2) Supabase Edge (optional / dev fallback)
 

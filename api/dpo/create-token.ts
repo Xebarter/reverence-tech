@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
-import { randomUUID } from 'node:crypto';
+import { randomUUID } from 'crypto';
 import { setPaymentApiCorsHeaders } from '../lib/corsAllowOrigin';
 import { validateDpoServerConfig } from '../lib/dpoEnv';
 import { buildDpoDescriptions } from '../lib/dpoCartDescription';
@@ -174,9 +174,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const amount = Number(payment?.amount);
     const currency = (payment?.currency || 'UGX').toString();
     const redirectUrl = payment?.redirectUrl;
-  const serviceName = payment?.serviceName || 'Service Payment';
-  const customer = payment?.customer || {};
-  const { rootDescription, bookingDescription } = buildDpoDescriptions(serviceName, (order as any)?.items);
 
     if (!order || typeof order !== 'object') {
       return res.status(400).json({ error: 'Missing order payload' });
@@ -187,6 +184,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (!redirectUrl) {
       return res.status(400).json({ error: 'Missing redirectUrl' });
     }
+
+    const serviceName = payment?.serviceName || 'Service Payment';
+    const customer = payment?.customer || {};
+    const { rootDescription, bookingDescription } = buildDpoDescriptions(serviceName, order.items);
 
     const supabase = createClient(supabaseUrl, serviceRoleKey, { auth: { persistSession: false } });
 
@@ -250,7 +251,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   <customerPhone>${escapeXml(customerPhone)}</customerPhone>
   <Booking>
     <BookingRef>${escapeXml(orderNumber)}</BookingRef>
-    <ServiceType>${escapeXml(serviceType)}</ServiceType>
     <Description>${escapeXml(bookingDescription)}</Description>
     <Date>${escapeXml(serviceDate)}</Date>
   </Booking>
