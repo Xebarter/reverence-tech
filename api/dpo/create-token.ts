@@ -2,7 +2,7 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { randomUUID } from 'crypto';
 import { setPaymentApiCorsHeaders } from '../lib/corsAllowOrigin';
 import { validateDpoServerConfig } from '../lib/dpoEnv';
-import { eq, pgInsertRow, pgPatch } from '../supabasePostgrest';
+import { eq, pgInsertRow, pgPatch } from '../lib/supabasePostgrest';
 
 const DEFAULT_DPO_PAYMENT_PAGE_BASE = 'https://secure.3gdirectpay.com/payv3.php?ID=';
 
@@ -267,7 +267,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   </Booking>
 </API3G>`;
 
-    let dpoResp: Response;
+    let dpoResp: Awaited<ReturnType<typeof fetch>>;
     try {
       dpoResp = await fetch(apiUrl, {
         method: 'POST',

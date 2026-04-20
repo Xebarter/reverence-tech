@@ -1,6 +1,5 @@
 /**
- * Minimal Supabase access via PostgREST (fetch only).
- * Avoids @supabase/supabase-js inside Vercel serverless bundles — fewer invocation failures.
+ * Supabase PostgREST via fetch only (no @supabase/supabase-js).
  */
 
 function trimSlash(s: string): string {
@@ -15,7 +14,10 @@ function svcHeaders(serviceKey: string, more: Record<string, string> = {}): Reco
   };
 }
 
-async function readResponse(res: Response): Promise<{ ok: boolean; data: unknown; text: string }> {
+async function readResponse(res: {
+  ok: boolean;
+  text(): Promise<string>;
+}): Promise<{ ok: boolean; data: unknown; text: string }> {
   const text = await res.text();
   if (!text) return { ok: res.ok, data: null, text: '' };
   try {
