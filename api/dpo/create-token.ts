@@ -3,6 +3,7 @@ import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import { randomUUID } from 'node:crypto';
 import { setPaymentApiCorsHeaders } from '../lib/corsAllowOrigin';
 import { validateDpoServerConfig } from '../lib/dpoEnv';
+import { buildDpoDescriptions } from '../lib/dpoCartDescription';
 
 /** DPO often emails `...payv3.php?ID=token` where `token` is a placeholder — env must end at `ID=`. */
 const DEFAULT_DPO_PAYMENT_PAGE_BASE = 'https://secure.3gdirectpay.com/payv3.php?ID=';
@@ -113,6 +114,9 @@ type CreateTokenBody = {
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
+    // Helps diagnose "FUNCTION_INVOCATION_FAILED" in Vercel logs without leaking secrets.
+    console.log('[dpo/create-token] start', { method: req.method });
+
     setPaymentApiCorsHeaders(req, res);
     res.setHeader('Access-Control-Allow-Methods', 'POST,OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'content-type');
@@ -170,8 +174,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const amount = Number(payment?.amount);
     const currency = (payment?.currency || 'UGX').toString();
     const redirectUrl = payment?.redirectUrl;
-    const serviceName = payment?.serviceName || 'Service Payment';
-    const customer = payment?.customer || {};
+  const serviceName = payment?.serviceName || 'Service Payment';
+  const customer = payment?.customer || {};
+  const { rootDescription, bookingDescription } = buildDpoDescriptions(serviceName, (order as any)?.items);
 
     if (!order || typeof order !== 'object') {
       return res.status(400).json({ error: 'Missing order payload' });
@@ -238,14 +243,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   <BackURL>${escapeXml(backUrl)}</BackURL>
   <PTL>5</PTL>
   <ServiceType>${escapeXml(serviceType)}</ServiceType>
-  <Description>${escapeXml(serviceName)}</Description>
+  <Description>${escapeXml(rootDescription)}</Description>
   <customerFirstName>${escapeXml(firstName)}</customerFirstName>
   <customerLastName>${escapeXml(lastName)}</customerLastName>
   <customerEmail>${escapeXml(customerEmail)}</customerEmail>
   <customerPhone>${escapeXml(customerPhone)}</customerPhone>
   <Booking>
     <BookingRef>${escapeXml(orderNumber)}</BookingRef>
-    <Description>${escapeXml(serviceName)}</Description>
+    <ServiceType>${escapeXml(serviceType)}</ServiceType>
+    <Description>${escapeXml(bookingDescription)}</Description>
     <Date>${escapeXml(serviceDate)}</Date>
   </Booking>
 </API3G>`;
@@ -339,6 +345,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     });
   } catch (e: unknown) {
     const message = e instanceof Error ? e.message : 'Unexpected error';
+    console.error('[dpo/create-token] fatal', e);
     return res.status(500).json({ error: message });
   }
 }

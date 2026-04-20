@@ -201,11 +201,6 @@ export default function Services() {
     setError('');
 
     try {
-      const statusToken =
-        typeof crypto !== 'undefined' && 'randomUUID' in crypto
-          ? crypto.randomUUID()
-          : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
-
       const orderData = {
         customer_name: formData.full_name,
         customer_email: formData.email,
@@ -217,7 +212,6 @@ export default function Services() {
         payment_reference: null,
         payment_status: 'pending' as const,
         order_status: 'pending' as const,
-        status_token: statusToken,
         total_amount: formData.amount,
         shipping_fee: 0,
         items: [
@@ -244,7 +238,6 @@ export default function Services() {
           amount: formData.amount,
           currency: 'UGX',
           serviceName: selectedService.package_name,
-          statusToken,
           customer: {
             fullName: formData.full_name,
             email: formData.email,
@@ -256,7 +249,7 @@ export default function Services() {
       );
 
       setPendingOrderNumber(orderNumber);
-      setPendingStatusToken(serverStatusToken || statusToken);
+      setPendingStatusToken(serverStatusToken || '');
 
       setCheckoutStep('processing');
       window.location.href = dpoRedirectUrl;

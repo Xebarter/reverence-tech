@@ -38,12 +38,11 @@ function sanitizeDpoRedirectUrl(input: string): string {
   try {
     const url = new URL(trimmed);
     if (/(^|\.)3gdirectpay\.com$/i.test(url.hostname)) {
-      const id = url.searchParams.get('ID');
+      const id = url.searchParams.get('ID') ?? url.searchParams.get('id');
       if (id) {
         url.searchParams.set('ID', id.trim().replace(/^TransToken/i, '').trim());
       }
-      // Force the payment page path to payv3.php.
-      url.pathname = '/payv3.php';
+      // Keep DPO’s hosted path as configured (payv3.php, pay.asp, etc.).
       return url.toString();
     }
   } catch {
