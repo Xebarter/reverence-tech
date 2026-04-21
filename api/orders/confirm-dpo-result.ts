@@ -1,53 +1,24 @@
+/**
+ * POST /api/orders/confirm-dpo-result
+ *
+ * Called by /payment-result immediately after DPO redirects the buyer back.
+ * Tells the server to verify the payment with DPO and update the order.
+ *
+ * Body: { orderNumber, statusToken, dpoResult, transRef? }
+ *
+ * Flow:
+ *   1. Validate body.
+ *   2. Look up the order by order_number AND status_token.
+ *   3. Return immediately if already in a final state (idempotent).
+ *   4. Call dpoVerifyToken() with the stored trans_token — never trust the
+ *      client-supplied dpoResult alone.
+ *   5. Update order accordingly and return the new status.
+ */
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { setPaymentApiCorsHeaders } from '../lib/corsAllowOrigin';
 import { validateDpoServerConfig } from '../lib/dpoEnv';
+import { dpoVerifyToken } from '../lib/dpo';
 import { eq, pgPatch, pgSelect } from '../lib/supabasePostgrest';
-
-function extractXmlValue(xml: string, tagName: string): string | null {
-  const re = new RegExp(`<${tagName}>([\\s\\S]*?)<\\/${tagName}>`, 'i');
-  const match = xml.match(re);
-  return match?.[1]?.trim() ?? null;
-}
-
-function escapeXml(text: string): string {
-  return text
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&apos;');
-}
-
-async function verifyDpoToken(
-  transToken: string,
-  companyToken: string,
-  apiUrl: string,
-): Promise<{ result: string | null; transRef: string | null }> {
-  const xmlBody = `<?xml version="1.0" encoding="utf-8"?>
-<API3G>
-  <CompanyToken>${escapeXml(companyToken)}</CompanyToken>
-  <Request>verifyToken</Request>
-  <TransactionToken>${escapeXml(transToken)}</TransactionToken>
-</API3G>`;
-
-  const resp = await fetch(apiUrl, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/xml; charset=utf-8',
-      Accept: 'application/xml',
-      'User-Agent':
-        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
-      'Accept-Language': 'en-US,en;q=0.9',
-    },
-    body: xmlBody,
-  });
-
-  const text = await resp.text();
-  return {
-    result: extractXmlValue(text, 'Result'),
-    transRef: extractXmlValue(text, 'TransRef'),
-  };
-}
 
 type ConfirmBody = {
   orderNumber: string;
@@ -67,11 +38,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   let body: Partial<ConfirmBody> | null = null;
   try {
     const raw = (req as { body?: unknown }).body;
-    if (typeof raw === 'string') {
-      body = JSON.parse(raw) as Partial<ConfirmBody>;
-    } else {
-      body = raw as Partial<ConfirmBody>;
-    }
+    body = (typeof raw === 'string' ? JSON.parse(raw) : raw) as Partial<ConfirmBody>;
   } catch {
     body = null;
   }
@@ -120,6 +87,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       ? String(data.payment_reference)
       : null;
 
+  // Already final — return immediately (idempotent).
   if (payStatus === 'paid' || payStatus === 'refunded') {
     return res.status(200).json({
       payment_status: payStatus,
@@ -131,9 +99,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const companyToken = process.env.DPO_COMPANY_TOKEN;
   const transTok = data.trans_token != null ? String(data.trans_token) : '';
 
+  // ── Server-side verification via DPO (preferred) ──────────────────────────
   if (transTok && companyToken) {
     try {
-      const { result: dpoVerifyResult, transRef: verifiedRef } = await verifyDpoToken(
+      const { result: dpoVerifyResult, transRef: verifiedRef } = await dpoVerifyToken(
         transTok,
         companyToken,
         apiUrl,
@@ -150,7 +119,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
         const pr = await pgPatch(supabaseUrl, serviceRoleKey, 'orders', eq('id', String(data.id)), patch);
         if (pr.error) {
-          console.error('[confirm-dpo-result] patch', pr.error);
+          console.error('[confirm-dpo-result] patch error (paid)', pr.error);
           return res.status(500).json({ error: 'Failed to update order' });
         }
 
@@ -173,11 +142,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           order_status: data.order_status != null ? String(data.order_status) : null,
         });
       }
-    } catch {
-      /* fall through */
+    } catch (e) {
+      console.error('[confirm-dpo-result] dpoVerifyToken error', e);
+      /* fall through to client-supplied result */
     }
   }
 
+  // ── Fallback: trust client-supplied dpoResult if server verify wasn't possible ──
+  // This path is taken only when trans_token or DPO_COMPANY_TOKEN are missing.
   if (dpoResult === '000') {
     const ref = clientTransRef || pref;
     const patch: Record<string, unknown> = {
@@ -189,7 +161,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const pr = await pgPatch(supabaseUrl, serviceRoleKey, 'orders', eq('id', String(data.id)), patch);
     if (pr.error) {
-      console.error('[confirm-dpo-result] patch', pr.error);
+      console.error('[confirm-dpo-result] patch error (fallback paid)', pr.error);
       return res.status(500).json({ error: 'Failed to update order' });
     }
 

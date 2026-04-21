@@ -1,112 +1,34 @@
+/**
+ * POST /api/dpo/create-token
+ *
+ * Called by the checkout page when the buyer clicks "Pay with DPO".
+ *
+ * Flow:
+ *   1. Validate request body: order{}, payment{ amount, currency, serviceName, redirectUrl, customer? }.
+ *   2. Insert a pending order into public.orders (server-side, using service role key).
+ *   3. Call dpoCreateToken() with CompanyRef = order_number, redirectUrl, backUrl, amount, currency.
+ *   4. Save trans_token and payment_reference back onto the order row.
+ *   5. Return { orderNumber, redirectUrl, transRef, transToken, statusToken } to the client.
+ *
+ * On any DPO or DB error the order is marked failed and a descriptive error JSON is returned.
+ */
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { randomUUID } from 'crypto';
 import { setPaymentApiCorsHeaders } from '../lib/corsAllowOrigin';
 import { validateDpoServerConfig } from '../lib/dpoEnv';
+import {
+  buildDpoDescriptions,
+  dpoCreateToken,
+  dpoFormatAmount,
+  dpoServiceDateNow,
+  getDpoConfig,
+  normalizeDpoPaymentUrlBase,
+  splitName,
+  withOrderParam,
+  withTokenParam,
+  DEFAULT_DPO_PAYMENT_PAGE_BASE,
+} from '../lib/dpo';
 import { eq, pgInsertRow, pgPatch } from '../lib/supabasePostgrest';
-
-const DEFAULT_DPO_PAYMENT_PAGE_BASE = 'https://secure.3gdirectpay.com/payv3.php?ID=';
-
-function normalizeDpoPaymentUrlBase(input: string): string {
-  const trimmed = (input || '').trim();
-  if (!trimmed) return DEFAULT_DPO_PAYMENT_PAGE_BASE;
-
-  try {
-    const url = new URL(trimmed);
-    if (/(^|\.)3gdirectpay\.com$/i.test(url.hostname)) {
-      url.hash = '';
-      let id = url.searchParams.get('ID') ?? url.searchParams.get('id') ?? '';
-      id = id.trim().replace(/^TransToken/i, '').trim();
-      if (/^(token|transtoken|\{token\}|<token>)$/i.test(id)) id = '';
-      url.search = '';
-      url.searchParams.set('ID', id);
-      return url.toString();
-    }
-  } catch {
-    /* non-URL */
-  }
-
-  const stripped = trimmed.replace(/(ID=)(token|transtoken|\{token\}|<token>)\s*$/i, '$1');
-  if (/([?&]ID=)$/i.test(stripped)) return stripped;
-  if (/([?&]ID=)/i.test(stripped)) return stripped.replace(/([?&]ID=).*/i, '$1');
-  return stripped.includes('?') ? `${stripped}&ID=` : `${stripped}?ID=`;
-}
-
-function extractXmlValue(xml: string, tagName: string): string | null {
-  const re = new RegExp(`<${tagName}>([\\s\\S]*?)<\\/${tagName}>`, 'i');
-  const match = xml.match(re);
-  return match?.[1]?.trim() ?? null;
-}
-
-function escapeXml(text: string): string {
-  return text
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&apos;');
-}
-
-function cartLinesSummary(items: unknown, maxLines = 15, maxLen = 220): string {
-  if (!Array.isArray(items) || items.length === 0) return '';
-  const parts: string[] = [];
-  for (const raw of items.slice(0, maxLines)) {
-    if (!raw || typeof raw !== 'object') continue;
-    const row = raw as Record<string, unknown>;
-    const name = String(row.product_name ?? row.name ?? 'Item').trim() || 'Item';
-    const qty = Math.max(1, Math.round(Number(row.quantity) || 1));
-    const shortName = name.length > 72 ? `${name.slice(0, 69)}…` : name;
-    parts.push(`${shortName} x${qty}`);
-  }
-  if (parts.length === 0) return '';
-  let s = parts.join(', ');
-  if (items.length > maxLines) s += ', ...';
-  if (s.length > maxLen) s = `${s.slice(0, maxLen - 1)}…`;
-  return s;
-}
-
-function buildDpoDescriptions(serviceName: string, items: unknown): {
-  rootDescription: string;
-  bookingDescription: string;
-} {
-  const lines = cartLinesSummary(items);
-  if (!lines) {
-    return { rootDescription: serviceName, bookingDescription: serviceName };
-  }
-  return {
-    rootDescription: `${serviceName}: ${lines}`,
-    bookingDescription: lines,
-  };
-}
-
-function splitName(fullName: string | undefined | null): { firstName: string; lastName: string } {
-  const trimmed = (fullName || '').trim().replace(/\s+/g, ' ');
-  if (!trimmed) return { firstName: '', lastName: '' };
-  const parts = trimmed.split(' ');
-  if (parts.length === 1) return { firstName: parts[0], lastName: '' };
-  return { firstName: parts[0], lastName: parts.slice(1).join(' ') };
-}
-
-function withOrderParam(input: string, orderNumber: string): string {
-  try {
-    const url = new URL(input);
-    url.searchParams.set('order', orderNumber);
-    return url.toString();
-  } catch {
-    const delimiter = input.includes('?') ? '&' : '?';
-    return `${input}${delimiter}order=${encodeURIComponent(orderNumber)}`;
-  }
-}
-
-function withTokenParam(input: string, token: string): string {
-  try {
-    const url = new URL(input);
-    url.searchParams.set('t', token);
-    return url.toString();
-  } catch {
-    const delimiter = input.includes('?') ? '&' : '?';
-    return `${input}${delimiter}t=${encodeURIComponent(token)}`;
-  }
-}
 
 type CreateTokenBody = {
   order: Record<string, unknown>;
@@ -135,8 +57,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (req.method === 'OPTIONS') return res.status(200).send('ok');
     if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
+    // ── Env var checks ─────────────────────────────────────────────────────
     const supabaseUrl = process.env.SUPABASE_URL;
     const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+    if (!supabaseUrl || !serviceRoleKey) {
+      return res
+        .status(500)
+        .json({ error: 'Supabase env vars missing (SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)' });
+    }
 
     const companyToken = process.env.DPO_COMPANY_TOKEN;
     const serviceType = process.env.DPO_SERVICE_TYPE;
@@ -155,26 +84,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(500).json({ error: dpoConfigError });
     }
 
-    if (!supabaseUrl || !serviceRoleKey) {
-      return res
-        .status(500)
-        .json({ error: 'Supabase env vars missing (SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)' });
-    }
-
     if (!companyToken || !serviceType || !backUrlBase) {
       return res.status(500).json({
         error: 'DPO env vars missing. Set DPO_COMPANY_TOKEN, DPO_SERVICE_TYPE, DPO_BACK_URL.',
       });
     }
 
+    // ── Parse body ─────────────────────────────────────────────────────────
     let body: CreateTokenBody | null = null;
     try {
       const raw = (req as { body?: unknown }).body;
-      if (typeof raw === 'string') {
-        body = JSON.parse(raw) as CreateTokenBody;
-      } else {
-        body = raw as CreateTokenBody;
-      }
+      body = (typeof raw === 'string' ? JSON.parse(raw) : raw) as CreateTokenBody;
     } catch {
       body = null;
     }
@@ -197,8 +117,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const serviceName = payment?.serviceName || 'Service Payment';
     const customer = payment?.customer || {};
-    const { rootDescription, bookingDescription } = buildDpoDescriptions(serviceName, order.items);
 
+    // ── Insert pending order ───────────────────────────────────────────────
     const statusToken = randomUUID();
     const insertPayload = { ...order, status_token: statusToken };
 
@@ -219,133 +139,68 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(500).json({ error: 'Order created but missing id/order_number' });
     }
 
-    async function markOrderDpoInitFailed(): Promise<void> {
-      const ts = new Date().toISOString();
+    const markFailed = async () => {
       await pgPatch(supabaseUrl, serviceRoleKey, 'orders', eq('id', orderId), {
         payment_status: 'failed',
-        updated_at: ts,
+        updated_at: new Date().toISOString(),
       });
-    }
+    };
 
+    // ── Build DPO request params ───────────────────────────────────────────
     const { firstName, lastName } = splitName(customer?.fullName);
-    const customerEmail = customer?.email || '';
-    const customerPhone = customer?.phone || '';
+    const { rootDescription, bookingDescription } = buildDpoDescriptions(serviceName, order.items);
 
     const delimiter = backUrlBase.includes('?') ? '&' : '?';
     const backUrl = `${backUrlBase}${delimiter}order=${encodeURIComponent(orderNumber)}`;
-    const redirectUrlWithOrder = withTokenParam(withOrderParam(redirectUrl, orderNumber), statusToken);
+    const redirectUrlFinal = withTokenParam(withOrderParam(redirectUrl, orderNumber), statusToken);
+    const paymentAmount = dpoFormatAmount(amount, currency);
+    const serviceDate = dpoServiceDateNow();
 
-    const paymentAmount =
-      currency.toUpperCase() === 'UGX' ? String(Math.round(amount)) : amount.toFixed(2);
-
-    const now = new Date();
-    const pad2 = (n: number) => String(n).padStart(2, '0');
-    const serviceDate = `${now.getFullYear()}/${pad2(now.getMonth() + 1)}/${pad2(now.getDate())} ${pad2(
-      now.getHours(),
-    )}:${pad2(now.getMinutes())}`;
-
-    const xmlBody = `<?xml version="1.0" encoding="utf-8"?>
-<API3G>
-  <CompanyToken>${escapeXml(companyToken)}</CompanyToken>
-  <Request>createToken</Request>
-  <PaymentAmount>${escapeXml(paymentAmount)}</PaymentAmount>
-  <PaymentCurrency>${escapeXml(currency)}</PaymentCurrency>
-  <CompanyRef>${escapeXml(orderNumber)}</CompanyRef>
-  <RedirectURL>${escapeXml(redirectUrlWithOrder)}</RedirectURL>
-  <BackURL>${escapeXml(backUrl)}</BackURL>
-  <PTL>5</PTL>
-  <ServiceType>${escapeXml(serviceType)}</ServiceType>
-  <Description>${escapeXml(rootDescription)}</Description>
-  <customerFirstName>${escapeXml(firstName)}</customerFirstName>
-  <customerLastName>${escapeXml(lastName)}</customerLastName>
-  <customerEmail>${escapeXml(customerEmail)}</customerEmail>
-  <customerPhone>${escapeXml(customerPhone)}</customerPhone>
-  <Booking>
-    <BookingRef>${escapeXml(orderNumber)}</BookingRef>
-    <Description>${escapeXml(bookingDescription)}</Description>
-    <Date>${escapeXml(serviceDate)}</Date>
-  </Booking>
-</API3G>`;
-
-    let dpoResp: Awaited<ReturnType<typeof fetch>>;
+    // ── Call DPO createToken ───────────────────────────────────────────────
+    let transToken: string;
+    let transRef: string | null;
     try {
-      dpoResp = await fetch(apiUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/xml; charset=utf-8',
-          Accept: 'application/xml',
-          'User-Agent':
-            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
-          'Accept-Language': 'en-US,en;q=0.9',
-        },
-        body: xmlBody,
-      });
-    } catch {
-      await markOrderDpoInitFailed();
-      return res.status(502).json({ error: 'Could not reach DPO. Try again in a moment.' });
-    }
-
-    const responseText = await dpoResp.text();
-    const result = extractXmlValue(responseText, 'Result');
-    const resultExplanation = extractXmlValue(responseText, 'ResultExplanation');
-    const transTokenRaw = extractXmlValue(responseText, 'TransToken');
-    const transToken = transTokenRaw ? transTokenRaw.trim().replace(/^TransToken/i, '').trim() : null;
-    const transRef = extractXmlValue(responseText, 'TransRef');
-
-    if (!result && !transToken) {
-      await markOrderDpoInitFailed();
-      const cloudFront403 =
-        dpoResp.status === 403 &&
-        (responseText.toLowerCase().includes('cloudfront') ||
-          responseText.toLowerCase().includes('request blocked'));
-
+      ({ transToken, transRef } = await dpoCreateToken({
+        companyToken,
+        serviceType,
+        apiUrl,
+        paymentAmount,
+        currency,
+        companyRef: orderNumber,
+        redirectUrl: redirectUrlFinal,
+        backUrl,
+        description: rootDescription,
+        bookingDescription,
+        firstName,
+        lastName,
+        email: customer?.email || '',
+        phone: customer?.phone || '',
+        serviceDate,
+      }));
+    } catch (e: unknown) {
+      await markFailed();
+      const err = e as Record<string, unknown>;
       return res.status(502).json({
-        error: 'Unexpected response from DPO',
-        httpStatus: dpoResp.status,
-        contentType: dpoResp.headers.get('content-type'),
-        bodyPreview: responseText.slice(0, 800),
-        ...(cloudFront403
-          ? {
-              hint:
-                'DPO returned HTTP 403 from CloudFront. If this persists, DPO may be blocking this host; contact DPO support.',
-            }
-          : {}),
+        error: e instanceof Error ? e.message : 'DPO createToken failed',
+        ...(err.result !== undefined ? { result: err.result } : {}),
+        ...(err.resultExplanation !== undefined ? { resultExplanation: err.resultExplanation } : {}),
+        ...(err.httpStatus !== undefined ? { httpStatus: err.httpStatus } : {}),
+        ...(err.bodyPreview !== undefined ? { bodyPreview: err.bodyPreview } : {}),
       });
     }
 
-    if (result !== '000') {
-      await markOrderDpoInitFailed();
-      return res.status(400).json({
-        error: 'DPO createToken failed',
-        result,
-        resultExplanation,
-        httpStatus: dpoResp.status,
-      });
-    }
+    // ── Save token back to the order ───────────────────────────────────────
+    await pgPatch(supabaseUrl, serviceRoleKey, 'orders', eq('id', orderId), {
+      ...(transRef ? { payment_reference: transRef } : {}),
+      trans_token: transToken,
+      updated_at: new Date().toISOString(),
+    });
 
-    if (!transToken) {
-      await markOrderDpoInitFailed();
-      return res.status(502).json({
-        error: 'DPO response missing payment token',
-        result,
-        resultExplanation,
-      });
-    }
-
-    const redirect = `${paymentUrlBase}${transToken}`;
-
-    if (transRef || transToken) {
-      const ts = new Date().toISOString();
-      await pgPatch(supabaseUrl, serviceRoleKey, 'orders', eq('id', orderId), {
-        ...(transRef ? { payment_reference: transRef } : {}),
-        ...(transToken ? { trans_token: transToken } : {}),
-        updated_at: ts,
-      });
-    }
+    const checkoutUrl = `${paymentUrlBase}${transToken}`;
 
     return res.status(200).json({
       orderNumber,
-      redirectUrl: redirect,
+      redirectUrl: checkoutUrl,
       transRef,
       transToken,
       statusToken,

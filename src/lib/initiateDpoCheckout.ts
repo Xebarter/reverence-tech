@@ -97,36 +97,64 @@ async function tryCreateViaApi(order: DpoCheckoutOrderPayload, payment: DpoCheck
   };
 }
 
-async function createViaEdgeFunction(order: DpoCheckoutOrderPayload, payment: DpoCheckoutPaymentPayload): Promise<ApiSuccess> {
-  // Ask Supabase Edge Function to create both the order (server-side) and the DPO payment token.
+async function createViaEdgeFunction(
+  order: DpoCheckoutOrderPayload,
+  payment: DpoCheckoutPaymentPayload,
+): Promise<ApiSuccess> {
+  // Local-dev fallback: insert the order directly via the anon client first so we
+  // get a real order_number from the DB trigger, then call the edge function with
+  // just the orderNumber. Requires the anon role to have INSERT on public.orders
+  // (granted by migration 20260421000100_fix_orders_rls_anon_insert.sql).
+  const statusToken =
+    typeof crypto !== 'undefined' && 'randomUUID' in crypto
+      ? crypto.randomUUID()
+      : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+
+  const { data: inserted, error: insertError } = await supabase
+    .from('orders')
+    .insert([{ ...order, status_token: statusToken }])
+    .select('order_number')
+    .single();
+
+  if (insertError) {
+    throw new Error(insertError.message || 'Failed to create order before DPO session');
+  }
+
+  const orderNumber = (inserted as { order_number?: string } | null)?.order_number;
+  if (!orderNumber) {
+    throw new Error('Order created but order_number was not returned');
+  }
+
   const { data, error } = await supabase.functions.invoke('create-dpo-service-payment', {
     body: {
-      order,
+      orderNumber,
       amount: payment.amount,
       currency: payment.currency || 'UGX',
       serviceName: payment.serviceName,
       redirectUrl: payment.redirectUrl,
-      statusToken: payment.statusToken,
+      statusToken,
       customer: payment.customer,
     },
   });
 
   if (error) {
-    // Preserve the original FunctionsHttpError so callers can read the JSON body via `context`.
+    // Preserve the original FunctionsHttpError so callers can read the JSON body.
     throw error;
   }
 
-  const orderNumber = (data as any)?.orderNumber as string | undefined;
-  if (!orderNumber) throw new Error('Order created but missing orderNumber');
-  const redirectUrl = sanitizeDpoRedirectUrl(((data as any)?.redirectUrl as string | undefined) || '');
+  const returnedOrderNumber =
+    ((data as Record<string, unknown>)?.orderNumber as string | undefined) ?? orderNumber;
+  const rawRedirectUrl =
+    ((data as Record<string, unknown>)?.redirectUrl as string | undefined) ?? '';
+  const redirectUrl = sanitizeDpoRedirectUrl(rawRedirectUrl);
   if (!redirectUrl) throw new Error('Failed to create DPO payment session.');
 
   return {
-    orderNumber,
+    orderNumber: returnedOrderNumber,
     redirectUrl,
-    transRef: (data as any)?.transRef,
-    transToken: (data as any)?.transToken,
-    statusToken: payment.statusToken,
+    transRef: (data as Record<string, unknown>)?.transRef as string | undefined,
+    transToken: (data as Record<string, unknown>)?.transToken as string | undefined,
+    statusToken,
   };
 }
 

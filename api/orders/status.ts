@@ -1,53 +1,23 @@
+/**
+ * GET /api/orders/status?order=<order_number>&t=<status_token>
+ *
+ * Called by /payment-result after DPO redirects the buyer back, and by the
+ * polling loop while the payment is pending.
+ *
+ * Flow:
+ *   1. Validate query params: order (order_number) and t (status_token).
+ *   2. Look up the order by order_number AND status_token (prevents enumeration).
+ *   3. If the order is already in a final state, return it immediately (idempotent).
+ *   4. If payment is still pending and we have a trans_token, call dpoVerifyToken().
+ *      - result 000  → mark paid/confirmed, return { payment_status: 'paid', ... }.
+ *      - result 002/003 → mark failed, return { payment_status: 'failed', ... }.
+ *      - any other   → return current DB status (polling will retry).
+ */
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { setPaymentApiCorsHeaders } from '../lib/corsAllowOrigin';
 import { validateDpoServerConfig } from '../lib/dpoEnv';
+import { dpoVerifyToken } from '../lib/dpo';
 import { eq, pgPatch, pgSelect } from '../lib/supabasePostgrest';
-
-function extractXmlValue(xml: string, tagName: string): string | null {
-  const re = new RegExp(`<${tagName}>([\\s\\S]*?)<\\/${tagName}>`, 'i');
-  const match = xml.match(re);
-  return match?.[1]?.trim() ?? null;
-}
-
-function escapeXml(text: string): string {
-  return text
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&apos;');
-}
-
-async function verifyDpoToken(
-  transToken: string,
-  companyToken: string,
-  apiUrl: string,
-): Promise<{ result: string | null; transRef: string | null }> {
-  const xmlBody = `<?xml version="1.0" encoding="utf-8"?>
-<API3G>
-  <CompanyToken>${escapeXml(companyToken)}</CompanyToken>
-  <Request>verifyToken</Request>
-  <TransactionToken>${escapeXml(transToken)}</TransactionToken>
-</API3G>`;
-
-  const resp = await fetch(apiUrl, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/xml; charset=utf-8',
-      Accept: 'application/xml',
-      'User-Agent':
-        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
-      'Accept-Language': 'en-US,en;q=0.9',
-    },
-    body: xmlBody,
-  });
-
-  const text = await resp.text();
-  return {
-    result: extractXmlValue(text, 'Result'),
-    transRef: extractXmlValue(text, 'TransRef'),
-  };
-}
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   setPaymentApiCorsHeaders(req, res);
@@ -82,6 +52,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(500).json({ error: dpoConfigError });
   }
 
+  // Look up by both order_number AND status_token to prevent enumeration.
   const selQ = `${eq('order_number', orderNumber)}&${eq('status_token', token)}`;
   const { rows, error } = await pgSelect(
     supabaseUrl,
@@ -108,12 +79,22 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       : null;
   const ordStat = data.order_status != null ? String(data.order_status) : null;
 
+  // Already in a final state — return immediately (idempotent).
+  if (payStatus === 'paid' || payStatus === 'failed' || payStatus === 'refunded') {
+    return res.status(200).json({
+      payment_status: payStatus,
+      payment_reference: pref,
+      order_status: ordStat,
+    });
+  }
+
+  // Payment is pending — try to verify with DPO if we have a trans_token.
   if (payStatus === 'pending' && transTok) {
     const companyToken = process.env.DPO_COMPANY_TOKEN;
 
     if (companyToken) {
       try {
-        const { result, transRef } = await verifyDpoToken(transTok, companyToken, apiUrl);
+        const { result, transRef } = await dpoVerifyToken(transTok, companyToken, apiUrl);
 
         if (result === '000') {
           const patch: Record<string, unknown> = {
@@ -126,7 +107,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           const pQ = `${eq('order_number', orderNumber)}&${eq('status_token', token)}`;
           const pr = await pgPatch(supabaseUrl, serviceRoleKey, 'orders', pQ, patch);
           if (pr.error) {
-            console.error('[orders/status] patch', pr.error);
+            console.error('[orders/status] patch error (paid)', pr.error);
           }
 
           return res.status(200).json({
@@ -136,6 +117,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           });
         }
 
+        // Explicitly failed/cancelled.
         if (result === '002' || result === '003') {
           await pgPatch(supabaseUrl, serviceRoleKey, 'orders', selQ, {
             payment_status: 'failed',
@@ -148,8 +130,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             order_status: ordStat,
           });
         }
-      } catch {
-        /* fall through */
+      } catch (e) {
+        console.error('[orders/status] dpoVerifyToken error', e);
+        /* fall through — return current DB status */
       }
     }
   }

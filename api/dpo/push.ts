@@ -1,51 +1,20 @@
+/**
+ * POST /api/dpo/push
+ *
+ * Optional server-to-server push notification from DPO.
+ * Protected by an optional DPO_PUSH_SECRET header check.
+ *
+ * Flow:
+ *   1. Verify DPO_PUSH_SECRET header (if configured).
+ *   2. Parse merchantOrderId / transactionId / statusRaw from body or query.
+ *   3. Look up the order by order_number (then by payment_reference as fallback).
+ *   4. Skip if not found or already in a final state.
+ *   5. If the incoming status looks like a success, call dpoVerifyToken() to confirm.
+ *   6. Update order on result 000.
+ */
 import type { VercelRequest, VercelResponse } from '@vercel/node';
+import { dpoVerifyToken } from '../lib/dpo';
 import { eq, pgPatch, pgSelect } from '../lib/supabasePostgrest';
-
-function extractXmlValue(xml: string, tagName: string): string | null {
-  const re = new RegExp(`<${tagName}>([\\s\\S]*?)<\\/${tagName}>`, 'i');
-  const match = xml.match(re);
-  return match?.[1]?.trim() ?? null;
-}
-
-function escapeXml(text: string): string {
-  return text
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&apos;');
-}
-
-async function verifyDpoToken(
-  transToken: string,
-  companyToken: string,
-  apiUrl: string,
-): Promise<{ result: string | null; transRef: string | null }> {
-  const xmlBody = `<?xml version="1.0" encoding="utf-8"?>
-<API3G>
-  <CompanyToken>${escapeXml(companyToken)}</CompanyToken>
-  <Request>verifyToken</Request>
-  <TransactionToken>${escapeXml(transToken)}</TransactionToken>
-</API3G>`;
-
-  const resp = await fetch(apiUrl, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/xml; charset=utf-8',
-      Accept: 'application/xml',
-      'User-Agent':
-        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
-      'Accept-Language': 'en-US,en;q=0.9',
-    },
-    body: xmlBody,
-  });
-
-  const text = await resp.text();
-  return {
-    result: extractXmlValue(text, 'Result'),
-    transRef: extractXmlValue(text, 'TransRef'),
-  };
-}
 
 function normalizeBodyString(req: VercelRequest): string {
   const b = req.body;
@@ -110,9 +79,10 @@ function parsePushFields(req: VercelRequest): {
     q('order');
 
   const transactionId =
-    pickString(flat, ['transactionId', 'TransactionId', 'transRef', 'TransRef']) ||
+    pickString(flat, ['transactionId', 'TransactionId', 'transRef', 'TransRef', 'TransactionToken']) ||
     q('transactionId') ||
-    q('TransRef');
+    q('TransRef') ||
+    q('TransactionToken');
 
   const statusRaw =
     pickString(flat, ['status', 'Status', 'paymentStatus', 'PaymentStatus']) || q('status');
@@ -154,7 +124,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   const cols = 'id,order_number,payment_status,payment_reference,trans_token';
-
   let orderRow: Record<string, unknown> | null = null;
 
   if (merchantOrderId) {
@@ -167,9 +136,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   if (!orderRow && transactionId) {
+    const r = await pgSelect(supabaseUrl, serviceRoleKey, 'orders', eq('trans_token', transactionId), cols);
+    if (r.error) {
+      console.error('[dpo/push] select by trans_token error', r.error);
+      return res.status(500).json({ error: 'Database error' });
+    }
+    orderRow = r.rows[0] ?? null;
+  }
+
+  if (!orderRow && transactionId) {
     const r = await pgSelect(supabaseUrl, serviceRoleKey, 'orders', eq('payment_reference', transactionId), cols);
     if (r.error) {
-      console.error('[dpo/push] select error', r.error);
+      console.error('[dpo/push] select by payment_reference error', r.error);
       return res.status(500).json({ error: 'Database error' });
     }
     orderRow = r.rows[0] ?? null;
@@ -198,10 +176,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
-    const { result, transRef } = await verifyDpoToken(transTok, companyToken, apiUrl);
+    const { result, transRef } = await dpoVerifyToken(transTok, companyToken, apiUrl);
 
     if (result === '000') {
-      const ref = transRef || transactionId || (orderRow.payment_reference != null ? String(orderRow.payment_reference) : '');
+      const ref =
+        transRef ||
+        transactionId ||
+        (orderRow.payment_reference != null ? String(orderRow.payment_reference) : '');
       const orderId = String(orderRow.id);
       const patch: Record<string, unknown> = {
         payment_status: 'paid',
@@ -218,7 +199,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(200).json({ ok: true, matched: true, verified: true, payment_status: 'paid' });
     }
   } catch (e) {
-    console.error('[dpo/push] verifyToken failed', e);
+    console.error('[dpo/push] dpoVerifyToken failed', e);
   }
 
   return res.status(200).json({ ok: true, matched: true, verified: false });
