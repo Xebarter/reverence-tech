@@ -3,15 +3,15 @@ import react from '@vitejs/plugin-react';
 import path from 'path';
 import type { IncomingMessage, ServerResponse } from 'http';
 
-/**
- * Vite plugin: serves Vercel Serverless Function handlers from the `api/`
- * directory during local development (`npm run dev`).
+/*
+ * Vite plugin: serves Vercel Serverless Function handlers from the 'api/'
+ * directory during local development ('npm run dev').
  *
- * Any request to `/api/**` is matched to the corresponding `api/**/*.ts` file,
+ * Any request to '/api/**' is matched to the corresponding 'api/**\/*.ts' file,
  * loaded through Vite's SSR module resolver (TypeScript, path aliases, etc.)
  * and called with a thin Vercel Request/Response shim. Server-side env vars
- * (SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, DPO_*) are read from `.env` /
- * `.env.local` by Vite and are available via `process.env` at handler runtime.
+ * (SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, DPO_*) are read from '.env' /
+ * '.env.local' by Vite and are available via 'process.env' at handler runtime.
  */
 function vercelApiFunctions(): Plugin {
   return {
