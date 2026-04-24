@@ -1,5 +1,7 @@
+ 'use client';
+
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useRouter } from 'next/navigation';
 import { MapPin, Clock, Banknote, ArrowLeft, CheckCircle2, Briefcase, Info, Sparkles } from 'lucide-react';
 import { motion } from 'framer-motion';
 import SEO from './SEO';
@@ -20,8 +22,9 @@ interface Job {
 }
 
 export default function JobDetails() {
-  const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
+  const params = useParams<{ id: string }>();
+  const id = params?.id;
+  const router = useRouter();
   const [job, setJob] = useState<Job | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -78,7 +81,7 @@ export default function JobDetails() {
           <Info className="w-16 h-16 text-slate-300 mx-auto mb-4" />
           <h2 className="text-2xl font-black text-[#1C3D5A] mb-2">Oops! Job not found</h2>
           <p className="text-slate-500 mb-8">This position may have been filled or the link has expired.</p>
-          <button onClick={() => navigate('/careers')} className="px-8 py-3 bg-[#1C3D5A] text-white rounded-xl font-bold">
+          <button onClick={() => router.push('/careers')} className="px-8 py-3 bg-[#1C3D5A] text-white rounded-xl font-bold">
             View All Openings
           </button>
         </div>

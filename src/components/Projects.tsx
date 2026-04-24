@@ -1,5 +1,7 @@
+'use client';
+
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 import {
   Monitor,
   Smartphone,
@@ -26,7 +28,7 @@ interface Project {
 const Projects: React.FC = () => {
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
+  const router = useRouter();
 
   useEffect(() => {
     fetchProjects();
@@ -52,7 +54,7 @@ const Projects: React.FC = () => {
   };
 
   const handleProjectClick = (projectId: string) => {
-    navigate(`/projects/${projectId}`);
+    router.push(`/projects/${projectId}`);
   };
 
   if (loading) {
@@ -163,7 +165,7 @@ const Projects: React.FC = () => {
 
             <div className="text-center mt-10">
               <button
-                onClick={() => navigate('/projects')}
+                onClick={() => router.push('/projects')}
                 className="inline-flex items-center gap-2 px-6 py-3 bg-[#1C3D5A] text-white font-bold rounded-xl hover:bg-[#152f45] transition-colors shadow-sm hover:shadow-md"
               >
                 View All Projects <ArrowRight className="h-4 w-4" />

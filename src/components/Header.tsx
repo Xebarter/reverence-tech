@@ -1,12 +1,13 @@
 import { Menu, X, ChevronRight, Phone, Mail, ArrowRight, MapPin } from 'lucide-react';
 import { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
-  const location = useLocation();
+  const pathname = usePathname();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -65,10 +66,10 @@ export default function Header() {
     };
 
     // Scroll to section if we're on the home page
-    if (location.pathname === '/') {
+    if (pathname === '/') {
       scrollToSection();
     }
-  }, [location]);
+  }, [pathname]);
 
   const navigateToSection = (sectionId: string) => {
     const scrollToElement = (element: HTMLElement) => {
@@ -82,7 +83,7 @@ export default function Header() {
       });
     };
 
-    if (location.pathname === '/') {
+    if (pathname === '/') {
       const element = document.getElementById(sectionId);
       if (element) {
         scrollToElement(element);
@@ -122,7 +123,7 @@ export default function Header() {
 
         <nav className="max-w-7xl mx-auto px-6">
           <div className="flex justify-between items-center h-12">
-            <Link to="/" className="flex items-center gap-3">
+            <Link href="/" className="flex items-center gap-3">
               <div className={`p-1.5 rounded-lg transition-colors ${isScrolled ? 'bg-[#1C3D5A]' : 'bg-white'}`}>
                 <img src="/logo.svg" alt="Logo" className="h-7 w-auto" />
               </div>

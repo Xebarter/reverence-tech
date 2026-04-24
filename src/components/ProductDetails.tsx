@@ -1,7 +1,9 @@
+ 'use client';
+
 import { useState } from 'react';
 import { X, ShoppingCart, CreditCard, Package, CheckCircle2, Star, TrendingUp, Shield, Truck, ArrowRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 import { useCart } from '../CartContext';
 import DepositForm from './DepositForm';
 
@@ -33,7 +35,7 @@ interface ProductDetailsProps {
 }
 
 export default function ProductDetails({ product, isOpen, onClose }: ProductDetailsProps) {
-  const navigate = useNavigate();
+  const router = useRouter();
   const { addToCart } = useCart();
   const [showDepositForm, setShowDepositForm] = useState(false);
   const [quantity, setQuantity] = useState(1);
@@ -59,7 +61,7 @@ export default function ProductDetails({ product, isOpen, onClose }: ProductDeta
     };
 
     addToCart(cartItem);
-    navigate('/checkout');
+    router.push('/checkout');
     onClose();
   };
 

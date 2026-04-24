@@ -1,5 +1,8 @@
+ 'use client';
+
 import { useEffect, useRef, useState } from 'react';
-import { useNavigate, useSearchParams, Link } from 'react-router-dom';
+import Link from 'next/link';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { CheckCircle2, Clock, XCircle, RefreshCw } from 'lucide-react';
 import { fetchOrderStatus, confirmDpoResult } from '../lib/fetchOrderStatus';
@@ -7,14 +10,14 @@ import { fetchOrderStatus, confirmDpoResult } from '../lib/fetchOrderStatus';
 type PaymentStatus = 'paid' | 'failed' | 'pending' | 'refunded' | null;
 
 export default function PaymentResult() {
-  const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
+  const router = useRouter();
+  const searchParams = useSearchParams();
 
-  const orderNumber = searchParams.get('order') || '';
-  const statusToken = searchParams.get('t') || '';
+  const orderNumber = searchParams?.get('order') || '';
+  const statusToken = searchParams?.get('t') || '';
 
-  const dpoResult = searchParams.get('Result') || searchParams.get('result') || '';
-  const dpoTransRef = searchParams.get('TransRef') || searchParams.get('transRef') || '';
+  const dpoResult = searchParams?.get('Result') || searchParams?.get('result') || '';
+  const dpoTransRef = searchParams?.get('TransRef') || searchParams?.get('transRef') || '';
 
   const [paymentStatus, setPaymentStatus] = useState<PaymentStatus>(null);
   const [paymentReference, setPaymentReference] = useState<string | null>(null);
@@ -139,7 +142,7 @@ export default function PaymentResult() {
   useEffect(() => {
     if (paymentStatus !== 'paid' || !orderNumber) return;
     const id = window.setTimeout(() => {
-      navigate(`/orders?order=${encodeURIComponent(orderNumber)}`);
+      router.push(`/orders?order=${encodeURIComponent(orderNumber)}`);
     }, 3000);
     return () => window.clearTimeout(id);
   }, [navigate, orderNumber, paymentStatus]);

@@ -1,14 +1,16 @@
+ 'use client';
+
 import { useState, useEffect } from 'react';
 import { MapPin, DollarSign, ArrowRight, Briefcase, Zap, Globe, Heart, Search } from 'lucide-react';
 import { motion } from 'framer-motion';
 import SEO from './SEO';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 import { supabase } from '../lib/supabase';
 
 export default function Careers() {
   const [jobs, setJobs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
+  const router = useRouter();
 
   useEffect(() => {
     fetchJobs();
@@ -119,7 +121,7 @@ export default function Careers() {
                 whileHover={{ y: -5 }}
                 key={job.id}
                 className="bg-white p-8 rounded-[2rem] shadow-xl shadow-slate-200/50 border border-slate-50 hover:border-yellow-400 transition-all cursor-pointer group flex flex-col justify-between"
-                onClick={() => navigate(`/job/${job.id}`)}
+                onClick={() => router.push(`/job/${job.id}`)}
               >
                 <div>
                   <div className="flex justify-between items-start mb-4">

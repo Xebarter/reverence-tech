@@ -1,5 +1,7 @@
+ 'use client';
+
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 import {
   Monitor,
   Smartphone,
@@ -26,7 +28,7 @@ interface Project {
 const ProjectsList: React.FC = () => {
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
+  const router = useRouter();
 
   useEffect(() => {
     fetchProjects();
@@ -50,7 +52,7 @@ const ProjectsList: React.FC = () => {
   };
 
   const handleProjectClick = (projectId: string) => {
-    navigate(`/projects/${projectId}`);
+    router.push(`/projects/${projectId}`);
   };
 
   if (loading) {

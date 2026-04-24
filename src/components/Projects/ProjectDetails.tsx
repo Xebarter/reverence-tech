@@ -1,5 +1,7 @@
+ 'use client';
+
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useRouter } from 'next/navigation';
 import { supabase } from '../../lib/supabase';
 import {
   ArrowLeft,
@@ -12,7 +14,7 @@ import {
   ShieldCheck,
   ChevronRight
 } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import Link from 'next/link';
 
 interface Project {
   id: string;
@@ -28,8 +30,9 @@ interface Project {
 }
 
 const ProjectDetails: React.FC = () => {
-  const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
+  const params = useParams<{ id: string }>();
+  const id = params?.id;
+  const router = useRouter();
   const [project, setProject] = useState<Project | null>(null);
   const [loading, setLoading] = useState(true);
   const [relatedProjects, setRelatedProjects] = useState<Project[]>([]);
@@ -91,7 +94,7 @@ const ProjectDetails: React.FC = () => {
     return (
       <div className="min-h-screen pt-32 px-4 bg-slate-50 text-center">
         <h2 className="text-3xl font-bold text-slate-900 mb-4">Project Not Found</h2>
-        <button onClick={() => navigate(-1)} className="text-indigo-600 font-semibold hover:underline">
+        <button onClick={() => router.back()} className="text-indigo-600 font-semibold hover:underline">
           Return to Portfolio
         </button>
       </div>
@@ -115,7 +118,7 @@ const ProjectDetails: React.FC = () => {
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div className="flex flex-col gap-2">
               <button
-                onClick={() => navigate(-1)}
+                onClick={() => router.back()}
                 className="group flex items-center text-slate-500 hover:text-indigo-600 transition-colors text-sm font-medium"
               >
                 <ArrowLeft className="h-4 w-4 mr-2 transition-transform group-hover:-translate-x-1" />
@@ -275,9 +278,10 @@ const ProjectDetails: React.FC = () => {
               {relatedProjects
                 .filter(p => p.id !== project.id)
                 .slice(0, 2)
+                .filter((rp) => Boolean(rp?.id))
                 .map((rp) => (
                   <Link
-                    to={`/projects/${rp.id}`}
+                    href={`/projects/${rp.id}`}
                     key={rp.id}
                     onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
                     className="group bg-white rounded-2xl border border-slate-200 overflow-hidden hover:shadow-xl transition-all duration-300 flex flex-col"

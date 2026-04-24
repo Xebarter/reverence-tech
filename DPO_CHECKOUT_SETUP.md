@@ -54,5 +54,5 @@ Ensure migration is applied:
 
 ## 5) Frontend
 
-- Do **not** set `VITE_DPO_TEST_MODE=true` in production. Leave it unset or `false`.
+- Do **not** set `NEXT_PUBLIC_DPO_TEST_MODE=true` in production. Leave it unset or `false`.
 - Production builds **do not** register `/test-admin`, `/admin-temp`, or `/admin/test-admin-users` (development only).

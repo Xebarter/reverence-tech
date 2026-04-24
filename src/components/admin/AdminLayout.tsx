@@ -1,5 +1,8 @@
+ 'use client';
+
 import { useState } from 'react';
-import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
+import Link from 'next/link';
+import { usePathname, useRouter } from 'next/navigation';
 import { 
   LayoutDashboard, 
   Mail, 
@@ -20,16 +23,16 @@ import {
   PackageCheck
 } from 'lucide-react';
 
-export default function AdminLayout() {
+export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const location = useLocation();
-  const navigate = useNavigate();
+  const pathname = usePathname();
+  const router = useRouter();
 
   const handleSignOut = () => {
     // Remove admin authentication status
     localStorage.removeItem('admin_authenticated');
     // Redirect to auth page
-    navigate('/admin/auth');
+    router.push('/admin/auth');
   };
 
   const navigation = [
@@ -49,7 +52,7 @@ export default function AdminLayout() {
   ];
 
   const isActive = (path: string) => {
-    return location.pathname === path;
+    return pathname === path;
   };
 
   return (
@@ -79,7 +82,7 @@ export default function AdminLayout() {
               return (
                 <Link
                   key={item.name}
-                  to={item.href}
+                  href={item.href}
                   className={`flex items-center px-4 py-3 text-base font-medium rounded-lg transition-colors ${
                     isActive(item.href)
                       ? 'bg-green-100 text-green-800'
@@ -102,7 +105,7 @@ export default function AdminLayout() {
               Sign Out
             </button>
             <Link
-              to="/"
+              href="/"
               className="flex items-center px-4 py-3 text-base font-medium text-gray-700 rounded-lg hover:bg-gray-100"
             >
               <User className="w-5 h-5 mr-3" />
@@ -115,7 +118,7 @@ export default function AdminLayout() {
       {/* Main content */}
       <div className="md:ml-64 pt-16 md:pt-0">
         <div className="p-4 md:p-8">
-          <Outlet />
+          {children}
         </div>
       </div>
     </div>

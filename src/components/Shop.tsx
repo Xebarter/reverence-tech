@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { ShoppingCart, Star, Package, Search, Shield, CheckCircle2, TrendingUp, CreditCard } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 import { supabase } from '../lib/supabase';
 import { useCart } from '../CartContext';
 import DepositForm from './DepositForm';
@@ -41,7 +41,7 @@ export default function Shop() {
   const [selectedProduct, setSelectedProduct] = useState<ShopProduct | null>(null);
   const [showDepositForm, setShowDepositForm] = useState(false);
   const [showProductDetails, setShowProductDetails] = useState(false);
-  const navigate = useNavigate();
+  const router = useRouter();
   const { addToCart } = useCart();
 
   useEffect(() => {
@@ -155,7 +155,7 @@ export default function Shop() {
     addToCart(cartItem);
 
     // Navigate to checkout
-    navigate('/checkout');
+    router.push('/checkout');
   };
 
   const handleMakeDeposit = (product: ShopProduct) => {

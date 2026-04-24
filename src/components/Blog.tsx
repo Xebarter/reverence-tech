@@ -1,5 +1,7 @@
+ 'use client';
+
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import Link from 'next/link';
 import { format } from 'date-fns';
 import { Calendar, User, ArrowRight, BookOpen, Search, Tag } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -115,7 +117,7 @@ export default function Blog() {
                     </span>
                   </div>
                   <h2 className="text-3xl font-black text-[#1C3D5A] mb-4 leading-tight group-hover:text-blue-600 transition-colors">
-                    <Link to={`/blog/${posts[0].slug}`}>{posts[0].title}</Link>
+                    <Link href={`/blog/${posts[0].slug}`}>{posts[0].title}</Link>
                   </h2>
                   <p className="text-slate-600 mb-8 line-clamp-3 leading-relaxed">
                     {posts[0].excerpt}
@@ -127,7 +129,7 @@ export default function Blog() {
                       </div>
                       {posts[0].author}
                     </div>
-                    <Link to={`/blog/${posts[0].slug}`} className="text-blue-600 font-black text-sm flex items-center gap-1 group/btn">
+                    <Link href={`/blog/${posts[0].slug}`} className="text-blue-600 font-black text-sm flex items-center gap-1 group/btn">
                       Read Article <ArrowRight size={16} className="group-hover/btn:translate-x-1 transition-transform" />
                     </Link>
                   </div>
@@ -163,7 +165,7 @@ export default function Blog() {
                       <Calendar size={12} /> {format(new Date(post.published_at), 'MMM d, yyyy')}
                     </div>
                     <h3 className="text-xl font-bold text-[#1C3D5A] mb-3 line-clamp-2 leading-snug group-hover:text-blue-600 transition-colors">
-                      <Link to={`/blog/${post.slug}`}>{post.title}</Link>
+                      <Link href={`/blog/${post.slug}`}>{post.title}</Link>
                     </h3>
                     <p className="text-slate-500 text-sm mb-6 line-clamp-2 leading-relaxed italic">
                       "{post.excerpt}"
@@ -172,7 +174,7 @@ export default function Blog() {
                       <span className="text-xs font-bold text-slate-400 flex items-center gap-1">
                         <User size={12} /> {post.author}
                       </span>
-                      <Link to={`/blog/${post.slug}`} className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-[#1C3D5A] group-hover:bg-yellow-400 transition-colors">
+                      <Link href={`/blog/${post.slug}`} className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-[#1C3D5A] group-hover:bg-yellow-400 transition-colors">
                         <ArrowRight size={16} />
                       </Link>
                     </div>

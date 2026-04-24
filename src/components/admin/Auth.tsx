@@ -1,12 +1,14 @@
+ 'use client';
+
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 
 export default function AdminAuth() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
+  const router = useRouter();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -21,7 +23,7 @@ export default function AdminAuth() {
       // Store auth status in localStorage
       localStorage.setItem('admin_authenticated', 'true');
       // Redirect to admin dashboard
-      navigate('/admin');
+      router.push('/admin');
     } else {
       setError('Invalid email or password');
     }

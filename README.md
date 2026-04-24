@@ -1,6 +1,6 @@
 # Reverence Technology Website
 
-A modern website built with React, TypeScript, and Vite for Reverence Technology, a Ugandan technology solutions provider.
+A modern website built with Next.js, React, and TypeScript for Reverence Technology, a Ugandan technology solutions provider.
 
 ## Features
 
@@ -13,8 +13,7 @@ A modern website built with React, TypeScript, and Vite for Reverence Technology
 ## Tech Stack
 
 - React 18 with TypeScript
-- Vite build tool
-- React Router v7
+- Next.js (App Router)
 - Supabase for backend services
 - Tailwind CSS for styling
 - Lucide React for icons
@@ -30,13 +29,12 @@ This application is ready for deployment to Vercel. Simply follow these steps:
 3. Click "New Project"
 4. Import your Git repository
 5. Configure the project:
-   - Framework Preset: `Vite`
+   - Framework Preset: `Next.js`
    - Root Directory: `.`
    - Build Command: `npm run build`
-   - Output Directory: `dist`
 6. Add environment variables:
-   - `VITE_SUPABASE_URL` - Your Supabase project URL
-   - `VITE_SUPABASE_ANON_KEY` - Your Supabase anon key
+   - `NEXT_PUBLIC_SUPABASE_URL` - Your Supabase project URL
+   - `NEXT_PUBLIC_SUPABASE_ANON_KEY` - Your Supabase anon key
 7. Deploy!
 
 ### Environment Variables
@@ -44,8 +42,8 @@ This application is ready for deployment to Vercel. Simply follow these steps:
 For local development, create a `.env` file with the following variables:
 
 ```
-VITE_SUPABASE_URL=your_supabase_project_url
-VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 ```
 
 ## Available Scripts
@@ -54,7 +52,7 @@ In the project directory, you can run:
 
 - `npm run dev` - Runs the app in development mode
 - `npm run build` - Builds the app for production
-- `npm run preview` - Previews the production build locally
+- `npm run start` - Runs the production build locally
 - `npm run lint` - Runs ESLint
 - `npm run typecheck` - Runs TypeScript type checking
 
@@ -62,11 +60,11 @@ In the project directory, you can run:
 
 ```
 src/
+  app/            # Next.js routes (App Router)
   components/     # React components
     admin/        # Admin dashboard components
   lib/            # Utility functions and Supabase client
-  App.tsx         # Main application component
-  main.tsx        # Application entry point
+  server/         # Server-only modules (DPO, PostgREST wrappers, etc.)
 ```
 
 ## Learn More
@@ -74,6 +72,7 @@ src/
 To learn more about the technologies used:
 
 - [Vite Documentation](https://vitejs.dev/)
+- [Next.js Documentation](https://nextjs.org/docs)
 - [React Documentation](https://react.dev/)
 - [Supabase Documentation](https://supabase.com/docs)
 - [Tailwind CSS Documentation](https://tailwindcss.com/)

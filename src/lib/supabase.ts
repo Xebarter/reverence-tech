@@ -2,20 +2,25 @@
 import { createClient } from '@supabase/supabase-js';
 
 // Validate that environment variables are set
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-if (!supabaseUrl) {
-  console.error('VITE_SUPABASE_URL is not set. Please add it to your .env file.');
-  throw new Error('VITE_SUPABASE_URL is not set');
+/**
+ * IMPORTANT
+ * - We can't throw during module evaluation because Next may import this during build/prerender.
+ * - We also don't want to silently use fake credentials at runtime.
+ *
+ * Strategy: create a client with a placeholder only when env is missing; log once.
+ * Any real usage will fail until env vars are set.
+ */
+const placeholderUrl = 'http://localhost:54321';
+const placeholderAnonKey = 'anon';
+
+if (!supabaseUrl || !supabaseAnonKey) {
+  console.warn('Supabase env vars missing: set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY.');
 }
 
-if (!supabaseAnonKey) {
-  console.error('VITE_SUPABASE_ANON_KEY is not set. Please add it to your .env file.');
-  throw new Error('VITE_SUPABASE_ANON_KEY is not set');
-}
-
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+export const supabase = createClient(supabaseUrl || placeholderUrl, supabaseAnonKey || placeholderAnonKey, {
   auth: {
     storageKey: 'supabase_auth',
     persistSession: true,

@@ -1,7 +1,10 @@
+ 'use client';
+
 import { useState } from 'react';
 import { ArrowLeft, CreditCard, Smartphone, Building2, Wallet, MapPin, Package, CheckCircle2, AlertCircle, Loader2, ShieldCheck } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { Link, useNavigate } from 'react-router-dom';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { adminSupabase } from '../lib/supabase';
 import { useCart } from '../CartContext';
 import { describeFunctionsHttpError } from '../lib/describeFunctionsHttpError';
@@ -14,7 +17,7 @@ interface CheckoutProps {
 type PaymentMethod = 'dpo' | 'mobile_money' | 'bank_transfer' | 'cash' | 'other';
 
 export default function Checkout({ onClose }: CheckoutProps) {
-  const navigate = useNavigate();
+  const router = useRouter();
   const { cartItems, updateQuantity, removeFromCart, clearCart, getTotal } = useCart();
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -210,7 +213,7 @@ export default function Checkout({ onClose }: CheckoutProps) {
           <button
             onClick={() => {
               if (onClose) onClose();
-              else navigate('/#shop');
+                else router.push('/#shop');
             }}
             className="px-6 py-3 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition-colors"
           >
@@ -250,14 +253,14 @@ export default function Checkout({ onClose }: CheckoutProps) {
             <button
               onClick={() => {
                 if (onClose) onClose();
-                else navigate('/');
+                else router.push('/');
               }}
               className="px-6 py-3 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition-colors"
             >
               Return Home
             </button>
             <button
-              onClick={() => navigate('/orders')}
+              onClick={() => router.push('/orders')}
               className="px-6 py-3 border-2 border-indigo-600 text-indigo-600 rounded-xl font-bold hover:bg-indigo-50 transition-colors"
             >
               Track Order
@@ -276,7 +279,7 @@ export default function Checkout({ onClose }: CheckoutProps) {
           <button
             onClick={() => {
               if (onClose) onClose();
-              else navigate('/#shop');
+              else router.push('/#shop');
             }}
             className="flex items-center gap-2 text-slate-600 hover:text-slate-900 transition-colors mb-4"
           >
@@ -455,12 +458,12 @@ export default function Checkout({ onClose }: CheckoutProps) {
                 </div>
                 <div className="mt-3 text-xs text-slate-500">
                   By placing your order, you agree to our{' '}
-                  <Link to="/terms" className="font-semibold text-indigo-700 hover:text-indigo-800 underline">
+                  <Link href="/terms" className="font-semibold text-indigo-700 hover:text-indigo-800 underline">
                     Terms &amp; Conditions
                   </Link>{' '}
                   and{' '}
                   <Link
-                    to="/refund-policy"
+                    href="/refund-policy"
                     className="font-semibold text-indigo-700 hover:text-indigo-800 underline"
                   >
                     Refund Policy

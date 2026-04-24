@@ -1,12 +1,14 @@
+ 'use client';
+
 import { useEffect, useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { usePathname, useRouter } from 'next/navigation';
 import AdminAuth from './Auth';
 
 export default function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [authenticated, setAuthenticated] = useState(false);
-  const navigate = useNavigate();
-  const location = useLocation();
+  const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
     // Check if admin is authenticated
@@ -16,13 +18,13 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
       setAuthenticated(true);
     } else {
       // Redirect to auth page if not authenticated and not already there
-      if (location.pathname !== '/admin/auth') {
-        navigate('/admin/auth');
+      if (pathname !== '/admin/auth') {
+        router.push('/admin/auth');
       }
     }
     
     setLoading(false);
-  }, [navigate, location]);
+  }, [router, pathname]);
 
   if (loading) {
     return (

@@ -1,12 +1,14 @@
+ 'use client';
+
 import { useEffect, useState, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 import { supabase } from '../../lib/supabase';
 import AdminAuth from './Auth';
 
 export default function ProtectedRouteTemp({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [authenticated, setAuthenticated] = useState(false);
-  const navigate = useNavigate();
+  const router = useRouter();
   const isCheckingAuth = useRef(false);
 
   useEffect(() => {
@@ -41,11 +43,11 @@ export default function ProtectedRouteTemp({ children }: { children: React.React
           setAuthenticated(true);
         } else {
           setAuthenticated(false);
-          navigate('/admin/auth');
+          router.push('/admin/auth');
         }
       } catch (error) {
         console.error('Auth state change error:', error);
-        navigate('/admin/auth');
+        router.push('/admin/auth');
       } finally {
         setLoading(false);
         isCheckingAuth.current = false;
@@ -55,7 +57,7 @@ export default function ProtectedRouteTemp({ children }: { children: React.React
     return () => {
       subscription.unsubscribe();
     };
-  }, [navigate]);
+  }, [router]);
 
   if (loading) {
     return (

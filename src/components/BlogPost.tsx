@@ -1,5 +1,8 @@
+ 'use client';
+
 import { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import Link from 'next/link';
+import { useParams } from 'next/navigation';
 import { format } from 'date-fns';
 import { ArrowLeft, Calendar, Bookmark, Clock, ChevronRight, Linkedin, Twitter, MessageCircle } from 'lucide-react';
 import { motion, useScroll, useSpring } from 'framer-motion';
@@ -7,7 +10,8 @@ import SEO from './SEO';
 import { supabase } from '../lib/supabase';
 
 export default function BlogPost() {
-  const { slug } = useParams<{ slug: string }>();
+  const params = useParams<{ slug: string }>();
+  const slug = params?.slug;
   const [post, setPost] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
@@ -60,7 +64,7 @@ export default function BlogPost() {
       <div className="text-center">
         <h1 className="text-9xl font-black text-slate-200">404</h1>
         <p className="text-slate-500 mb-8 font-medium">Article vanished into the digital void.</p>
-        <Link to="/blog" className="px-8 py-3 bg-[#1C3D5A] text-white rounded-xl font-bold">Return Home</Link>
+        <Link href="/blog" className="px-8 py-3 bg-[#1C3D5A] text-white rounded-xl font-bold">Return Home</Link>
       </div>
     </div>
   );
@@ -75,7 +79,7 @@ export default function BlogPost() {
       {/* Breadcrumbs & Navigation */}
       <nav className="fixed top-20 left-0 right-0 bg-white/80 backdrop-blur-md z-40 border-b border-slate-100">
         <div className="max-w-4xl mx-auto px-6 h-14 flex items-center justify-between">
-          <Link to="/blog" className="flex items-center text-slate-500 hover:text-[#1C3D5A] font-bold text-sm transition-colors">
+          <Link href="/blog" className="flex items-center text-slate-500 hover:text-[#1C3D5A] font-bold text-sm transition-colors">
             <ArrowLeft size={16} className="mr-2" /> All Stories
           </Link>
           <div className="hidden md:flex items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-widest">

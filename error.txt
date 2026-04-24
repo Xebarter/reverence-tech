@@ -1,6 +1,0 @@
-{
-    "code": "PGRST205",
-    "details": null,
-    "hint": "Perhaps you meant the table 'public.hero_images'",
-    "message": "Could not find the table 'public.product_packages' in the schema cache"
-}
