@@ -15,12 +15,15 @@ export function isDpoSandbox(): boolean {
 
 /** Returns the DPO API URL based on DPO_SANDBOX env var. */
 export function getDpoApiUrl(): string {
+  const fromEnv = (process.env.DPO_API_URL || '').trim();
+  if (fromEnv) return fromEnv;
   return isDpoSandbox() ? DPO_SANDBOX_API_URL : DPO_LIVE_API_URL;
 }
 
 /** Returns the DPO hosted checkout URL for a given TransToken. */
 export function dpoBuildCheckoutUrl(transToken: string): string {
-  const base = isDpoSandbox() ? DPO_SANDBOX_PAYMENT_URL : DPO_LIVE_PAYMENT_URL;
+  const fromEnv = (process.env.DPO_PAYMENT_URL || '').trim();
+  const base = fromEnv || (isDpoSandbox() ? DPO_SANDBOX_PAYMENT_URL : DPO_LIVE_PAYMENT_URL);
   return `${base}${transToken}`;
 }
 
@@ -208,6 +211,14 @@ export async function dpoCreateToken(params: CreateTokenParams): Promise<CreateT
   }
 
   const responseText = await resp.text();
+  if (!resp.ok) {
+    const preview = responseText.replace(/\s+/g, ' ').trim().slice(0, 400);
+    throw new Error(
+      preview
+        ? `DPO createToken HTTP ${resp.status}: ${preview}`
+        : `DPO createToken HTTP ${resp.status}`,
+    );
+  }
   const result = extractXmlValue(responseText, 'Result');
   const resultExplanation = extractXmlValue(responseText, 'ResultExplanation');
   const transToken = extractXmlValue(responseText, 'TransToken');
@@ -217,7 +228,7 @@ export async function dpoCreateToken(params: CreateTokenParams): Promise<CreateT
     throw new Error(
       resultExplanation
         ? `DPO createToken failed: ${resultExplanation} (result=${result})`
-        : `DPO createToken failed (result=${result ?? 'no result, HTTP ' + resp.status})`,
+        : `DPO createToken failed (result=${result ?? 'no result'})`,
     );
   }
 

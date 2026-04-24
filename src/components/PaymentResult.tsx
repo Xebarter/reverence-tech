@@ -145,7 +145,7 @@ export default function PaymentResult() {
       router.push(`/orders?order=${encodeURIComponent(orderNumber)}`);
     }, 3000);
     return () => window.clearTimeout(id);
-  }, [navigate, orderNumber, paymentStatus]);
+  }, [router, orderNumber, paymentStatus]);
 
   const statusConfig =
     paymentStatus === 'paid'
@@ -182,7 +182,7 @@ export default function PaymentResult() {
             you used.
           </p>
           <Link
-            to="/orders"
+            href="/orders"
             className="inline-block px-6 py-3 bg-[#1C3D5A] text-white font-bold rounded-xl hover:bg-[#152f45] transition"
           >
             Track orders
@@ -285,13 +285,13 @@ export default function PaymentResult() {
 
             <div className="mt-6 flex gap-3 justify-center">
               <Link
-                to="/orders"
+                href="/orders"
                 className="px-6 py-3 bg-[#1C3D5A] text-white font-bold rounded-xl hover:bg-[#152f45] transition"
               >
                 Track Orders
               </Link>
               <Link
-                to="/"
+                href="/"
                 className="px-6 py-3 border-2 border-slate-200 text-slate-700 font-bold rounded-xl hover:bg-slate-50 transition"
               >
                 Return Home

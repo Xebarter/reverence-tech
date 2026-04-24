@@ -8,13 +8,13 @@ import { useRouter } from 'next/navigation';
 import { adminSupabase } from '../lib/supabase';
 import { useCart } from '../CartContext';
 import { describeFunctionsHttpError } from '../lib/describeFunctionsHttpError';
-import { initiateDpoCheckout } from '../lib/initiateDpoCheckout';
 
 interface CheckoutProps {
   onClose?: () => void;
 }
 
 type PaymentMethod = 'dpo' | 'mobile_money' | 'bank_transfer' | 'cash' | 'other';
+type ShopPaymentMethod = Exclude<PaymentMethod, 'dpo'>;
 
 export default function Checkout({ onClose }: CheckoutProps) {
   const router = useRouter();
@@ -31,7 +31,7 @@ export default function Checkout({ onClose }: CheckoutProps) {
     shipping_address: '',
     city: '',
     country: 'Uganda',
-    payment_method: 'dpo' as PaymentMethod,
+    payment_method: 'mobile_money' as ShopPaymentMethod,
     payment_reference: '',
     notes: '',
   });
@@ -40,14 +40,6 @@ export default function Checkout({ onClose }: CheckoutProps) {
     formData.payment_method === 'mobile_money' || formData.payment_method === 'bank_transfer';
 
   const paymentVerification = (() => {
-    if (formData.payment_method === 'dpo') {
-      return {
-        title: 'Secure DPO checkout',
-        description:
-          'After placing your order, you will be redirected to DPO Pay to complete your payment securely.',
-      };
-    }
-
     if (formData.payment_method === 'mobile_money' || formData.payment_method === 'bank_transfer') {
       return {
         title: 'Payment verification',
@@ -123,13 +115,10 @@ export default function Checkout({ onClose }: CheckoutProps) {
     }
 
     try {
-      const isDpoPayment = formData.payment_method === 'dpo';
       const statusTokenForNonDpo =
-        !isDpoPayment && typeof crypto !== 'undefined' && 'randomUUID' in crypto
+        typeof crypto !== 'undefined' && 'randomUUID' in crypto
           ? crypto.randomUUID()
-          : !isDpoPayment
-            ? `${Date.now()}-${Math.random().toString(16).slice(2)}`
-            : undefined;
+          : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
 
       const orderData = {
         customer_name: formData.customer_name,
@@ -138,11 +127,11 @@ export default function Checkout({ onClose }: CheckoutProps) {
         shipping_address: formData.shipping_address,
         city: formData.city,
         country: formData.country,
-        payment_method: isDpoPayment ? 'dpo' : formData.payment_method,
-        payment_reference: isDpoPayment ? null : formData.payment_reference || null,
+        payment_method: formData.payment_method,
+        payment_reference: formData.payment_reference || null,
         payment_status: 'pending',
         order_status: 'pending',
-        ...(statusTokenForNonDpo ? { status_token: statusTokenForNonDpo } : {}),
+        status_token: statusTokenForNonDpo,
         total_amount: calculateTotal(),
         shipping_fee: calculateShipping(),
         items: cartItems.map(item => ({
@@ -156,26 +145,6 @@ export default function Checkout({ onClose }: CheckoutProps) {
         })),
         notes: formData.notes || null,
       };
-
-      if (isDpoPayment) {
-        const redirectUrl = `${window.location.origin}/payment-result`;
-
-        const { redirectUrl: dpoRedirectUrl } = await initiateDpoCheckout(orderData, {
-          amount: calculateTotal(),
-          currency: 'UGX',
-          serviceName: 'Shop order',
-          customer: {
-            fullName: formData.customer_name,
-            email: formData.customer_email,
-            phone: formData.customer_phone,
-          },
-          redirectUrl,
-        });
-
-        clearCart();
-        window.location.href = dpoRedirectUrl;
-        return;
-      }
 
       const { data, error: insertError } = await adminSupabase
         .from('orders')
@@ -393,7 +362,6 @@ export default function Checkout({ onClose }: CheckoutProps) {
                 </h2>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
                   {[
-                    { value: 'dpo', label: 'DPO Pay', icon: CreditCard },
                     { value: 'mobile_money', label: 'Mobile Money', icon: Smartphone },
                     { value: 'bank_transfer', label: 'Bank Transfer', icon: Building2 },
                     { value: 'cash', label: 'Cash', icon: Wallet },
@@ -404,7 +372,7 @@ export default function Checkout({ onClose }: CheckoutProps) {
                       <button
                         key={method.value}
                         type="button"
-                        onClick={() => setFormData(prev => ({ ...prev, payment_method: method.value as PaymentMethod }))}
+                        onClick={() => setFormData(prev => ({ ...prev, payment_method: method.value as ShopPaymentMethod }))}
                         className={`p-4 rounded-xl border-2 transition-all ${
                           formData.payment_method === method.value
                             ? 'border-indigo-500 bg-indigo-50 text-indigo-700'
@@ -442,7 +410,7 @@ export default function Checkout({ onClose }: CheckoutProps) {
                   <p className="mt-1 text-xs text-slate-500">
                     {isPaymentReferenceRequired
                       ? 'Required for Mobile Money and Bank Transfer.'
-                      : 'You can leave this blank if paying with DPO, cash, or other methods.'}
+                      : 'You can leave this blank if paying with cash or other methods.'}
                   </p>
                 </div>
               </div>
@@ -511,7 +479,7 @@ export default function Checkout({ onClose }: CheckoutProps) {
                 ) : (
                   <>
                     <CreditCard size={24} />
-                    {formData.payment_method === 'dpo' ? 'Proceed to DPO Pay' : 'Place Order'}
+                    Place Order
                   </>
                 )}
               </button>

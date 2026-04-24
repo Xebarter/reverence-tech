@@ -57,6 +57,11 @@ function isProbablyMissingApiRoute(resp: Response): boolean {
   return resp.status === 404 || resp.status === 405;
 }
 
+function isLocalDev(): boolean {
+  // Next/Webpack does not provide `import.meta.env`. `process.env.NODE_ENV` is inlined at build time.
+  return (process.env.NODE_ENV || 'development') !== 'production';
+}
+
 async function tryCreateViaApi(order: DpoCheckoutOrderPayload, payment: DpoCheckoutPaymentPayload): Promise<ApiSuccess> {
   const resp = await fetch('/api/dpo/create-token', {
     method: 'POST',
@@ -73,7 +78,7 @@ async function tryCreateViaApi(order: DpoCheckoutOrderPayload, payment: DpoCheck
 
   if (!resp.ok) {
     // Only fall back in local development where /api routes might not exist.
-    if (import.meta.env.DEV && isProbablyMissingApiRoute(resp)) {
+    if (isLocalDev() && isProbablyMissingApiRoute(resp)) {
       throw new Error('__DPO_FALLBACK_TO_EDGE_FUNCTION__');
     }
     throw new Error(

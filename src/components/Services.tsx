@@ -806,13 +806,13 @@ export default function Services() {
                     {pendingOrderNumber && (
                       <div className="mt-5 flex gap-3 justify-center">
                         <Link
-                          to={`/payment-result?order=${encodeURIComponent(pendingOrderNumber)}&t=${encodeURIComponent(pendingStatusToken)}`}
+                          href={`/payment-result?order=${encodeURIComponent(pendingOrderNumber)}&t=${encodeURIComponent(pendingStatusToken)}`}
                           className="px-5 py-2 bg-[#1C3D5A] text-white font-bold rounded-xl hover:bg-[#152f45] transition"
                         >
                           Check payment status
                         </Link>
                         <Link
-                          to="/orders"
+                          href="/orders"
                           className="px-5 py-2 border-2 border-[#1C3D5A] text-[#1C3D5A] font-bold rounded-xl hover:bg-[#1C3D5A]/5 transition"
                         >
                           Track order
