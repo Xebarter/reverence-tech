@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { dpoVerifyToken, getDpoApiUrl } from '../../../../server/dpo';
+import { validateDpoServerConfig } from '../../../../server/dpoEnv';
 import { eq, pgPatch, pgSelect } from '../../../../server/supabasePostgrest';
 
 export const runtime = 'nodejs';
@@ -72,6 +73,15 @@ async function handle(req: Request) {
 
   const companyToken = process.env.DPO_COMPANY_TOKEN;
   const apiUrl = getDpoApiUrl();
+  const configErr = validateDpoServerConfig({
+    apiUrl,
+    paymentPageBase: process.env.DPO_PAYMENT_URL || '',
+    vercelEnv: process.env.VERCEL_ENV,
+  });
+  if (configErr) {
+    console.error('[dpo/callback] Invalid DPO server config:', configErr);
+    return ok200({ matched: false, reason: 'invalid_config' });
+  }
   const cols = 'id,order_number,payment_status,trans_token';
 
   let orderRow: Record<string, unknown> | null = null;

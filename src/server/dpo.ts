@@ -8,14 +8,25 @@ export const DPO_SANDBOX_API_URL = 'https://secure1.sandbox.directpay.online/API
 export const DPO_LIVE_PAYMENT_URL = 'https://secure.3gdirectpay.com/payv3.php?ID=';
 export const DPO_SANDBOX_PAYMENT_URL = 'https://secure1.sandbox.directpay.online/payv3.php?ID=';
 
-/** Returns true when DPO_SANDBOX=true is set in env. */
+function normalizeApiUrl(input: string): string {
+  const trimmed = (input || '').trim();
+  if (!trimmed) return '';
+  return trimmed.endsWith('/') ? trimmed : `${trimmed}/`;
+}
+
+/**
+ * Returns true when DPO_MERCHANT_MODE=sandbox (preferred).
+ * Legacy fallback: DPO_SANDBOX=true.
+ */
 export function isDpoSandbox(): boolean {
+  const mode = (process.env.DPO_MERCHANT_MODE || '').toLowerCase().trim();
+  if (mode) return mode === 'sandbox';
   return (process.env.DPO_SANDBOX || '').toLowerCase().trim() === 'true';
 }
 
-/** Returns the DPO API URL based on DPO_SANDBOX env var. */
+/** Returns the DPO API URL based on env. */
 export function getDpoApiUrl(): string {
-  const fromEnv = (process.env.DPO_API_URL || '').trim();
+  const fromEnv = normalizeApiUrl(process.env.DPO_API_URL || '');
   if (fromEnv) return fromEnv;
   return isDpoSandbox() ? DPO_SANDBOX_API_URL : DPO_LIVE_API_URL;
 }

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { dpoVerifyToken } from '../../../../server/dpo';
+import { dpoVerifyToken, getDpoApiUrl } from '../../../../server/dpo';
 import { validateDpoServerConfig } from '../../../../server/dpoEnv';
 import { eq, pgPatch, pgSelect } from '../../../../server/supabasePostgrest';
 
@@ -8,7 +8,7 @@ export const runtime = 'nodejs';
 type ConfirmBody = {
   orderNumber: string;
   statusToken: string;
-  dpoResult: string;
+  dpoResult?: string;
   transRef?: string;
 };
 
@@ -57,7 +57,6 @@ export async function POST(req: Request) {
 
   const orderNumber = (body?.orderNumber || '').trim();
   const statusToken = (body?.statusToken || '').trim();
-  const dpoResult = (body?.dpoResult || '').trim();
   const clientTransRef = (body?.transRef || '').trim();
 
   if (!orderNumber || !statusToken) {
@@ -70,7 +69,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Supabase env vars missing' }, { status: 500, headers: baseHeaders });
   }
 
-  const apiUrl = process.env.DPO_API_URL || 'https://secure.3gdirectpay.com/API/v6/';
+  const apiUrl = getDpoApiUrl();
   const dpoConfigError = validateDpoServerConfig({
     apiUrl,
     paymentPageBase: process.env.DPO_PAYMENT_URL || '',
@@ -150,45 +149,10 @@ export async function POST(req: Request) {
     }
   }
 
-  // Fallback when server verify isn't possible.
-  if (dpoResult === '000') {
-    const ref = clientTransRef || pref;
-    const patch: Record<string, unknown> = {
-      payment_status: 'paid',
-      order_status: 'confirmed',
-      updated_at: new Date().toISOString(),
-    };
-    if (ref) patch.payment_reference = ref;
-    const pr = await pgPatch(supabaseUrl, serviceRoleKey, 'orders', eq('id', String(data.id)), patch);
-    if (pr.error) {
-      console.error('[confirm-dpo-result] patch error (fallback paid)', pr.error);
-      return NextResponse.json({ error: 'Failed to update order' }, { status: 500, headers: baseHeaders });
-    }
-    return NextResponse.json(
-      { payment_status: 'paid', payment_reference: ref ?? null, order_status: 'confirmed' },
-      { status: 200, headers: baseHeaders },
-    );
-  }
-
-  if (dpoResult === '002' || dpoResult === '003') {
-    await pgPatch(supabaseUrl, serviceRoleKey, 'orders', eq('id', String(data.id)), {
-      payment_status: 'failed',
-      updated_at: new Date().toISOString(),
-    });
-    return NextResponse.json(
-      {
-        payment_status: 'failed',
-        payment_reference: pref,
-        order_status: data.order_status != null ? String(data.order_status) : null,
-      },
-      { status: 200, headers: baseHeaders },
-    );
-  }
-
   return NextResponse.json(
     {
       payment_status: payStatus || null,
-      payment_reference: pref,
+      payment_reference: pref ?? (clientTransRef || null),
       order_status: data.order_status != null ? String(data.order_status) : null,
     },
     { status: 200, headers: baseHeaders },

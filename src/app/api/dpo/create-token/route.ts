@@ -74,13 +74,26 @@ export function OPTIONS() {
   return new NextResponse('ok', { status: 200, headers: corsHeaders() });
 }
 
+function resolvePublicSiteUrl(req: Request): string {
+  const env = (process.env.SITE_URL || '').trim().replace(/\/$/, '');
+  if (env) return env;
+
+  // Vercel/Proxies: try to reconstruct public origin.
+  const proto = (req.headers.get('x-forwarded-proto') || 'https').split(',')[0].trim();
+  const host = (req.headers.get('x-forwarded-host') || req.headers.get('host') || '').split(',')[0].trim();
+  if (!host) return '';
+  const origin = `${proto}://${host}`.replace(/\/$/, '');
+  return origin;
+}
+
 export async function POST(req: Request) {
   try {
     const supabaseUrl = process.env.SUPABASE_URL;
     const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
     const companyToken = (process.env.DPO_COMPANY_TOKEN || '').trim();
     const serviceType = (process.env.DPO_SERVICE_TYPE || '').trim();
-    const siteUrl = (process.env.SITE_URL || '').replace(/\/$/, '');
+    const siteUrl = resolvePublicSiteUrl(req);
+    const baseBackUrl = (process.env.DPO_BACK_URL || '').trim().replace(/\/$/, '');
 
     if (!supabaseUrl || !serviceRoleKey) {
       return NextResponse.json(
@@ -95,10 +108,7 @@ export async function POST(req: Request) {
       );
     }
     if (!siteUrl) {
-      return NextResponse.json(
-        { error: 'Missing SITE_URL (needed to build DPO callback URL)' },
-        { status: 500, headers: corsHeaders() },
-      );
+      return NextResponse.json({ error: 'Could not resolve public site URL' }, { status: 500, headers: corsHeaders() });
     }
 
     const body = (await req.json()) as CreateTokenBody;
@@ -136,7 +146,7 @@ export async function POST(req: Request) {
     }
     if (!isValidAbsoluteHttpsUrl(siteUrl)) {
       return NextResponse.json(
-        { error: 'SITE_URL must be an absolute https URL on Vercel' },
+        { error: 'Public site URL must be an absolute https URL on Vercel' },
         { status: 500, headers: corsHeaders() },
       );
     }
@@ -171,7 +181,8 @@ export async function POST(req: Request) {
     const firstName = split.firstName || 'Customer';
     const lastName = split.lastName || 'Customer';
     const { rootDescription, bookingDescription } = buildDpoDescriptions(serviceName, (order as any).items);
-    const backUrl = `${siteUrl}/api/dpo/callback?order=${encodeURIComponent(orderNumber)}`;
+    const backUrlBase = baseBackUrl || `${siteUrl}/api/dpo/callback`;
+    const backUrl = `${backUrlBase}?order=${encodeURIComponent(orderNumber)}`;
     const redirectUrlFinal = withTokenParam(withOrderParam(redirectUrl, orderNumber), statusToken);
     const apiUrl = getDpoApiUrl();
     const paymentPageBase =
