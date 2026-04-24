@@ -2,15 +2,19 @@ import { NextResponse } from 'next/server';
 import { randomUUID } from 'crypto';
 import {
   buildDpoDescriptions,
+  DPO_LIVE_PAYMENT_URL,
+  DPO_SANDBOX_PAYMENT_URL,
   dpoCreateToken,
   dpoBuildCheckoutUrl,
   dpoFormatAmount,
   dpoServiceDateNow,
   getDpoApiUrl,
+  isDpoSandbox,
   splitName,
   withOrderParam,
   withTokenParam,
 } from '../../../../server/dpo';
+import { validateDpoServerConfig } from '../../../../server/dpoEnv';
 import { eq, pgInsertRow, pgPatch } from '../../../../server/supabasePostgrest';
 
 export const runtime = 'nodejs';
@@ -170,6 +174,17 @@ export async function POST(req: Request) {
     const backUrl = `${siteUrl}/api/dpo/callback?order=${encodeURIComponent(orderNumber)}`;
     const redirectUrlFinal = withTokenParam(withOrderParam(redirectUrl, orderNumber), statusToken);
     const apiUrl = getDpoApiUrl();
+    const paymentPageBase =
+      (process.env.DPO_PAYMENT_URL || '').trim() || (isDpoSandbox() ? DPO_SANDBOX_PAYMENT_URL : DPO_LIVE_PAYMENT_URL);
+
+    const configErr = validateDpoServerConfig({
+      apiUrl,
+      paymentPageBase,
+      vercelEnv: process.env.VERCEL_ENV,
+    });
+    if (configErr) {
+      return NextResponse.json({ error: configErr }, { status: 500, headers: corsHeaders() });
+    }
 
     if (!isValidAbsoluteHttpsUrl(backUrl) || !isValidAbsoluteHttpUrl(redirectUrlFinal)) {
       return NextResponse.json(

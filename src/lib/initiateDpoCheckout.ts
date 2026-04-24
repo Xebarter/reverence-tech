@@ -82,8 +82,8 @@ async function tryCreateViaApi(order: DpoCheckoutOrderPayload, payment: DpoCheck
       throw new Error('__DPO_FALLBACK_TO_EDGE_FUNCTION__');
     }
     throw new Error(
-      json?.hint ||
-        json?.error ||
+      json?.error ||
+        json?.hint ||
         (textPreview ? `Failed to initiate payment (HTTP ${resp.status}): ${textPreview}` : null) ||
         `Failed to initiate payment (HTTP ${resp.status})`,
     );
