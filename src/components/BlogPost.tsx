@@ -175,7 +175,7 @@ export default function BlogPost() {
                 Sharing insights from the frontlines of Reverence Technology. Focused on building digital solutions that drive progress in East Africa.
               </p>
               <div className="flex gap-4 justify-center md:justify-start">
-                <Link to="/blog" className="text-blue-600 font-bold text-sm hover:underline">More from this author</Link>
+                <Link href="/blog" className="text-blue-600 font-bold text-sm hover:underline">More from this author</Link>
               </div>
             </div>
           </footer>
