@@ -1,0 +1,239 @@
+## DPO Pay (Direct Pay Online) payments — how SouthCaravan integrates it
+
+This codebase integrates **DPO Pay by Network (Direct Pay Online)** using DPO’s **API v6** to create a hosted-payment token, redirect the customer to DPO’s checkout page, then confirm the payment server-side by calling DPO’s **verifyToken** endpoint. Order/payment state is stored in **Supabase** (`orders`, `order_items`) and updated after verification.
+
+---
+
+## Key building blocks in this repo
+
+- **DPO API client**: `lib/dpo.ts`
+  - Builds the XML requests for `createToken` and `verifyToken`
+  - Chooses sandbox vs production DPO API base URL via `DPO_SANDBOX`
+  - Provides `getDpoConfig()` which reads required env vars
+
+- **Create payment token (server)**: `app/api/payments/dpo/create-token/route.ts`
+  - Authenticated (buyer must be logged in)
+  - Creates a pending order + order items in Supabase
+  - Calls DPO `createToken`
+  - Returns `checkoutUrl` for browser redirect to DPO
+
+- **Verify payment after redirect (server)**: `app/api/payments/dpo/verify/route.ts`
+  - Authenticated (buyer must be logged in)
+  - Calls DPO `verifyToken`
+  - Updates order status/payment_status in Supabase
+  - Used by the browser return page
+
+- **BackURL callback handler (server-to-server)**: `app/api/payments/dpo/callback/route.ts`
+  - Unauthenticated (DPO calls it directly)
+  - Treats callback data as untrusted and verifies with DPO using `verifyToken`
+  - Updates Supabase order payment state
+  - Always returns HTTP 200 (“OK”) so DPO considers it received
+
+- **Checkout UI and redirect**: `app/checkout/page.tsx`
+  - Collects shipping/customer details
+  - Calls `/api/payments/dpo/create-token`
+  - Redirects the browser to `data.checkoutUrl`
+
+- **Return/landing page after DPO checkout**: `app/checkout/payment-return/page.tsx`
+  - Reads DPO query params from the redirect (e.g. `TransID` / `TransactionToken`, `CompanyRef`)
+  - Calls `/api/payments/dpo/verify` to confirm payment
+  - On success: clears the checkout session and routes the buyer to orders
+
+- **Database migration for payment fields**: `supabase/payments-dpo.sql`
+  - Adds `orders.dpo_trans_token`, `orders.dpo_trans_ref`, `orders.payment_status`
+  - Drops the NOT NULL requirement on `orders.vendor_user_id` (checkout can span vendors)
+  - Adds an index on `orders.dpo_trans_token`
+
+---
+
+## Environment variables and configuration
+
+The integration expects these server environment variables:
+
+- `DPO_COMPANY_TOKEN`: merchant token provided by DPO (required)
+- `DPO_SERVICE_TYPE`: DPO service type code assigned during onboarding (required)
+- `DPO_PAYMENT_CURRENCY`: default currency used when creating tokens (defaults to `USD` if unset)
+- `DPO_SANDBOX`: if set to `true`, DPO requests go to the sandbox API base URL
+
+Where they’re used:
+
+- `lib/dpo.ts`:
+  - `getDpoConfig()` throws early if required env vars are missing (routes return 503 “not configured”)
+  - `DPO_API_URL` switches between sandbox and production endpoints based on `DPO_SANDBOX`
+
+---
+
+## End-to-end payment flow (step by step)
+
+### 1) Buyer initiates payment from checkout
+
+File: `app/checkout/page.tsx`
+
+- The buyer completes the **Shipping** step, then enters the **Payment** step.
+- Clicking “Pay with DPO” triggers `handlePayWithDpo()`:
+  - Builds a `shippingAddress` string
+  - Sends a POST request to `/api/payments/dpo/create-token` containing:
+    - `items` (checkout line items)
+    - optional `discount`
+    - `shippingAddress`
+    - optional `customerFirstName`, `customerLastName`, `customerEmail`
+- If the server responds with success, the browser redirects to `data.checkoutUrl` (DPO hosted payment page).
+
+### 2) Server creates a pending order and obtains a DPO transaction token
+
+File: `app/api/payments/dpo/create-token/route.ts`
+
+This endpoint does all “must-be-server-side” work:
+
+- **Authentication**:
+  - Uses `getAuthedBuyer()` to ensure the request is from a logged-in buyer.
+
+- **Order creation (Supabase)**:
+  - Validates request JSON and line items.
+  - Computes totals via `checkoutTotals()`.
+  - Resolves `vendor_user_id` (legacy schema requirement) by checking the first product’s `vendor_id`.
+  - Inserts a pending order into `orders`.
+    - It first tries inserting with the newer `payment_status` column (post-migration).
+    - If the column doesn’t exist yet, it falls back to inserting without it.
+  - Inserts `order_items`. If this fails, it deletes the just-created order for cleanup.
+
+- **DPO token creation**:
+  - Reads `companyToken`, `serviceType`, and `currency` via `getDpoConfig()`.
+  - Builds two URLs:
+    - `RedirectURL`: `${baseUrl}/checkout/payment-return` (where the customer is redirected back)
+    - `BackURL`: `${baseUrl}/api/payments/dpo/callback` (server-to-server callback from DPO)
+  - Calls `dpoCreateToken()` in `lib/dpo.ts` which POSTs an XML `createToken` request to DPO.
+  - On success, DPO returns:
+    - `TransToken` (stored as `transToken`)
+    - `TransRef` (stored as `transRef`)
+
+- **Persisting DPO identifiers (best-effort)**:
+  - Attempts to update the order with `dpo_trans_token` and `dpo_trans_ref`.
+  - If the DB columns don’t exist yet (migration not run), it logs a warning and continues.
+
+- **Response**:
+  - Returns JSON with `orderId`, `transToken`, and `checkoutUrl`.
+  - `checkoutUrl` is built with `dpoBuildCheckoutUrl(transToken)` and is used for the browser redirect.
+
+### 3) Buyer completes payment on DPO-hosted page
+
+After redirect, the buyer enters card/mobile payment details on DPO’s hosted checkout.
+SouthCaravan does not collect card details directly; it only receives DPO’s redirect/callback data and verifies server-side.
+
+### 4) DPO redirects the buyer back to the app (browser return)
+
+File: `app/checkout/payment-return/page.tsx`
+
+- DPO redirects the customer back to `/checkout/payment-return` with query parameters.
+- The return page extracts:
+  - `TransID` or `TransactionToken` (used as `transToken`)
+  - `CompanyRef` (this app sets `CompanyRef = orderId` when creating the token)
+- The page calls `/api/payments/dpo/verify?token=...&orderId=...`.
+- UI states:
+  - “verifying” while waiting
+  - “paid” when confirmed
+  - “failed” when not paid/declined
+  - “error” for missing tokens or request failures
+- On **paid**:
+  - Clears checkout session via `clearCheckoutLineItems()`
+  - Shows confirmation and redirects to `/buyer/orders`
+
+### 5) Server verifies with DPO and updates the order
+
+File: `app/api/payments/dpo/verify/route.ts`
+
+This is the authoritative confirmation step (server-to-DPO):
+
+- **Authentication**:
+  - Uses `getAuthedBuyer()`; verification is scoped to the current buyer.
+
+- **Order lookup**:
+  - Primary lookup (post-migration): find the order by `orders.dpo_trans_token = token` and `buyer_id`.
+  - Fallback lookup (pre-migration): if `dpo_trans_token` column doesn’t exist, use `orderId` (CompanyRef) and `buyer_id`.
+
+- **Idempotency**:
+  - If the order is already confirmed/paid (`payment_status === 'paid'` or `status === 'confirmed'`), it returns success without reprocessing.
+
+- **Verification against DPO**:
+  - Calls `dpoVerifyToken(companyToken, transToken)`.
+  - Treats **Result `000`** as paid.
+
+- **Order update**:
+  - If paid: sets `status = 'confirmed'` and attempts to set `payment_status = 'paid'`.
+  - If not paid: attempts to set `payment_status = 'failed'`.
+  - Updates are written in a “graceful downgrade” way because some columns may not exist until the migration is applied.
+
+- **Response**:
+  - Returns `paid`, `result`, `resultExplanation`, and some optional DPO response fields.
+
+### 6) DPO also calls the BackURL (server-to-server callback)
+
+File: `app/api/payments/dpo/callback/route.ts`
+
+This endpoint is a safety net if:
+- the buyer closes the browser early,
+- the redirect fails,
+- or you want a server-driven update even without the return page running.
+
+How it works:
+
+- Accepts both GET and POST.
+- Parses callback parameters either from:
+  - query string, or
+  - `application/x-www-form-urlencoded` request body
+- Extracts:
+  - `TransactionToken` (or `TransID`)
+  - `CompanyRef` (order UUID)
+- Looks up the order by `id = CompanyRef`.
+- If already paid, it does nothing (idempotent).
+- Otherwise, it calls DPO `verifyToken` and then updates:
+  - `payment_status` to `paid` or `failed`
+  - `status` to `confirmed` if paid
+- Returns HTTP 200 “OK” regardless of errors (DPO expects 200).
+
+Important security property:
+
+- This callback endpoint is **unauthenticated** by design, but it **does not trust** the callback payload.
+- It verifies the transaction by calling DPO (`verifyToken`) before marking anything as paid.
+
+---
+
+## Data model: how payment state is represented
+
+The integration distinguishes:
+
+- **Fulfillment/order status**: `orders.status`
+  - e.g. `pending` → `confirmed` when payment is verified as paid
+
+- **Payment status**: `orders.payment_status` (added by `supabase/payments-dpo.sql`)
+  - `pending` (default)
+  - `paid` (after verification result `000`)
+  - `failed` (declined / not completed)
+
+It also stores DPO identifiers:
+
+- `orders.dpo_trans_token`: DPO transaction token returned by `createToken`
+- `orders.dpo_trans_ref`: DPO transaction reference returned by `createToken`
+
+---
+
+## Where URLs are set and why they matter
+
+- **RedirectURL** (customer browser): `${baseUrl}/checkout/payment-return`
+  - Used to show a user-friendly “verifying” screen and start verification via `/api/payments/dpo/verify`.
+
+- **BackURL** (server callback): `${baseUrl}/api/payments/dpo/callback`
+  - Used by DPO to notify the app directly; still verified server-side.
+
+`baseUrl` resolution:
+
+- Uses `NEXT_PUBLIC_SITE_URL` if present, otherwise falls back to `https://${req.headers.get('host')}`.
+
+---
+
+## Operational notes / common failure modes handled in code
+
+- Missing env vars → `getDpoConfig()` throws → routes return **503** (“Payment provider not configured”).
+- DPO API errors (non-200 HTTP, or non-`000` result on createToken) → create-token route deletes the created order and returns **502**.
+- Schema not migrated yet → routes attempt inserts/updates with new columns, but fall back or skip where possible.
+- Callback endpoint is resilient and always returns 200 to DPO, while still verifying before state changes.
