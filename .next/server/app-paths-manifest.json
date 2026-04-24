@@ -1,4 +1,0 @@
-{
-  "/api/dpo/create-token/route": "app/api/dpo/create-token/route.js",
-  "/page": "app/page.js"
-}
