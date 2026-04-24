@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense } from 'react';
 import Header from '../../components/Header';
 import Footer from '../../components/Footer';
 import PaymentResult from '../../components/PaymentResult';
@@ -11,7 +12,9 @@ export default function PaymentResultPage() {
       <SEO title="Payment Result" />
       <Header />
       <main className="pt-20">
-        <PaymentResult />
+        <Suspense fallback={<div className="px-6 py-16 text-slate-500">Loading payment result…</div>}>
+          <PaymentResult />
+        </Suspense>
       </main>
       <Footer />
     </div>
