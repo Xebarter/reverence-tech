@@ -49,6 +49,15 @@ function isValidAbsoluteHttpsUrl(value: string): boolean {
   }
 }
 
+function normalizePhone(input: string): string {
+  // DPO commonly expects a phone-like string; keep digits and leading plus.
+  const s = (input || '').trim();
+  if (!s) return '';
+  const plus = s.startsWith('+') ? '+' : '';
+  const digits = s.replace(/[^\d]/g, '');
+  return `${plus}${digits}`;
+}
+
 function corsHeaders() {
   return {
     'Access-Control-Allow-Origin': '*',
@@ -65,8 +74,8 @@ export async function POST(req: Request) {
   try {
     const supabaseUrl = process.env.SUPABASE_URL;
     const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-    const companyToken = process.env.DPO_COMPANY_TOKEN;
-    const serviceType = process.env.DPO_SERVICE_TYPE;
+    const companyToken = (process.env.DPO_COMPANY_TOKEN || '').trim();
+    const serviceType = (process.env.DPO_SERVICE_TYPE || '').trim();
     const siteUrl = (process.env.SITE_URL || '').replace(/\/$/, '');
 
     if (!supabaseUrl || !serviceRoleKey) {
@@ -156,7 +165,7 @@ export async function POST(req: Request) {
 
     const split = splitName(customer?.fullName);
     const firstName = split.firstName || 'Customer';
-    const lastName = split.lastName || ' ';
+    const lastName = split.lastName || 'Customer';
     const { rootDescription, bookingDescription } = buildDpoDescriptions(serviceName, (order as any).items);
     const backUrl = `${siteUrl}/api/dpo/callback?order=${encodeURIComponent(orderNumber)}`;
     const redirectUrlFinal = withTokenParam(withOrderParam(redirectUrl, orderNumber), statusToken);
@@ -186,13 +195,17 @@ export async function POST(req: Request) {
         firstName,
         lastName,
         email: customer.email,
-        phone: customer.phone,
+        phone: normalizePhone(customer.phone),
         serviceDate: dpoServiceDateNow(),
       }));
     } catch (e) {
       await markFailed();
       return NextResponse.json(
-        { error: e instanceof Error ? e.message : 'DPO createToken failed' },
+        {
+          error: e instanceof Error ? e.message : 'DPO createToken failed',
+          hint:
+            'On Vercel Production, ensure DPO_COMPANY_TOKEN and DPO_SERVICE_TYPE are LIVE and match each other, and SITE_URL is https.',
+        },
         { status: 502, headers: corsHeaders() },
       );
     }
