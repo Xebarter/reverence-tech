@@ -31,6 +31,24 @@ type CreateTokenBody = {
   };
 };
 
+function isValidAbsoluteHttpUrl(value: string): boolean {
+  try {
+    const u = new URL(value);
+    return u.protocol === 'https:' || u.protocol === 'http:';
+  } catch {
+    return false;
+  }
+}
+
+function isValidAbsoluteHttpsUrl(value: string): boolean {
+  try {
+    const u = new URL(value);
+    return u.protocol === 'https:';
+  } catch {
+    return false;
+  }
+}
+
 function corsHeaders() {
   return {
     'Access-Control-Allow-Origin': '*',
@@ -91,6 +109,25 @@ export async function POST(req: Request) {
     const serviceName = payment?.serviceName || 'Service Payment';
     const customer = payment?.customer || {};
 
+    if (!customer?.fullName?.trim()) {
+      return NextResponse.json({ error: 'Missing customer full name' }, { status: 400, headers: corsHeaders() });
+    }
+    if (!customer?.email?.trim()) {
+      return NextResponse.json({ error: 'Missing customer email' }, { status: 400, headers: corsHeaders() });
+    }
+    if (!customer?.phone?.trim()) {
+      return NextResponse.json({ error: 'Missing customer phone' }, { status: 400, headers: corsHeaders() });
+    }
+    if (!isValidAbsoluteHttpUrl(redirectUrl)) {
+      return NextResponse.json({ error: 'redirectUrl must be an absolute URL' }, { status: 400, headers: corsHeaders() });
+    }
+    if (!isValidAbsoluteHttpsUrl(siteUrl)) {
+      return NextResponse.json(
+        { error: 'SITE_URL must be an absolute https URL on Vercel' },
+        { status: 500, headers: corsHeaders() },
+      );
+    }
+
     // Insert pending order
     const statusToken = randomUUID();
     const { row: inserted, error: insertError } = await pgInsertRow(
@@ -117,11 +154,20 @@ export async function POST(req: Request) {
       });
     };
 
-    const { firstName, lastName } = splitName(customer?.fullName);
+    const split = splitName(customer?.fullName);
+    const firstName = split.firstName || 'Customer';
+    const lastName = split.lastName || ' ';
     const { rootDescription, bookingDescription } = buildDpoDescriptions(serviceName, (order as any).items);
     const backUrl = `${siteUrl}/api/dpo/callback?order=${encodeURIComponent(orderNumber)}`;
     const redirectUrlFinal = withTokenParam(withOrderParam(redirectUrl, orderNumber), statusToken);
     const apiUrl = getDpoApiUrl();
+
+    if (!isValidAbsoluteHttpsUrl(backUrl) || !isValidAbsoluteHttpUrl(redirectUrlFinal)) {
+      return NextResponse.json(
+        { error: 'Internal URL configuration error (invalid BackURL/RedirectURL)' },
+        { status: 500, headers: corsHeaders() },
+      );
+    }
 
     let transToken: string;
     let transRef: string | null;
@@ -139,8 +185,8 @@ export async function POST(req: Request) {
         bookingDescription,
         firstName,
         lastName,
-        email: customer?.email || '',
-        phone: customer?.phone || '',
+        email: customer.email,
+        phone: customer.phone,
         serviceDate: dpoServiceDateNow(),
       }));
     } catch (e) {
