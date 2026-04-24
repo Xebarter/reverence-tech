@@ -60,7 +60,7 @@ export async function fetchOrderStatus(orderNumber: string, token: string): Prom
     if (e instanceof Error && e.message === '__STATUS_FALLBACK_TO_EDGE_FUNCTION__') {
       return await fetchViaEdgeFunction(orderNumber, token);
     }
-    if (import.meta.env.DEV) {
+    if (process.env.NODE_ENV === 'development') {
       try {
         return await fetchViaEdgeFunction(orderNumber, token);
       } catch {
@@ -126,7 +126,7 @@ export async function confirmDpoResult(params: ConfirmDpoResultParams): Promise<
     if (e instanceof Error && e.message === '__CONFIRM_FALLBACK_TO_EDGE_FUNCTION__') {
       return await confirmViaEdgeFunction(params);
     }
-    if (import.meta.env.DEV) {
+    if (process.env.NODE_ENV === 'development') {
       try {
         return await confirmViaEdgeFunction(params);
       } catch {

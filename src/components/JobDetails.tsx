@@ -100,7 +100,7 @@ export default function JobDetails() {
       <div className="bg-[#1C3D5A] pt-32 pb-20 px-4">
         <div className="max-w-6xl mx-auto">
           <button
-            onClick={() => navigate('/careers')}
+            onClick={() => router.push('/careers')}
             className="flex items-center text-slate-400 hover:text-yellow-400 mb-8 transition-colors font-bold text-sm uppercase tracking-widest"
           >
             <ArrowLeft className="w-4 h-4 mr-2" /> Back to Careers

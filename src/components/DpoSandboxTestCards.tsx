@@ -3,7 +3,7 @@
  * Import only behind isDpoTestModeEnabled() — not used on the live checkout path.
  */
 export default function DpoSandboxTestCards({ className = '' }: { className?: string }) {
-  if (!import.meta.env.DEV) return null;
+  if (process.env.NODE_ENV !== 'development') return null;
 
   return (
     <div
