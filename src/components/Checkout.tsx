@@ -13,8 +13,7 @@ interface CheckoutProps {
   onClose?: () => void;
 }
 
-type PaymentMethod = 'dpo' | 'mobile_money' | 'bank_transfer' | 'cash' | 'other';
-type ShopPaymentMethod = Exclude<PaymentMethod, 'dpo'>;
+type ShopPaymentMethod = 'hosted_checkout' | 'mobile_money' | 'bank_transfer' | 'cash' | 'other';
 
 export default function Checkout({ onClose }: CheckoutProps) {
   const router = useRouter();
@@ -39,7 +38,16 @@ export default function Checkout({ onClose }: CheckoutProps) {
   const isPaymentReferenceRequired =
     formData.payment_method === 'mobile_money' || formData.payment_method === 'bank_transfer';
 
+  const usesHostedCheckout = formData.payment_method === 'hosted_checkout';
+
   const paymentVerification = (() => {
+    if (formData.payment_method === 'hosted_checkout') {
+      return {
+        title: 'Secure online checkout',
+        description:
+          'You will complete payment on a secure hosted page. Card and mobile wallet options depend on what your bank supports.',
+      };
+    }
     if (formData.payment_method === 'mobile_money' || formData.payment_method === 'bank_transfer') {
       return {
         title: 'Payment verification',
@@ -115,7 +123,7 @@ export default function Checkout({ onClose }: CheckoutProps) {
     }
 
     try {
-      const statusTokenForNonDpo =
+      const statusToken =
         typeof crypto !== 'undefined' && 'randomUUID' in crypto
           ? crypto.randomUUID()
           : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
@@ -128,10 +136,10 @@ export default function Checkout({ onClose }: CheckoutProps) {
         city: formData.city,
         country: formData.country,
         payment_method: formData.payment_method,
-        payment_reference: formData.payment_reference || null,
+        payment_reference: usesHostedCheckout ? null : formData.payment_reference || null,
         payment_status: 'pending',
         order_status: 'pending',
-        status_token: statusTokenForNonDpo,
+        status_token: statusToken,
         total_amount: calculateTotal(),
         shipping_fee: calculateShipping(),
         items: cartItems.map(item => ({
@@ -145,6 +153,29 @@ export default function Checkout({ onClose }: CheckoutProps) {
         })),
         notes: formData.notes || null,
       };
+
+      if (usesHostedCheckout) {
+        const resp = await fetch('/api/orders/create-shop-order', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ order: orderData, startHostedCheckout: true }),
+        });
+        const json = (await resp.json().catch(() => null)) as {
+          orderNumber?: string;
+          hostedCheckoutUrl?: string;
+          error?: string;
+        } | null;
+        if (!resp.ok) {
+          throw new Error(json?.error || `Request failed (HTTP ${resp.status})`);
+        }
+        const url = json?.hostedCheckoutUrl;
+        if (!url) {
+          throw new Error('Secure checkout could not be started. Please try again or pick another payment method.');
+        }
+        clearCart();
+        window.location.href = url;
+        return;
+      }
 
       const { data, error: insertError } = await adminSupabase
         .from('orders')
@@ -360,8 +391,9 @@ export default function Checkout({ onClose }: CheckoutProps) {
                   <CreditCard size={24} className="text-indigo-600" />
                   Payment Method
                 </h2>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-4">
                   {[
+                    { value: 'hosted_checkout', label: 'Secure online', icon: ShieldCheck },
                     { value: 'mobile_money', label: 'Mobile Money', icon: Smartphone },
                     { value: 'bank_transfer', label: 'Bank Transfer', icon: Building2 },
                     { value: 'cash', label: 'Cash', icon: Wallet },
@@ -385,34 +417,36 @@ export default function Checkout({ onClose }: CheckoutProps) {
                     );
                   })}
                 </div>
-                <div>
-                  <label className="block text-sm font-bold text-slate-700 mb-2">
-                    Payment Reference / Transaction ID{' '}
-                    {isPaymentReferenceRequired ? (
-                      <span className="text-red-600">*</span>
-                    ) : (
-                      <span className="text-slate-500 font-semibold">(optional)</span>
-                    )}
-                  </label>
-                  <input
-                    type="text"
-                    name="payment_reference"
-                    value={formData.payment_reference}
-                    onChange={handleChange}
-                    required={isPaymentReferenceRequired}
-                    className={`w-full px-4 py-3 border-2 rounded-xl outline-none transition-all ${
-                      isPaymentReferenceRequired && !formData.payment_reference.trim()
-                        ? 'border-red-300 focus:border-red-500 focus:ring-4 focus:ring-red-500/20'
-                        : 'border-slate-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10'
-                    }`}
-                    placeholder={isPaymentReferenceRequired ? 'Enter transaction ID or reference *' : 'Enter transaction ID or reference (optional)'}
-                  />
-                  <p className="mt-1 text-xs text-slate-500">
-                    {isPaymentReferenceRequired
-                      ? 'Required for Mobile Money and Bank Transfer.'
-                      : 'You can leave this blank if paying with cash or other methods.'}
-                  </p>
-                </div>
+                {!usesHostedCheckout && (
+                  <div>
+                    <label className="block text-sm font-bold text-slate-700 mb-2">
+                      Payment Reference / Transaction ID{' '}
+                      {isPaymentReferenceRequired ? (
+                        <span className="text-red-600">*</span>
+                      ) : (
+                        <span className="text-slate-500 font-semibold">(optional)</span>
+                      )}
+                    </label>
+                    <input
+                      type="text"
+                      name="payment_reference"
+                      value={formData.payment_reference}
+                      onChange={handleChange}
+                      required={isPaymentReferenceRequired}
+                      className={`w-full px-4 py-3 border-2 rounded-xl outline-none transition-all ${
+                        isPaymentReferenceRequired && !formData.payment_reference.trim()
+                          ? 'border-red-300 focus:border-red-500 focus:ring-4 focus:ring-red-500/20'
+                          : 'border-slate-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10'
+                      }`}
+                      placeholder={isPaymentReferenceRequired ? 'Enter transaction ID or reference *' : 'Enter transaction ID or reference (optional)'}
+                    />
+                    <p className="mt-1 text-xs text-slate-500">
+                      {isPaymentReferenceRequired
+                        ? 'Required for Mobile Money and Bank Transfer.'
+                        : 'You can leave this blank if paying with cash or other methods.'}
+                    </p>
+                  </div>
+                )}
               </div>
 
               {/* Trust / Next steps */}
@@ -479,7 +513,7 @@ export default function Checkout({ onClose }: CheckoutProps) {
                 ) : (
                   <>
                     <CreditCard size={24} />
-                    Place Order
+                    {usesHostedCheckout ? 'Continue to secure payment' : 'Place Order'}
                   </>
                 )}
               </button>

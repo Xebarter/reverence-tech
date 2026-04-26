@@ -64,7 +64,7 @@ src/
   components/     # React components
     admin/        # Admin dashboard components
   lib/            # Utility functions and Supabase client
-  server/         # Server-only modules (DPO, PostgREST wrappers, etc.)
+  server/         # Server-only modules (PostgREST wrappers, etc.)
 ```
 
 ## Learn More
@@ -76,9 +76,3 @@ To learn more about the technologies used:
 - [React Documentation](https://react.dev/)
 - [Supabase Documentation](https://supabase.com/docs)
 - [Tailwind CSS Documentation](https://tailwindcss.com/)
-
-## DPO Checkout
-
-For DPO payment setup (Vercel env, callback URL, migrations, and post-deploy verification), see:
-
-- `DPO_CHECKOUT_SETUP.md`

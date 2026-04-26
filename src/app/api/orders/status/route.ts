@@ -1,7 +1,5 @@
 import { NextResponse } from 'next/server';
-import { dpoVerifyToken } from '../../../../server/dpo';
-import { validateDpoServerConfig } from '../../../../server/dpoEnv';
-import { eq, pgPatch, pgSelect } from '../../../../server/supabasePostgrest';
+import { eq, pgSelect } from '../../../../server/supabasePostgrest';
 
 export const runtime = 'nodejs';
 
@@ -58,23 +56,13 @@ export async function GET(req: Request) {
     );
   }
 
-  const apiUrl = process.env.DPO_API_URL || 'https://secure.3gdirectpay.com/API/v6/';
-  const dpoConfigError = validateDpoServerConfig({
-    apiUrl,
-    paymentPageBase: process.env.DPO_PAYMENT_URL || '',
-    vercelEnv: process.env.VERCEL_ENV,
-  });
-  if (dpoConfigError) {
-    return NextResponse.json({ error: dpoConfigError }, { status: 500, headers: baseHeaders });
-  }
-
   const selQ = `${eq('order_number', orderNumber)}&${eq('status_token', token)}`;
   const { rows, error } = await pgSelect(
     supabaseUrl,
     serviceRoleKey,
     'orders',
     selQ,
-    'payment_status,payment_reference,order_status,trans_token',
+    'payment_status,payment_reference,order_status',
   );
 
   if (error) return NextResponse.json({ error: 'Failed to fetch order' }, { status: 500, headers: baseHeaders });
@@ -82,57 +70,12 @@ export async function GET(req: Request) {
   if (!data) return NextResponse.json({ error: 'Order not found' }, { status: 404, headers: baseHeaders });
 
   const payStatus = data.payment_status != null ? String(data.payment_status) : '';
-  const transTok = data.trans_token != null ? String(data.trans_token) : '';
   const pref =
     data.payment_reference != null && data.payment_reference !== '' ? String(data.payment_reference) : null;
   const ordStat = data.order_status != null ? String(data.order_status) : null;
-
-  if (payStatus === 'paid' || payStatus === 'failed' || payStatus === 'refunded') {
-    return NextResponse.json(
-      { payment_status: payStatus, payment_reference: pref, order_status: ordStat },
-      { status: 200, headers: baseHeaders },
-    );
-  }
-
-  if (payStatus === 'pending' && transTok) {
-    const companyToken = process.env.DPO_COMPANY_TOKEN;
-    if (companyToken) {
-      try {
-        const { result, transRef } = await dpoVerifyToken(transTok, companyToken, apiUrl);
-        if (result === '000') {
-          const patch: Record<string, unknown> = {
-            payment_status: 'paid',
-            order_status: 'confirmed',
-            updated_at: new Date().toISOString(),
-          };
-          if (transRef) patch.payment_reference = transRef;
-          const pQ = `${eq('order_number', orderNumber)}&${eq('status_token', token)}`;
-          const pr = await pgPatch(supabaseUrl, serviceRoleKey, 'orders', pQ, patch);
-          if (pr.error) console.error('[orders/status] patch error (paid)', pr.error);
-          return NextResponse.json(
-            { payment_status: 'paid', payment_reference: transRef ?? pref, order_status: 'confirmed' },
-            { status: 200, headers: baseHeaders },
-          );
-        }
-        if (result === '002' || result === '003') {
-          await pgPatch(supabaseUrl, serviceRoleKey, 'orders', selQ, {
-            payment_status: 'failed',
-            updated_at: new Date().toISOString(),
-          });
-          return NextResponse.json(
-            { payment_status: 'failed', payment_reference: pref, order_status: ordStat },
-            { status: 200, headers: baseHeaders },
-          );
-        }
-      } catch (e) {
-        console.error('[orders/status] dpoVerifyToken error', e);
-      }
-    }
-  }
 
   return NextResponse.json(
     { payment_status: payStatus || null, payment_reference: pref, order_status: ordStat },
     { status: 200, headers: baseHeaders },
   );
 }
-

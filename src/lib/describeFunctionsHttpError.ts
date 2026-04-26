@@ -1,6 +1,6 @@
 /**
  * When an Edge Function returns 4xx/5xx, supabase-js throws FunctionsHttpError with
- * `context` = the fetch Response. The JSON body (e.g. DPO resultExplanation) is not in `error.message`.
+ * `context` = the fetch Response. The JSON body is not in `error.message`.
  */
 export async function describeFunctionsHttpError(err: unknown): Promise<string | null> {
   if (!err || typeof err !== 'object') return null;
@@ -27,7 +27,7 @@ export async function describeFunctionsHttpError(err: unknown): Promise<string |
     }
     if (typeof j.error === 'string') {
       return j.result != null && j.result !== ''
-        ? `${j.error} (DPO code: ${j.result})`
+        ? `${j.error} (code: ${j.result})`
         : j.error;
     }
   } catch {

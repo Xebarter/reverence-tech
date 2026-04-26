@@ -1,11 +1,11 @@
- 'use client';
+'use client';
 
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { CheckCircle2, Clock, XCircle, RefreshCw } from 'lucide-react';
-import { fetchOrderStatus, confirmDpoResult } from '../lib/fetchOrderStatus';
+import { fetchOrderStatus } from '../lib/fetchOrderStatus';
 
 type PaymentStatus = 'paid' | 'failed' | 'pending' | 'refunded' | null;
 
@@ -15,9 +15,6 @@ export default function PaymentResult() {
 
   const orderNumber = searchParams?.get('order') || '';
   const statusToken = searchParams?.get('t') || '';
-
-  const dpoResult = searchParams?.get('Result') || searchParams?.get('result') || '';
-  const dpoTransRef = searchParams?.get('TransRef') || searchParams?.get('transRef') || '';
 
   const [paymentStatus, setPaymentStatus] = useState<PaymentStatus>(null);
   const [paymentReference, setPaymentReference] = useState<string | null>(null);
@@ -46,10 +43,6 @@ export default function PaymentResult() {
     setRefreshNonce((n) => n + 1);
   };
 
-  /**
-   * Never treat `Result=000` in the query string as proof of payment — only the server
-   * (verifyToken + status_token) may mark an order paid.
-   */
   useEffect(() => {
     if (!orderNumber || !statusToken) {
       setLoading(false);
@@ -70,7 +63,7 @@ export default function PaymentResult() {
         setLastCheckedAt(now());
         return next;
       } catch {
-        if (isMounted) setError('Failed to check payment status. Please try again.');
+        if (isMounted) setError('Failed to check order status. Please try again.');
         setLastCheckedAt(now());
         return null;
       }
@@ -81,42 +74,15 @@ export default function PaymentResult() {
       setError('');
       stopPolling();
 
-      try {
-        const snapshot = await confirmDpoResult({
-          orderNumber,
-          statusToken,
-          dpoResult,
-          transRef: dpoTransRef || undefined,
-        });
-        if (!isMounted) return;
-
-        const next = (snapshot.payment_status as PaymentStatus) ?? null;
-        setPaymentStatus(next);
-        setPaymentReference(snapshot.payment_reference ?? null);
-        setOrderStatus(snapshot.order_status ?? null);
-        setLastCheckedAt(now());
-
-        if (next && next !== 'pending') {
-          setLoading(false);
-          return;
-        }
-      } catch {
-        if (isMounted) {
-          setError('Could not verify payment with the server. We will keep checking…');
-          setLastCheckedAt(now());
-        }
-      }
-
+      const initial = await fetchStatus();
       if (!isMounted) return;
       setLoading(false);
+
+      if (initial && initial !== 'pending') return;
 
       let attempts = 0;
       const maxAttempts = 24;
       const intervalMs = 5000;
-
-      const initial = await fetchStatus();
-      if (!isMounted) return;
-      if (initial && initial !== 'pending') return;
 
       setPolling(true);
       intervalRef.current = window.setInterval(async () => {
@@ -137,7 +103,7 @@ export default function PaymentResult() {
       isMounted = false;
       stopPolling();
     };
-  }, [orderNumber, statusToken, dpoResult, dpoTransRef, refreshNonce]);
+  }, [orderNumber, statusToken, refreshNonce]);
 
   useEffect(() => {
     if (paymentStatus !== 'paid' || !orderNumber) return;
@@ -155,8 +121,8 @@ export default function PaymentResult() {
         : paymentStatus === 'refunded'
           ? { icon: XCircle, label: 'Payment refunded', tone: 'slate' }
           : paymentStatus === 'pending'
-            ? { icon: Clock, label: 'Payment pending', tone: 'amber' }
-            : { icon: Clock, label: 'Checking payment status…', tone: 'slate' };
+            ? { icon: Clock, label: 'Order pending', tone: 'amber' }
+            : { icon: Clock, label: 'Checking order status…', tone: 'slate' };
 
   const Icon = statusConfig.icon;
 
@@ -176,10 +142,10 @@ export default function PaymentResult() {
       <section className="py-24 px-4 bg-gradient-to-b from-slate-50 to-white min-h-screen">
         <div className="max-w-3xl mx-auto text-center">
           <XCircle size={48} className="mx-auto text-amber-600 mb-4" />
-          <h1 className="text-2xl font-extrabold text-slate-900 mb-2">Payment status link incomplete</h1>
+          <h1 className="text-2xl font-extrabold text-slate-900 mb-2">Status link incomplete</h1>
           <p className="text-slate-600 mb-6">
-            Use the return link from DPO Pay after checkout, or open order tracking and find your order with the email or phone
-            you used.
+            Open order tracking and find your order using the email or phone you used, or return to the page you
+            arrived from with the full link.
           </p>
           <Link
             href="/orders"
@@ -227,9 +193,7 @@ export default function PaymentResult() {
             </div>
           )}
 
-          {loading && (
-            <div className="text-slate-600 mb-4">Verifying payment with DPO…</div>
-          )}
+          {loading && <div className="text-slate-600 mb-4">Loading order status…</div>}
 
           {error && (
             <div
@@ -244,8 +208,7 @@ export default function PaymentResult() {
           <div className="bg-white rounded-2xl shadow-lg border-2 border-slate-100 p-6 text-left">
             {paymentStatus === 'paid' ? (
               <p className="text-slate-700">
-                Thanks for your payment! Our team will follow up with next steps for your order. Redirecting to order
-                tracking…
+                Thanks for your payment. Our team will follow up with next steps. Redirecting to order tracking…
               </p>
             ) : paymentStatus === 'failed' ? (
               <p className="text-slate-700">
@@ -257,18 +220,19 @@ export default function PaymentResult() {
               </p>
             ) : paymentStatus === 'pending' ? (
               <p className="text-slate-700">
-                Your payment is being processed. This page checks automatically.
+                Your order is pending. We will update the status when payment is confirmed. This page checks
+                automatically.
               </p>
             ) : (
-              <p className="text-slate-700">We are confirming your payment. Please wait a moment…</p>
+              <p className="text-slate-700">We are loading your order status. Please wait a moment…</p>
             )}
 
             {(paymentReference || orderStatus) && (
               <div className="mt-5 p-4 rounded-xl bg-slate-50 border border-slate-200">
-                <div className="text-xs font-bold text-slate-700 mb-2">Payment Details</div>
+                <div className="text-xs font-bold text-slate-700 mb-2">Details</div>
                 {paymentReference && (
                   <div className="text-sm text-slate-700 mb-1">
-                    Payment ref: <span className="font-mono font-bold">{paymentReference}</span>
+                    Reference: <span className="font-mono font-bold">{paymentReference}</span>
                   </div>
                 )}
                 {orderStatus && (
