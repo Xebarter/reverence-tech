@@ -33,7 +33,7 @@ export default function Header() {
         attemptScroll(storedSectionId);
         return;
       }
-      
+
       // If no stored section, check for hash in URL
       const hash = window.location.hash;
       if (hash) {
@@ -205,7 +205,7 @@ export default function Header() {
                   <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-yellow-500 transition-all group-hover:w-full" />
                 </Link>
               )}
-              
+
               <button
                 onClick={() => navigateToSection('contact')}
                 className={`px-6 py-2.5 rounded-xl font-black text-sm transition-all duration-300 shadow-lg ${isScrolled ? 'bg-[#1C3D5A] text-white hover:bg-yellow-500' : 'bg-yellow-400 text-[#1C3D5A] hover:bg-white'
@@ -326,7 +326,7 @@ export default function Header() {
                     <ChevronRight size={18} className="text-slate-300 group-hover:text-yellow-600 transition-colors" />
                   </Link>
                 )}
-                
+
               </div>
 
               {/* Contact Information (Brought from Desktop Header) */}
