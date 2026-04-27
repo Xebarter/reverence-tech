@@ -285,8 +285,8 @@ export default function Services() {
       const fromHttp = await describeFunctionsHttpError(e);
       setError(
         fromHttp ??
-          (e instanceof Error ? e.message : null) ??
-          'Failed to submit your request. Please try again.',
+        (e instanceof Error ? e.message : null) ??
+        'Failed to submit your request. Please try again.',
       );
       setProcessing(false);
       setCheckoutStep('details');
@@ -519,9 +519,8 @@ export default function Services() {
                           resetCheckout();
                         }}
                         disabled={processing || checkoutStep === 'processing'}
-                        className={`shrink-0 rounded-lg p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 ${
-                          processing || checkoutStep === 'processing' ? 'cursor-not-allowed opacity-40' : ''
-                        }`}
+                        className={`shrink-0 rounded-lg p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 ${processing || checkoutStep === 'processing' ? 'cursor-not-allowed opacity-40' : ''
+                          }`}
                         aria-label="Close checkout"
                       >
                         <X size={22} strokeWidth={2} />
@@ -543,13 +542,12 @@ export default function Services() {
                                   />
                                 )}
                                 <div
-                                  className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-bold transition ${
-                                    done
+                                  className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-bold transition ${done
                                       ? 'bg-[#1C3D5A] text-white shadow-sm shadow-[#1C3D5A]/25'
                                       : current
                                         ? 'bg-white text-[#1C3D5A] ring-2 ring-[#1C3D5A]/25 ring-offset-2 ring-offset-white'
                                         : 'border border-slate-200 bg-slate-50 text-slate-400'
-                                  }`}
+                                    }`}
                                   aria-current={current ? 'step' : undefined}
                                 >
                                   {done ? <Check className="h-4 w-4" strokeWidth={2.5} /> : idx + 1}
@@ -562,9 +560,8 @@ export default function Services() {
                                 )}
                               </div>
                               <span
-                                className={`max-w-[5.5rem] text-center text-[10px] font-semibold uppercase tracking-wide sm:max-w-none sm:text-[11px] ${
-                                  current ? 'text-[#1C3D5A]' : 'text-slate-400'
-                                }`}
+                                className={`max-w-[5.5rem] text-center text-[10px] font-semibold uppercase tracking-wide sm:max-w-none sm:text-[11px] ${current ? 'text-[#1C3D5A]' : 'text-slate-400'
+                                  }`}
                               >
                                 {s.label}
                               </span>
@@ -575,228 +572,241 @@ export default function Services() {
                     </div>
                   </div>
 
-                {error && (
-                  <div
-                    className="mb-5 rounded-xl border border-red-200/80 bg-red-50/90 px-4 py-3 text-sm text-red-800"
-                    role="alert"
-                    aria-live="polite"
-                  >
-                    {error}
-                  </div>
-                )}
-
-                {checkoutStep === 'details' && (
-                  <form onSubmit={handleDetailsSubmit} className="grid grid-cols-1 gap-5 sm:grid-cols-2 sm:gap-x-5 sm:gap-y-5">
-                    <div className="sm:col-span-2">
-                      <div className="mb-3 flex items-center gap-2 text-slate-800">
-                        <User className="h-4 w-4 text-[#1C3D5A]" aria-hidden />
-                        <h5 className="text-sm font-semibold tracking-tight">Contact</h5>
-                      </div>
+                  {error && (
+                    <div
+                      className="mb-5 rounded-xl border border-red-200/80 bg-red-50/90 px-4 py-3 text-sm text-red-800"
+                      role="alert"
+                      aria-live="polite"
+                    >
+                      {error}
                     </div>
+                  )}
 
-                    <div>
-                      <FieldLabel htmlFor="checkout-full-name">Full name</FieldLabel>
-                      <input
-                        id="checkout-full-name"
-                        required
-                        name="full_name"
-                        autoComplete="name"
-                        placeholder="As it appears on your invoice"
-                        value={formData.full_name}
-                        onChange={handleChange}
-                        className={fieldInputClass}
-                      />
-                    </div>
-
-                    <div>
-                      <FieldLabel htmlFor="checkout-email">Email</FieldLabel>
-                      <input
-                        id="checkout-email"
-                        required
-                        type="email"
-                        name="email"
-                        autoComplete="email"
-                        placeholder="you@company.com"
-                        value={formData.email}
-                        onChange={handleChange}
-                        className={fieldInputClass}
-                      />
-                    </div>
-
-                    <div>
-                      <FieldLabel htmlFor="checkout-phone">Phone</FieldLabel>
-                      <input
-                        id="checkout-phone"
-                        required
-                        name="phone"
-                        autoComplete="tel"
-                        placeholder="+256 …"
-                        value={formData.phone}
-                        onChange={handleChange}
-                        className={fieldInputClass}
-                      />
-                    </div>
-
-                    <div>
-                      <FieldLabel htmlFor="checkout-company">Company (optional)</FieldLabel>
-                      <input
-                        id="checkout-company"
-                        name="company"
-                        autoComplete="organization"
-                        placeholder="Organization name"
-                        value={formData.company}
-                        onChange={handleChange}
-                        className={fieldInputClass}
-                      />
-                    </div>
-
-                    <div className="sm:col-span-2">
-                      <div className="mb-3 mt-1 flex items-center gap-2 border-t border-slate-100 pt-5 text-slate-800">
-                        <MapPin className="h-4 w-4 text-[#1C3D5A]" aria-hidden />
-                        <h5 className="text-sm font-semibold tracking-tight">Location</h5>
-                      </div>
-                    </div>
-
-                    <div className="sm:col-span-2">
-                      <FieldLabel htmlFor="checkout-address">Street address</FieldLabel>
-                      <input
-                        id="checkout-address"
-                        required
-                        name="address"
-                        autoComplete="street-address"
-                        placeholder="Building, street, district"
-                        value={formData.address}
-                        onChange={handleChange}
-                        className={fieldInputClass}
-                      />
-                    </div>
-
-                    <div>
-                      <FieldLabel htmlFor="checkout-city">City</FieldLabel>
-                      <input
-                        id="checkout-city"
-                        required
-                        name="city"
-                        autoComplete="address-level2"
-                        placeholder="City"
-                        value={formData.city}
-                        onChange={handleChange}
-                        className={fieldInputClass}
-                      />
-                    </div>
-
-                    <div>
-                      <FieldLabel htmlFor="checkout-country">Country</FieldLabel>
-                      <select
-                        id="checkout-country"
-                        name="country"
-                        value={formData.country}
-                        onChange={handleChange}
-                        className={`${fieldInputClass} cursor-pointer appearance-none bg-[length:1rem] bg-[right_0.65rem_center] bg-no-repeat pr-10`}
-                        style={{
-                          backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
-                        }}
-                      >
-                        <option value="Uganda">Uganda</option>
-                        <option value="Kenya">Kenya</option>
-                        <option value="Tanzania">Tanzania</option>
-                        <option value="Rwanda">Rwanda</option>
-                        <option value="South Sudan">South Sudan</option>
-                        <option value="Other">Other</option>
-                      </select>
-                    </div>
-
-                    <div className="sm:col-span-2">
-                      <div className="rounded-xl border border-slate-200/90 bg-slate-50/50 p-4 sm:p-5">
-                        <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between">
-                          <div>
-                            <p className="text-[11px] font-semibold uppercase tracking-[0.06em] text-slate-500">
-                              Service & amount
-                            </p>
-                            <p className="mt-1 text-base font-bold text-slate-900">{selectedService.package_name}</p>
-                            <p className="text-sm text-slate-500">{selectedService.suggested_pricing}</p>
-                          </div>
-                          <div className="mt-3 rounded-lg border border-slate-200/80 bg-white px-3 py-2 text-right sm:mt-0">
-                            <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">Due now</p>
-                            <p className="text-lg font-bold tabular-nums text-[#1C3D5A]">
-                              {new Intl.NumberFormat('en-UG', {
-                                style: 'currency',
-                                currency: 'UGX',
-                                minimumFractionDigits: 0,
-                              }).format(formData.amount || 0)}
-                            </p>
-                          </div>
+                  {checkoutStep === 'details' && (
+                    <form onSubmit={handleDetailsSubmit} className="grid grid-cols-1 gap-5 sm:grid-cols-2 sm:gap-x-5 sm:gap-y-5">
+                      <div className="sm:col-span-2">
+                        <div className="mb-3 flex items-center gap-2 text-slate-800">
+                          <User className="h-4 w-4 text-[#1C3D5A]" aria-hidden />
+                          <h5 className="text-sm font-semibold tracking-tight">Contact</h5>
                         </div>
+                      </div>
 
-                        <div className="mt-4 border-t border-slate-200/80 pt-4">
-                          <FieldLabel htmlFor="checkout-amount-display">Amount (UGX)</FieldLabel>
-                          {amountRange.max ? (
-                            <div className="space-y-3">
-                              <div className="flex flex-wrap items-center justify-between gap-2 text-xs font-medium text-slate-500">
-                                <span>
-                                  From{' '}
-                                  {new Intl.NumberFormat('en-UG', {
-                                    style: 'currency',
-                                    currency: 'UGX',
-                                    minimumFractionDigits: 0,
-                                  }).format(amountRange.min)}
-                                </span>
-                                <span>
-                                  Up to{' '}
-                                  {new Intl.NumberFormat('en-UG', {
-                                    style: 'currency',
-                                    currency: 'UGX',
-                                    minimumFractionDigits: 0,
-                                  }).format(amountRange.max)}
-                                </span>
+                      <div>
+                        <FieldLabel htmlFor="checkout-full-name">Full name</FieldLabel>
+                        <input
+                          id="checkout-full-name"
+                          required
+                          name="full_name"
+                          autoComplete="name"
+                          placeholder="As it appears on your invoice"
+                          value={formData.full_name}
+                          onChange={handleChange}
+                          className={fieldInputClass}
+                        />
+                      </div>
+
+                      <div>
+                        <FieldLabel htmlFor="checkout-email">Email</FieldLabel>
+                        <input
+                          id="checkout-email"
+                          required
+                          type="email"
+                          name="email"
+                          autoComplete="email"
+                          placeholder="you@company.com"
+                          value={formData.email}
+                          onChange={handleChange}
+                          className={fieldInputClass}
+                        />
+                      </div>
+
+                      <div>
+                        <FieldLabel htmlFor="checkout-phone">Phone</FieldLabel>
+                        <input
+                          id="checkout-phone"
+                          required
+                          name="phone"
+                          autoComplete="tel"
+                          placeholder="+256 …"
+                          value={formData.phone}
+                          onChange={handleChange}
+                          className={fieldInputClass}
+                        />
+                      </div>
+
+                      <div>
+                        <FieldLabel htmlFor="checkout-company">Company (optional)</FieldLabel>
+                        <input
+                          id="checkout-company"
+                          name="company"
+                          autoComplete="organization"
+                          placeholder="Organization name"
+                          value={formData.company}
+                          onChange={handleChange}
+                          className={fieldInputClass}
+                        />
+                      </div>
+
+                      <div className="sm:col-span-2">
+                        <div className="mb-3 mt-1 flex items-center gap-2 border-t border-slate-100 pt-5 text-slate-800">
+                          <MapPin className="h-4 w-4 text-[#1C3D5A]" aria-hidden />
+                          <h5 className="text-sm font-semibold tracking-tight">Location</h5>
+                        </div>
+                      </div>
+
+                      <div className="sm:col-span-2">
+                        <FieldLabel htmlFor="checkout-address">Street address</FieldLabel>
+                        <input
+                          id="checkout-address"
+                          required
+                          name="address"
+                          autoComplete="street-address"
+                          placeholder="Building, street, district"
+                          value={formData.address}
+                          onChange={handleChange}
+                          className={fieldInputClass}
+                        />
+                      </div>
+
+                      <div>
+                        <FieldLabel htmlFor="checkout-city">City</FieldLabel>
+                        <input
+                          id="checkout-city"
+                          required
+                          name="city"
+                          autoComplete="address-level2"
+                          placeholder="City"
+                          value={formData.city}
+                          onChange={handleChange}
+                          className={fieldInputClass}
+                        />
+                      </div>
+
+                      <div>
+                        <FieldLabel htmlFor="checkout-country">Country</FieldLabel>
+                        <select
+                          id="checkout-country"
+                          name="country"
+                          value={formData.country}
+                          onChange={handleChange}
+                          className={`${fieldInputClass} cursor-pointer appearance-none bg-[length:1rem] bg-[right_0.65rem_center] bg-no-repeat pr-10`}
+                          style={{
+                            backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
+                          }}
+                        >
+                          <option value="Uganda">Uganda</option>
+                          <option value="Kenya">Kenya</option>
+                          <option value="Tanzania">Tanzania</option>
+                          <option value="Rwanda">Rwanda</option>
+                          <option value="South Sudan">South Sudan</option>
+                          <option value="Other">Other</option>
+                        </select>
+                      </div>
+
+                      <div className="sm:col-span-2">
+                        <div className="rounded-xl border border-slate-200/90 bg-slate-50/50 p-4 sm:p-5">
+                          <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between">
+                            <div>
+                              <p className="text-[11px] font-semibold uppercase tracking-[0.06em] text-slate-500">
+                                Service & amount
+                              </p>
+                              <p className="mt-1 text-base font-bold text-slate-900">{selectedService.package_name}</p>
+                              <p className="text-sm text-slate-500">{selectedService.suggested_pricing}</p>
+                            </div>
+                            <div className="mt-3 rounded-lg border border-slate-200/80 bg-white px-3 py-2 text-right sm:mt-0">
+                              <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">Due now</p>
+                              <p className="text-lg font-bold tabular-nums text-[#1C3D5A]">
+                                {new Intl.NumberFormat('en-UG', {
+                                  style: 'currency',
+                                  currency: 'UGX',
+                                  minimumFractionDigits: 0,
+                                }).format(formData.amount || 0)}
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="mt-4 border-t border-slate-200/80 pt-4">
+                            <FieldLabel htmlFor="checkout-amount-display">Amount (UGX)</FieldLabel>
+                            {amountRange.max ? (
+                              <div className="space-y-3">
+                                <div className="flex flex-wrap items-center justify-between gap-2 text-xs font-medium text-slate-500">
+                                  <span>
+                                    From{' '}
+                                    {new Intl.NumberFormat('en-UG', {
+                                      style: 'currency',
+                                      currency: 'UGX',
+                                      minimumFractionDigits: 0,
+                                    }).format(amountRange.min)}
+                                  </span>
+                                  <span>
+                                    Up to{' '}
+                                    {new Intl.NumberFormat('en-UG', {
+                                      style: 'currency',
+                                      currency: 'UGX',
+                                      minimumFractionDigits: 0,
+                                    }).format(amountRange.max)}
+                                  </span>
+                                </div>
+
+                                <input
+                                  required
+                                  type="range"
+                                  name="amount"
+                                  min={amountRange.min}
+                                  max={amountRange.max}
+                                  step={1000}
+                                  value={formData.amount || amountRange.min}
+                                  disabled
+                                  onChange={(e) => e.preventDefault()}
+                                  className="h-2 w-full cursor-not-allowed appearance-none rounded-full bg-slate-200 accent-[#1C3D5A] opacity-70"
+                                />
+
+                                <div className="flex gap-2">
+                                  <button
+                                    type="button"
+                                    disabled
+                                    className="flex-1 cursor-not-allowed rounded-lg border border-slate-200 bg-white py-2 text-xs font-semibold text-slate-400 opacity-60"
+                                    onClick={() => setFormData((prev) => ({ ...prev, amount: amountRange.min }))}
+                                  >
+                                    Min
+                                  </button>
+                                  <button
+                                    type="button"
+                                    disabled
+                                    className="flex-1 cursor-not-allowed rounded-lg border border-slate-200 bg-white py-2 text-xs font-semibold text-slate-400 opacity-60"
+                                    onClick={() =>
+                                      setFormData((prev) => ({
+                                        ...prev,
+                                        amount:
+                                          Math.round(((amountRange.min + (amountRange.max as number)) / 2) / 1000) * 1000,
+                                      }))
+                                    }
+                                  >
+                                    Mid
+                                  </button>
+                                  <button
+                                    type="button"
+                                    disabled
+                                    className="flex-1 cursor-not-allowed rounded-lg border border-slate-200 bg-white py-2 text-xs font-semibold text-slate-400 opacity-60"
+                                    onClick={() => setFormData((prev) => ({ ...prev, amount: amountRange.max as number }))}
+                                  >
+                                    Max
+                                  </button>
+                                </div>
+
+                                <input
+                                  id="checkout-amount-display"
+                                  required
+                                  type="number"
+                                  name="amount"
+                                  min={1}
+                                  step={1000}
+                                  value={formData.amount || 0}
+                                  readOnly
+                                  className={`${fieldInputClass} cursor-not-allowed bg-slate-100/90 text-slate-700`}
+                                />
                               </div>
-
-                              <input
-                                required
-                                type="range"
-                                name="amount"
-                                min={amountRange.min}
-                                max={amountRange.max}
-                                step={1000}
-                                value={formData.amount || amountRange.min}
-                                disabled
-                                onChange={(e) => e.preventDefault()}
-                                className="h-2 w-full cursor-not-allowed appearance-none rounded-full bg-slate-200 accent-[#1C3D5A] opacity-70"
-                              />
-
-                              <div className="flex gap-2">
-                                <button
-                                  type="button"
-                                  disabled
-                                  className="flex-1 cursor-not-allowed rounded-lg border border-slate-200 bg-white py-2 text-xs font-semibold text-slate-400 opacity-60"
-                                  onClick={() => setFormData((prev) => ({ ...prev, amount: amountRange.min }))}
-                                >
-                                  Min
-                                </button>
-                                <button
-                                  type="button"
-                                  disabled
-                                  className="flex-1 cursor-not-allowed rounded-lg border border-slate-200 bg-white py-2 text-xs font-semibold text-slate-400 opacity-60"
-                                  onClick={() =>
-                                    setFormData((prev) => ({
-                                      ...prev,
-                                      amount:
-                                        Math.round(((amountRange.min + (amountRange.max as number)) / 2) / 1000) * 1000,
-                                    }))
-                                  }
-                                >
-                                  Mid
-                                </button>
-                                <button
-                                  type="button"
-                                  disabled
-                                  className="flex-1 cursor-not-allowed rounded-lg border border-slate-200 bg-white py-2 text-xs font-semibold text-slate-400 opacity-60"
-                                  onClick={() => setFormData((prev) => ({ ...prev, amount: amountRange.max as number }))}
-                                >
-                                  Max
-                                </button>
-                              </div>
-
+                            ) : (
                               <input
                                 id="checkout-amount-display"
                                 required
@@ -808,96 +818,82 @@ export default function Services() {
                                 readOnly
                                 className={`${fieldInputClass} cursor-not-allowed bg-slate-100/90 text-slate-700`}
                               />
-                            </div>
-                          ) : (
-                            <input
-                              id="checkout-amount-display"
-                              required
-                              type="number"
-                              name="amount"
-                              min={1}
-                              step={1000}
-                              value={formData.amount || 0}
-                              readOnly
-                              className={`${fieldInputClass} cursor-not-allowed bg-slate-100/90 text-slate-700`}
-                            />
-                          )}
-                          <p className="mt-2 text-xs leading-relaxed text-slate-500">
-                            This is the amount you are requesting. Final pricing and scope can be agreed before any
-                            payment.
-                          </p>
+                            )}
+                            <p className="mt-2 text-xs leading-relaxed text-slate-500">
+                              This is the amount you are requesting. Final pricing and scope can be agreed before any
+                              payment.
+                            </p>
+                          </div>
                         </div>
                       </div>
-                    </div>
 
-                    <div className="sm:col-span-2">
-                      <FieldLabel htmlFor="checkout-notes">Project brief</FieldLabel>
-                      <textarea
-                        id="checkout-notes"
-                        required
-                        name="notes"
-                        rows={4}
-                        placeholder="Goals, timeline, and any must-have features or constraints"
-                        value={formData.notes}
-                        onChange={handleChange}
-                        className={`${fieldInputClass} resize-none`}
-                      />
-                    </div>
-
-                    <div className="sm:col-span-2 pt-1">
-                      <button
-                        type="submit"
-                        disabled={processing}
-                        className="group flex w-full items-center justify-center gap-2 rounded-xl bg-[#1C3D5A] py-3.5 text-[0.9375rem] font-semibold text-white shadow-lg shadow-[#1C3D5A]/20 transition hover:bg-[#152f45] disabled:opacity-60"
-                      >
-                        <Lock className="h-4 w-4 opacity-90" aria-hidden />
-                        {processing ? 'Submitting…' : 'Continue to payment'}
-                        <ChevronRight className="h-4 w-4 transition group-hover:translate-x-0.5" aria-hidden />
-                      </button>
-                    </div>
-                  </form>
-                )}
-
-                {checkoutStep === 'processing' && (
-                  <div className="py-8 text-center sm:py-10">
-                    <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl border border-slate-200 bg-slate-50 shadow-inner">
-                      <div className="h-9 w-9 border-2 border-slate-200 border-t-[#1C3D5A] rounded-full animate-spin" />
-                    </div>
-                    <h4 className="mt-5 text-lg font-bold tracking-tight text-slate-900 sm:text-xl">
-                      Almost done…
-                    </h4>
-                    <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-slate-600">
-                      {pendingOrderNumber ? (
-                        <>
-                          Order reference{' '}
-                          <span className="font-mono font-semibold text-slate-900">{pendingOrderNumber}</span>
-                        </>
-                      ) : (
-                        'Saving your order…'
-                      )}
-                    </p>
-                    <p className="mx-auto mt-2 max-w-md text-xs text-slate-500">
-                      If the page does not redirect, you can still track your order using the links below.
-                    </p>
-
-                    {pendingOrderNumber && (
-                      <div className="mt-8 flex flex-col items-stretch justify-center gap-3 sm:flex-row sm:items-center">
-                        <Link
-                          href={`/payment-result?order=${encodeURIComponent(pendingOrderNumber)}&t=${encodeURIComponent(pendingStatusToken)}`}
-                          className="inline-flex items-center justify-center rounded-xl bg-[#1C3D5A] px-5 py-3 text-sm font-semibold text-white shadow-md shadow-[#1C3D5A]/20 transition hover:bg-[#152f45]"
-                        >
-                          View status
-                        </Link>
-                        <Link
-                          href="/orders"
-                          className="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-800 shadow-sm transition hover:bg-slate-50"
-                        >
-                          Track order
-                        </Link>
+                      <div className="sm:col-span-2">
+                        <FieldLabel htmlFor="checkout-notes">Project brief</FieldLabel>
+                        <textarea
+                          id="checkout-notes"
+                          name="notes"
+                          rows={4}
+                          placeholder="Goals, timeline, and any must-have features or constraints"
+                          value={formData.notes}
+                          onChange={handleChange}
+                          className={`${fieldInputClass} resize-none`}
+                        />
                       </div>
-                    )}
-                  </div>
-                )}
+
+                      <div className="sm:col-span-2 pt-1">
+                        <button
+                          type="submit"
+                          disabled={processing}
+                          className="group flex w-full items-center justify-center gap-2 rounded-xl bg-[#1C3D5A] py-3.5 text-[0.9375rem] font-semibold text-white shadow-lg shadow-[#1C3D5A]/20 transition hover:bg-[#152f45] disabled:opacity-60"
+                        >
+                          <Lock className="h-4 w-4 opacity-90" aria-hidden />
+                          {processing ? 'Submitting…' : 'Continue to payment'}
+                          <ChevronRight className="h-4 w-4 transition group-hover:translate-x-0.5" aria-hidden />
+                        </button>
+                      </div>
+                    </form>
+                  )}
+
+                  {checkoutStep === 'processing' && (
+                    <div className="py-8 text-center sm:py-10">
+                      <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl border border-slate-200 bg-slate-50 shadow-inner">
+                        <div className="h-9 w-9 border-2 border-slate-200 border-t-[#1C3D5A] rounded-full animate-spin" />
+                      </div>
+                      <h4 className="mt-5 text-lg font-bold tracking-tight text-slate-900 sm:text-xl">
+                        Almost done…
+                      </h4>
+                      <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-slate-600">
+                        {pendingOrderNumber ? (
+                          <>
+                            Order reference{' '}
+                            <span className="font-mono font-semibold text-slate-900">{pendingOrderNumber}</span>
+                          </>
+                        ) : (
+                          'Saving your order…'
+                        )}
+                      </p>
+                      <p className="mx-auto mt-2 max-w-md text-xs text-slate-500">
+                        If the page does not redirect, you can still track your order using the links below.
+                      </p>
+
+                      {pendingOrderNumber && (
+                        <div className="mt-8 flex flex-col items-stretch justify-center gap-3 sm:flex-row sm:items-center">
+                          <Link
+                            href={`/payment-result?order=${encodeURIComponent(pendingOrderNumber)}&t=${encodeURIComponent(pendingStatusToken)}`}
+                            className="inline-flex items-center justify-center rounded-xl bg-[#1C3D5A] px-5 py-3 text-sm font-semibold text-white shadow-md shadow-[#1C3D5A]/20 transition hover:bg-[#152f45]"
+                          >
+                            View status
+                          </Link>
+                          <Link
+                            href="/orders"
+                            className="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-800 shadow-sm transition hover:bg-slate-50"
+                          >
+                            Track order
+                          </Link>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
             </motion.div>
