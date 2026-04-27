@@ -278,7 +278,7 @@ export default function Services() {
       }
 
       setCheckoutStep('processing');
-      const nextUrl = `${window.location.origin}/payment-result?order=${encodeURIComponent(orderNumber)}&t=${encodeURIComponent(serverStatusToken)}`;
+      const nextUrl = `${window.location.origin}/payment-result?kind=service&order=${encodeURIComponent(orderNumber)}&t=${encodeURIComponent(serverStatusToken)}`;
       window.location.href = nextUrl;
     } catch (e: unknown) {
       console.error('Service order error:', e);

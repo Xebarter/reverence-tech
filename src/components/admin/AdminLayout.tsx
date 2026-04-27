@@ -76,7 +76,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <div className="flex items-center justify-center h-16 border-b border-gray-200">
             <h1 className="text-xl font-bold text-gray-900">Admin Panel</h1>
           </div>
-          <nav className="flex-1 px-4 py-6 space-y-2">
+          <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto overscroll-contain">
             {navigation.map((item) => {
               const Icon = item.icon;
               return (

@@ -1,13 +1,18 @@
+'use client';
+
 import { Menu, X, ChevronRight, Phone, Mail, ArrowRight, MapPin } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useUser } from '../UserContext';
+import { supabase } from '../lib/supabase';
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const pathname = usePathname();
+  const { user, loading } = useUser();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -164,6 +169,42 @@ export default function Header() {
                 Portfolio
                 <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-yellow-500 transition-all group-hover:w-full" />
               </button>
+
+              {!loading && user ? (
+                <div className="flex items-center gap-4">
+                  <Link
+                    href="/dashboard"
+                    className={`text-sm font-bold transition-all hover:text-yellow-500 relative group ${isScrolled ? 'text-slate-700' : 'text-slate-200'
+                      }`}
+                  >
+                    Dashboard
+                    <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-yellow-500 transition-all group-hover:w-full" />
+                  </Link>
+                  <Link
+                    href="/applications"
+                    className={`text-sm font-bold transition-all hover:text-yellow-500 relative group ${isScrolled ? 'text-slate-700' : 'text-slate-200'
+                      }`}
+                  >
+                    My Applications
+                    <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-yellow-500 transition-all group-hover:w-full" />
+                  </Link>
+                  <button
+                    onClick={async () => { await supabase.auth.signOut(); window.location.href = '/'; }}
+                    className={`text-sm font-bold transition-all hover:text-yellow-500 ${isScrolled ? 'text-slate-700' : 'text-slate-200'}`}
+                  >
+                    Sign out
+                  </button>
+                </div>
+              ) : (
+                <Link
+                  href={`/auth?redirect=${encodeURIComponent(pathname || '/')}`}
+                  className={`text-sm font-bold transition-all hover:text-yellow-500 relative group ${isScrolled ? 'text-slate-700' : 'text-slate-200'
+                    }`}
+                >
+                  Sign in
+                  <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-yellow-500 transition-all group-hover:w-full" />
+                </Link>
+              )}
               
               <button
                 onClick={() => navigateToSection('contact')}
@@ -248,6 +289,43 @@ export default function Header() {
                   Portfolio
                   <ChevronRight size={18} className="text-slate-300 group-hover:text-yellow-600 transition-colors" />
                 </button>
+
+                {!loading && user ? (
+                  <>
+                    <Link
+                      href="/dashboard"
+                      onClick={() => setIsMenuOpen(false)}
+                      className="flex items-center justify-between w-full p-4 text-lg font-black text-[#1C3D5A] bg-slate-50 rounded-2xl hover:bg-yellow-50 transition-all group"
+                    >
+                      Dashboard
+                      <ChevronRight size={18} className="text-slate-300 group-hover:text-yellow-600 transition-colors" />
+                    </Link>
+                    <Link
+                      href="/applications"
+                      onClick={() => setIsMenuOpen(false)}
+                      className="flex items-center justify-between w-full p-4 text-lg font-black text-[#1C3D5A] bg-slate-50 rounded-2xl hover:bg-yellow-50 transition-all group"
+                    >
+                      My Applications
+                      <ChevronRight size={18} className="text-slate-300 group-hover:text-yellow-600 transition-colors" />
+                    </Link>
+                    <button
+                      onClick={async () => { await supabase.auth.signOut(); setIsMenuOpen(false); window.location.href = '/'; }}
+                      className="flex items-center justify-between w-full p-4 text-lg font-black text-[#1C3D5A] bg-slate-50 rounded-2xl hover:bg-yellow-50 transition-all group"
+                    >
+                      Sign out
+                      <ChevronRight size={18} className="text-slate-300 group-hover:text-yellow-600 transition-colors" />
+                    </button>
+                  </>
+                ) : (
+                  <Link
+                    href={`/auth?redirect=${encodeURIComponent(pathname || '/')}`}
+                    onClick={() => setIsMenuOpen(false)}
+                    className="flex items-center justify-between w-full p-4 text-lg font-black text-[#1C3D5A] bg-slate-50 rounded-2xl hover:bg-yellow-50 transition-all group"
+                  >
+                    Sign in
+                    <ChevronRight size={18} className="text-slate-300 group-hover:text-yellow-600 transition-colors" />
+                  </Link>
+                )}
                 
               </div>
 

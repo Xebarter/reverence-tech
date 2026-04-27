@@ -431,9 +431,9 @@ export default function BlogManagement() {
 
   if (loading) {
     return (
-      <div className="p-6">
+      <div>
         <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-2xl font-bold text-gray-800 mb-6">Blog Management</h2>
+          <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-6">Blog Management</h2>
           <p>Loading blog posts...</p>
         </div>
       </div>
@@ -441,11 +441,11 @@ export default function BlogManagement() {
   }
 
   return (
-    <div className="p-6">
+    <div>
       <div className="mb-6">
-        <h2 className="text-2xl font-bold text-gray-800 mb-4">Blog Management</h2>
+        <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-4">Blog Management</h2>
         <div className="border-b border-gray-200">
-          <nav className="-mb-px flex space-x-8">
+          <nav className="-mb-px flex flex-wrap gap-x-8 gap-y-2">
             <button
               onClick={() => setActiveTab('posts')}
               className={`py-2 px-1 border-b-2 font-medium text-sm ${
@@ -475,7 +475,7 @@ export default function BlogManagement() {
           <div className="mb-6 flex justify-end">
             <button
               onClick={handleCreatePost}
-              className="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+              className="w-full sm:w-auto inline-flex items-center justify-center px-4 py-2.5 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
             >
               <Plus className="w-5 h-5 mr-2" />
               Create New Post
@@ -637,21 +637,21 @@ export default function BlogManagement() {
                   </label>
                 </div>
 
-                <div className="flex items-center justify-end space-x-3 pt-4">
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-2 sm:gap-3 pt-4">
                   <button
                     type="button"
                     onClick={() => {
                       setShowCreatePostForm(false);
                       setEditingPost(null);
                     }}
-                    className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors"
+                    className="w-full sm:w-auto px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={uploading}
-                    className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors disabled:opacity-50"
+                    className="w-full sm:w-auto px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors disabled:opacity-50"
                   >
                     {uploading ? (
                       <>
@@ -769,7 +769,7 @@ export default function BlogManagement() {
           <div className="mb-6 flex justify-end">
             <button
               onClick={handleCreateCategory}
-              className="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+              className="w-full sm:w-auto inline-flex items-center justify-center px-4 py-2.5 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
             >
               <Plus className="w-5 h-5 mr-2" />
               Create New Category
@@ -809,20 +809,20 @@ export default function BlogManagement() {
                   />
                 </div>
 
-                <div className="flex items-center justify-end space-x-3 pt-4">
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-2 sm:gap-3 pt-4">
                   <button
                     type="button"
                     onClick={() => {
                       setShowCreateCategoryForm(false);
                       setEditingCategory(null);
                     }}
-                    className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors"
+                    className="w-full sm:w-auto px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+                    className="w-full sm:w-auto px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
                   >
                     {editingCategory ? 'Update Category' : 'Create Category'}
                   </button>

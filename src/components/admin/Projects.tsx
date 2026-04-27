@@ -261,9 +261,9 @@ const ProjectsManagement: React.FC = () => {
   return (
     <div>
       <div className="mb-8">
-        <div className="flex justify-between items-center">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Projects</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Projects</h1>
             <p className="text-gray-600 mt-2">Manage featured projects and portfolio items</p>
           </div>
           <button
@@ -271,7 +271,7 @@ const ProjectsManagement: React.FC = () => {
               resetForm();
               setShowForm(true);
             }}
-            className="flex items-center px-4 py-2 bg-[#1C3D5A] text-white rounded-lg hover:bg-[#143040] transition-colors"
+            className="w-full sm:w-auto flex items-center justify-center px-4 py-2 bg-[#1C3D5A] text-white rounded-lg hover:bg-[#143040] transition-colors"
           >
             <Plus size={20} className="mr-2" />
             Add Project

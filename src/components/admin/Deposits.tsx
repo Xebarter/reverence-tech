@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Search, CheckCircle2, Clock, XCircle, Edit, DollarSign, Package, Mail, Phone } from 'lucide-react';
+import { Search, CheckCircle2, Clock, XCircle, Edit, DollarSign, Package, Mail, Phone, Eye } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { supabase } from '../../lib/supabase';
 
@@ -32,9 +32,11 @@ export default function Deposits() {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [selectedDeposit, setSelectedDeposit] = useState<Deposit | null>(null);
+  const [showDetails, setShowDetails] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editFormData, setEditFormData] = useState({
     status: 'pending' as Deposit['status'],
+    payment_reference: '',
     admin_notes: '',
   });
 
@@ -86,9 +88,15 @@ export default function Deposits() {
     setSelectedDeposit(deposit);
     setEditFormData({
       status: deposit.status,
+      payment_reference: deposit.payment_reference || '',
       admin_notes: deposit.admin_notes || '',
     });
     setShowEditModal(true);
+  };
+
+  const openDetails = (deposit: Deposit) => {
+    setSelectedDeposit(deposit);
+    setShowDetails(true);
   };
 
   const handleSaveEdit = async () => {
@@ -97,6 +105,7 @@ export default function Deposits() {
     try {
       const updateData: any = {
         status: editFormData.status,
+        payment_reference: editFormData.payment_reference.trim() || null,
         admin_notes: editFormData.admin_notes || null,
         updated_at: new Date().toISOString(),
       };
@@ -269,8 +278,98 @@ export default function Deposits() {
         </div>
       </div>
 
-      {/* Deposits Table */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+      {/* Mobile cards */}
+      <div className="md:hidden space-y-4">
+        {filteredDeposits.map((deposit) => {
+          const progress = calculateProgress(deposit);
+          return (
+            <div key={deposit.id} className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <div className="font-bold text-gray-900 truncate">{deposit.customer_name}</div>
+                  <div className="text-xs text-gray-500 mt-1">{formatDate(deposit.deposit_date || deposit.created_at)}</div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => openDetails(deposit)}
+                    className="p-2 text-slate-700 bg-slate-100 rounded-lg"
+                    title="View details"
+                  >
+                    <Eye size={18} />
+                  </button>
+                  <button
+                    onClick={() => handleEdit(deposit)}
+                    className="p-2 text-indigo-600 bg-indigo-50 rounded-lg"
+                    title="Edit"
+                  >
+                    <Edit size={18} />
+                  </button>
+                </div>
+              </div>
+
+              <div className="mt-3 flex flex-wrap gap-2 items-center">
+                {getStatusBadge(deposit.status)}
+                <select
+                  value={deposit.status}
+                  onChange={(e) => handleStatusUpdate(deposit.id, e.target.value as Deposit['status'])}
+                  className="px-3 py-2 text-sm font-semibold border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+                >
+                  <option value="pending">Pending</option>
+                  <option value="confirmed">Confirmed</option>
+                  <option value="completed">Completed</option>
+                  <option value="cancelled">Cancelled</option>
+                </select>
+              </div>
+
+              <div className="mt-3">
+                <div className="font-semibold text-gray-900 truncate">{deposit.product_name}</div>
+                <div className="text-xs text-gray-500">{formatPrice(deposit.product_price)}</div>
+              </div>
+
+              <div className="mt-3 grid grid-cols-2 gap-3">
+                <div className="rounded-lg bg-gray-50 border border-gray-100 p-3">
+                  <div className="text-[11px] font-bold uppercase tracking-wide text-gray-500">Last deposit</div>
+                  <div className="mt-1 font-bold text-indigo-700">{formatPrice(deposit.deposit_amount)}</div>
+                </div>
+                <div className="rounded-lg bg-gray-50 border border-gray-100 p-3">
+                  <div className="text-[11px] font-bold uppercase tracking-wide text-gray-500">Remaining</div>
+                  <div className="mt-1 font-bold text-gray-900">{formatPrice(deposit.remaining_balance)}</div>
+                </div>
+              </div>
+
+              <div className="mt-3">
+                <div className="flex justify-between text-xs font-semibold mb-1">
+                  <span className="text-gray-600">{progress.toFixed(0)}%</span>
+                  <span className="text-indigo-600">{formatPrice(deposit.total_deposited)}</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div
+                    className="bg-gradient-to-r from-indigo-600 to-purple-600 h-2 rounded-full transition-all"
+                    style={{ width: `${progress}%` }}
+                  />
+                </div>
+              </div>
+
+              {deposit.payment_reference && (
+                <div className="mt-3 text-xs text-gray-600">
+                  Ref: <span className="font-mono">{deposit.payment_reference}</span>
+                </div>
+              )}
+            </div>
+          );
+        })}
+
+        {filteredDeposits.length === 0 && (
+          <div className="text-center py-12 bg-white rounded-xl shadow-sm border border-gray-100">
+            <Package className="mx-auto text-gray-400 mb-4" size={48} />
+            <p className="text-gray-500 text-lg">No deposits found</p>
+            <p className="text-gray-400 text-sm mt-2">Try adjusting your search or filter criteria</p>
+          </div>
+        )}
+      </div>
+
+      {/* Desktop table */}
+      <div className="hidden md:block bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="bg-gray-50 border-b border-gray-200">
@@ -329,14 +428,19 @@ export default function Deposits() {
                       <div className="font-bold text-indigo-600">{formatPrice(deposit.deposit_amount)}</div>
                       <div className="text-xs text-gray-500">Last deposit</div>
                     </td>
-                    <td className="px-6 py-4">
-                      {getStatusBadge(deposit.status)}
-                    </td>
+                    <td className="px-6 py-4">{getStatusBadge(deposit.status)}</td>
                     <td className="px-6 py-4">
                       <div className="text-sm text-gray-900">{formatDate(deposit.deposit_date || deposit.created_at)}</div>
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex gap-2">
+                        <button
+                          onClick={() => openDetails(deposit)}
+                          className="p-2 text-slate-700 hover:bg-slate-100 rounded-lg transition-colors"
+                          title="View details"
+                        >
+                          <Eye size={18} />
+                        </button>
                         <button
                           onClick={() => handleEdit(deposit)}
                           className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
@@ -372,6 +476,103 @@ export default function Deposits() {
         )}
       </div>
 
+      {/* Details Drawer */}
+      {showDetails && selectedDeposit && (
+        <div className="fixed inset-0 z-50 flex">
+          <div className="flex-1 bg-black/40" onClick={() => setShowDetails(false)} />
+          <motion.div
+            initial={{ x: 40, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            exit={{ x: 40, opacity: 0 }}
+            className="w-full max-w-xl bg-white shadow-2xl border-l border-gray-200 p-6 overflow-y-auto"
+          >
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <div className="text-xs font-bold uppercase tracking-wider text-gray-500">Customer deposit</div>
+                <div className="text-2xl font-bold text-gray-900 mt-1">{selectedDeposit.customer_name}</div>
+                <div className="mt-3">{getStatusBadge(selectedDeposit.status)}</div>
+              </div>
+              <button
+                onClick={() => setShowDetails(false)}
+                className="px-3 py-2 rounded-lg border border-gray-200 text-gray-700 hover:bg-gray-50"
+              >
+                Close
+              </button>
+            </div>
+
+            <div className="mt-6 space-y-5">
+              <div className="bg-gray-50 rounded-xl p-4">
+                <div className="text-sm font-semibold text-gray-800 mb-3">Customer</div>
+                <div className="text-sm text-gray-700 space-y-1">
+                  <div><span className="font-semibold">Email:</span> {selectedDeposit.customer_email}</div>
+                  <div><span className="font-semibold">Phone:</span> {selectedDeposit.customer_phone}</div>
+                </div>
+              </div>
+
+              <div className="bg-gray-50 rounded-xl p-4">
+                <div className="text-sm font-semibold text-gray-800 mb-3">Deposit</div>
+                <div className="space-y-2 text-sm text-gray-700">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="font-semibold">{selectedDeposit.product_name}</div>
+                    <div className="text-gray-600">{formatPrice(selectedDeposit.product_price)}</div>
+                  </div>
+                  <div className="pt-3 border-t border-gray-200 grid grid-cols-2 gap-2 text-sm">
+                    <div><span className="font-semibold">Last deposit:</span> {formatPrice(selectedDeposit.deposit_amount)}</div>
+                    <div><span className="font-semibold">Total deposited:</span> {formatPrice(selectedDeposit.total_deposited)}</div>
+                    <div><span className="font-semibold">Remaining:</span> {formatPrice(selectedDeposit.remaining_balance)}</div>
+                    <div><span className="font-semibold">Method:</span> {selectedDeposit.payment_method}</div>
+                  </div>
+                  {selectedDeposit.payment_reference && (
+                    <div className="pt-2 text-xs text-gray-600">
+                      <span className="font-semibold">Reference:</span>{' '}
+                      <span className="font-mono">{selectedDeposit.payment_reference}</span>
+                    </div>
+                  )}
+                  <div className="text-xs text-gray-500 pt-2">
+                    Date: {formatDate(selectedDeposit.deposit_date || selectedDeposit.created_at)}
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-gray-50 rounded-xl p-4">
+                <div className="text-sm font-semibold text-gray-800 mb-2">Customer notes</div>
+                <div className="text-sm text-gray-700 whitespace-pre-wrap">
+                  {selectedDeposit.notes ? selectedDeposit.notes : <span className="text-gray-400 italic">None</span>}
+                </div>
+              </div>
+
+              <div className="bg-gray-50 rounded-xl p-4">
+                <div className="text-sm font-semibold text-gray-800 mb-2">Internal notes</div>
+                <div className="text-sm text-gray-700 whitespace-pre-wrap">
+                  {selectedDeposit.admin_notes ? selectedDeposit.admin_notes : <span className="text-gray-400 italic">None</span>}
+                </div>
+              </div>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={() => {
+                    setShowDetails(false);
+                    handleEdit(selectedDeposit);
+                  }}
+                  className="flex-1 px-4 py-3 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 transition-colors"
+                >
+                  Edit deposit
+                </button>
+                <button
+                  onClick={async () => {
+                    setShowDetails(false);
+                    await fetchDeposits();
+                  }}
+                  className="px-4 py-3 border border-gray-300 font-bold rounded-xl hover:bg-gray-50 transition-colors"
+                >
+                  Refresh
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      )}
+
       {/* Edit Modal */}
       {showEditModal && selectedDeposit && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
@@ -397,6 +598,16 @@ export default function Deposits() {
                   <option value="completed">Completed</option>
                   <option value="cancelled">Cancelled</option>
                 </select>
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-2">Payment Reference (optional)</label>
+                <input
+                  type="text"
+                  value={editFormData.payment_reference}
+                  onChange={(e) => setEditFormData({ ...editFormData, payment_reference: e.target.value })}
+                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none"
+                  placeholder="Transaction ID / Reference"
+                />
               </div>
               <div>
                 <label className="block text-sm font-bold text-gray-700 mb-2">Admin Notes</label>

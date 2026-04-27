@@ -1,10 +1,10 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { CheckCircle2, Clock, XCircle, RefreshCw } from 'lucide-react';
+import { CheckCircle2, Clock, XCircle, RefreshCw, UserPlus } from 'lucide-react';
 import { fetchOrderStatus } from '../lib/fetchOrderStatus';
 
 type PaymentStatus = 'paid' | 'failed' | 'pending' | 'refunded' | null;
@@ -15,6 +15,8 @@ export default function PaymentResult() {
 
   const orderNumber = searchParams?.get('order') || '';
   const statusToken = searchParams?.get('t') || '';
+  const [bootstrapping, setBootstrapping] = useState(false);
+  const [bootstrapError, setBootstrapError] = useState<string | null>(null);
 
   const [paymentStatus, setPaymentStatus] = useState<PaymentStatus>(null);
   const [paymentReference, setPaymentReference] = useState<string | null>(null);
@@ -26,6 +28,11 @@ export default function PaymentResult() {
 
   const intervalRef = useRef<number | undefined>(undefined);
   const [refreshNonce, setRefreshNonce] = useState(0);
+
+  const isServiceOrder = useMemo(() => {
+    const raw = (searchParams?.get('kind') || '').toLowerCase();
+    return raw === 'service';
+  }, [searchParams]);
 
   const now = () =>
     new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
@@ -107,11 +114,33 @@ export default function PaymentResult() {
 
   useEffect(() => {
     if (paymentStatus !== 'paid' || !orderNumber) return;
+    // For service purchases, we want to prompt account creation so users can view services.
+    if (isServiceOrder) return;
     const id = window.setTimeout(() => {
       router.push(`/orders?order=${encodeURIComponent(orderNumber)}`);
     }, 3000);
     return () => window.clearTimeout(id);
   }, [router, orderNumber, paymentStatus]);
+
+  const handleCreateAccount = async () => {
+    setBootstrapping(true);
+    setBootstrapError(null);
+    try {
+      const resp = await fetch('/api/auth/bootstrap-paid-service', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderNumber, statusToken }),
+      });
+      const json = (await resp.json().catch(() => null)) as { actionLink?: string; error?: string } | null;
+      if (!resp.ok) throw new Error(json?.error || `Request failed (HTTP ${resp.status})`);
+      if (!json?.actionLink) throw new Error('Invalid response from server');
+      window.location.href = json.actionLink;
+    } catch (e: any) {
+      setBootstrapError(e?.message || 'Could not create your account. Please try again.');
+    } finally {
+      setBootstrapping(false);
+    }
+  };
 
   const statusConfig =
     paymentStatus === 'paid'
@@ -208,7 +237,7 @@ export default function PaymentResult() {
           <div className="bg-white rounded-2xl shadow-lg border-2 border-slate-100 p-6 text-left">
             {paymentStatus === 'paid' ? (
               <p className="text-slate-700">
-                Thanks for your payment. Our team will follow up with next steps. Redirecting to order tracking…
+                Thanks for your payment. Our team will follow up with next steps.
               </p>
             ) : paymentStatus === 'failed' ? (
               <p className="text-slate-700">
@@ -248,12 +277,24 @@ export default function PaymentResult() {
             )}
 
             <div className="mt-6 flex gap-3 justify-center">
-              <Link
-                href="/orders"
-                className="px-6 py-3 bg-[#1C3D5A] text-white font-bold rounded-xl hover:bg-[#152f45] transition"
-              >
-                Track Orders
-              </Link>
+              {paymentStatus === 'paid' && isServiceOrder ? (
+                <button
+                  type="button"
+                  onClick={handleCreateAccount}
+                  disabled={bootstrapping}
+                  className="px-6 py-3 bg-[#1C3D5A] text-white font-bold rounded-xl hover:bg-yellow-500 hover:text-[#1C3D5A] transition disabled:opacity-60 flex items-center gap-2"
+                >
+                  <UserPlus size={18} />
+                  {bootstrapping ? 'Preparing account…' : 'Create account & set password'}
+                </button>
+              ) : (
+                <Link
+                  href="/orders"
+                  className="px-6 py-3 bg-[#1C3D5A] text-white font-bold rounded-xl hover:bg-[#152f45] transition"
+                >
+                  Track Orders
+                </Link>
+              )}
               <Link
                 href="/"
                 className="px-6 py-3 border-2 border-slate-200 text-slate-700 font-bold rounded-xl hover:bg-slate-50 transition"
@@ -261,6 +302,12 @@ export default function PaymentResult() {
                 Return Home
               </Link>
             </div>
+
+            {bootstrapError && (
+              <div className="mt-4 p-4 bg-rose-50 text-rose-700 rounded-xl text-sm text-center font-semibold">
+                {bootstrapError}
+              </div>
+            )}
           </div>
         </motion.div>
       </div>

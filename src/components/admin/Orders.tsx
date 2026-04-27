@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Search, Package, CheckCircle2, Clock, XCircle, Truck, Edit, DollarSign, Mail, Phone } from 'lucide-react';
+import { Search, Package, CheckCircle2, Clock, XCircle, Truck, Edit, DollarSign, Mail, Phone, Boxes } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { adminSupabase } from '../../lib/supabase';
 
@@ -283,8 +283,74 @@ export default function Orders() {
         </div>
       </div>
 
-      {/* Orders Table */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+      {/* Mobile cards */}
+      <div className="md:hidden space-y-4">
+        {filteredOrders.map((order) => (
+          <div key={order.id} className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <div className="font-bold text-gray-900 truncate">{order.order_number}</div>
+                <div className="text-xs text-gray-500 mt-1">{formatDate(order.created_at)}</div>
+              </div>
+              <button
+                onClick={() => handleEdit(order)}
+                className="shrink-0 p-2 text-indigo-600 bg-indigo-50 rounded-lg"
+                title="Edit Order"
+              >
+                <Edit size={18} />
+              </button>
+            </div>
+
+            <div className="mt-3 flex flex-wrap gap-2">
+              {getStatusBadge(order.order_status, 'order')}
+              {getStatusBadge(order.payment_status, 'payment')}
+            </div>
+
+            <div className="mt-3 text-sm text-gray-700">
+              <div className="font-semibold text-gray-900">{order.customer_name}</div>
+              <div className="text-xs text-gray-500 truncate">{order.customer_email}</div>
+              <div className="text-xs text-gray-500 truncate">{order.customer_phone}</div>
+            </div>
+
+            <div className="mt-3 grid grid-cols-2 gap-3">
+              <div className="rounded-lg bg-gray-50 border border-gray-100 p-3">
+                <div className="text-[11px] font-bold uppercase tracking-wide text-gray-500">Amount</div>
+                <div className="mt-1 font-bold text-indigo-700">{formatPrice(order.total_amount)}</div>
+              </div>
+              <div className="rounded-lg bg-gray-50 border border-gray-100 p-3">
+                <div className="text-[11px] font-bold uppercase tracking-wide text-gray-500 flex items-center gap-1">
+                  <Boxes size={14} />
+                  Items
+                </div>
+                <div className="mt-1 text-sm text-gray-900">
+                  {Array.isArray(order.items) ? order.items.length : 0} item(s)
+                </div>
+                {Array.isArray(order.items) && order.items.length > 0 && (
+                  <div className="text-xs text-gray-500 mt-1 truncate">{order.items[0].product_name}</div>
+                )}
+              </div>
+            </div>
+
+            {order.tracking_number && (
+              <div className="mt-3 text-xs text-gray-600">
+                <Truck size={12} className="inline mr-1" />
+                {order.tracking_number}
+              </div>
+            )}
+          </div>
+        ))}
+
+        {filteredOrders.length === 0 && (
+          <div className="text-center py-12 bg-white rounded-xl shadow-sm border border-gray-100">
+            <Package className="mx-auto text-gray-400 mb-4" size={48} />
+            <p className="text-gray-500 text-lg">No orders found</p>
+            <p className="text-gray-400 text-sm mt-2">Try adjusting your search or filter criteria</p>
+          </div>
+        )}
+      </div>
+
+      {/* Desktop table */}
+      <div className="hidden md:block bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="bg-gray-50 border-b border-gray-200">
@@ -339,12 +405,8 @@ export default function Orders() {
                       <div className="text-xs text-gray-500">Shipping: {formatPrice(order.shipping_fee)}</div>
                     )}
                   </td>
-                  <td className="px-6 py-4">
-                    {getStatusBadge(order.order_status, 'order')}
-                  </td>
-                  <td className="px-6 py-4">
-                    {getStatusBadge(order.payment_status, 'payment')}
-                  </td>
+                  <td className="px-6 py-4">{getStatusBadge(order.order_status, 'order')}</td>
+                  <td className="px-6 py-4">{getStatusBadge(order.payment_status, 'payment')}</td>
                   <td className="px-6 py-4">
                     <div className="text-sm text-gray-900">{formatDate(order.created_at)}</div>
                   </td>

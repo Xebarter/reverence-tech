@@ -118,7 +118,7 @@ export default function Messages() {
               <div className="p-4 border-b border-gray-200">
                 <h2 className="text-lg font-semibold">Inquiries ({messages.length})</h2>
               </div>
-              <div className="overflow-y-auto" style={{ maxHeight: 'calc(100vh - 200px)' }}>
+              <div className="overflow-y-auto max-h-[calc(100dvh-200px)] lg:max-h-[calc(100vh-200px)]">
                 {messages.length === 0 ? (
                   <div className="p-8 text-center">
                     <p className="text-gray-500">No messages found</p>
@@ -157,7 +157,7 @@ export default function Messages() {
           </div>
 
           {/* Message Detail */}
-          <div className="lg:col-span-2">
+          <div className="hidden lg:block lg:col-span-2">
             {selectedMessage ? (
               <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
                 <div className="p-6">
@@ -229,6 +229,71 @@ export default function Messages() {
                 </div>
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Mobile message detail modal */}
+      {selectedMessage && (
+        <div className="lg:hidden fixed inset-0 z-40 flex items-end sm:items-center justify-center p-0 sm:p-4">
+          <div
+            className="absolute inset-0 bg-black/50"
+            onClick={() => setSelectedMessage(null)}
+          />
+          <div className="relative w-full sm:max-w-2xl bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl max-h-[85dvh] overflow-y-auto">
+            <div className="p-5 border-b border-gray-100 flex items-start justify-between gap-4">
+              <div className="min-w-0">
+                <div className="text-xs font-bold uppercase tracking-wider text-gray-500">Message</div>
+                <div className="text-xl font-bold text-gray-900 truncate">{selectedMessage.full_name}</div>
+                <div className="text-sm text-gray-600 truncate">{selectedMessage.email}</div>
+                <div className="text-sm text-gray-600 truncate">{selectedMessage.phone}</div>
+              </div>
+              <button
+                onClick={() => setSelectedMessage(null)}
+                className="px-3 py-2 rounded-lg border border-gray-200 text-gray-700 hover:bg-gray-50"
+              >
+                Close
+              </button>
+            </div>
+
+            <div className="p-5 space-y-5">
+              <div>
+                <div className="text-sm font-semibold text-gray-900">Service Interest</div>
+                <div className="mt-1 text-sm text-gray-600">{selectedMessage.service_interest}</div>
+              </div>
+              <div>
+                <div className="text-sm font-semibold text-gray-900">Message</div>
+                <div className="mt-1 text-sm text-gray-600 whitespace-pre-wrap">{selectedMessage.message}</div>
+              </div>
+
+              <div className="flex flex-col sm:flex-row gap-2">
+                <button
+                  onClick={() => updateMessageStatus(selectedMessage.id, 'contacted')}
+                  className="w-full sm:w-auto px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  Mark as Contacted
+                </button>
+                <button
+                  onClick={() => updateMessageStatus(selectedMessage.id, 'closed')}
+                  className="w-full sm:w-auto px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                >
+                  Mark as Closed
+                </button>
+                <button
+                  onClick={() => updateMessageStatus(selectedMessage.id, 'new')}
+                  className="w-full sm:w-auto px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+                >
+                  Mark as New
+                </button>
+                <button
+                  onClick={() => setShowDeleteConfirm(true)}
+                  className="w-full sm:w-auto px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center justify-center gap-2 sm:ml-auto"
+                >
+                  <Trash2 size={16} />
+                  Delete
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}

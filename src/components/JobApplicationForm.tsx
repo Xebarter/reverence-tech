@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { X, Upload, CheckCircle, AlertCircle, FileText, Loader2 } from 'lucide-react';
+import { useUser } from '../UserContext';
 
 interface JobApplicationFormProps {
   jobId: string;
@@ -10,6 +11,7 @@ interface JobApplicationFormProps {
 }
 
 export default function JobApplicationForm({ jobId, jobTitle, onClose, onSubmitSuccess }: JobApplicationFormProps) {
+  const { user } = useUser();
   const [formData, setFormData] = useState({
     full_name: '',
     email: '',
@@ -22,6 +24,22 @@ export default function JobApplicationForm({ jobId, jobTitle, onClose, onSubmitS
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+
+  const redirectToAuth = useMemo(() => `/auth?redirect=${encodeURIComponent(`/job/${jobId}?apply=1`)}`, [jobId]);
+
+  useEffect(() => {
+    if (!user) {
+      setError('Please sign in to apply for this role.');
+      return;
+    }
+    const userEmail = user.email || '';
+    const userFullName = (user.user_metadata?.full_name as string | undefined) || '';
+    setFormData(prev => ({
+      ...prev,
+      email: prev.email || userEmail,
+      full_name: prev.full_name || userFullName
+    }));
+  }, [user]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -73,6 +91,11 @@ export default function JobApplicationForm({ jobId, jobTitle, onClose, onSubmitS
     setError(null);
 
     try {
+      if (!user) {
+        setError('Please sign in to apply for this role.');
+        return;
+      }
+
       let resumeUrl = null;
       if (resumeFile) {
         setUploading(true);
@@ -83,6 +106,7 @@ export default function JobApplicationForm({ jobId, jobTitle, onClose, onSubmitS
       const { error: insertError } = await supabase
         .from('job_applications')
         .insert({
+          user_id: user.id,
           job_id: jobId,
           full_name: formData.full_name,
           email: formData.email,
@@ -138,6 +162,20 @@ export default function JobApplicationForm({ jobId, jobTitle, onClose, onSubmitS
                 <div className="bg-rose-50 border border-rose-100 text-rose-700 px-4 py-3 rounded-xl flex items-center gap-3 text-sm">
                   <AlertCircle size={18} className="flex-shrink-0" />
                   {error}
+                </div>
+              )}
+
+              {!user && (
+                <div className="bg-slate-50 border border-slate-200 text-slate-700 px-4 py-4 rounded-xl text-sm font-semibold">
+                  <div className="flex items-center justify-between gap-3 flex-wrap">
+                    <div>To submit an application, you need an account.</div>
+                    <a
+                      href={redirectToAuth}
+                      className="px-4 py-2 rounded-xl bg-[#1C3D5A] text-white font-black hover:bg-yellow-500 hover:text-[#1C3D5A] transition-all"
+                    >
+                      Sign in / Create account
+                    </a>
+                  </div>
                 </div>
               )}
 
@@ -228,7 +266,7 @@ export default function JobApplicationForm({ jobId, jobTitle, onClose, onSubmitS
                 </button>
                 <button
                   type="submit"
-                  disabled={submitting || !resumeFile}
+                  disabled={submitting || !resumeFile || !user}
                   className="flex-[2] bg-[#1C3D5A] text-white py-3.5 rounded-xl font-bold text-sm hover:bg-yellow-500 hover:text-[#1C3D5A] transition-all disabled:opacity-50 disabled:hover:bg-[#1C3D5A] disabled:hover:text-white flex items-center justify-center gap-2 shadow-lg shadow-blue-900/10"
                 >
                   {submitting ? (

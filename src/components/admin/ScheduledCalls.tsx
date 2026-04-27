@@ -80,25 +80,25 @@ export default function ScheduledCalls() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-6 py-10 space-y-8 h-screen flex flex-col">
+    <div className="space-y-6 sm:space-y-8 flex flex-col min-h-[calc(100dvh-6rem)]">
       {/* Header Section */}
       <header className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 flex-shrink-0">
         <div>
-          <h1 className="text-4xl font-bold text-gray-900 tracking-tight">
+          <h1 className="text-2xl sm:text-4xl font-bold text-gray-900 tracking-tight">
             Scheduled Calls
           </h1>
           <p className="text-gray-500 mt-2 font-medium">
             Manage your pipeline of incoming client call requests.
           </p>
         </div>
-        <button className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-indigo-600 text-white font-semibold hover:bg-indigo-700 transition-all shadow-md active:scale-95">
+        <button className="w-full md:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-indigo-600 text-white font-semibold hover:bg-indigo-700 transition-all shadow-md active:scale-95">
           <Plus size={20} /> New Entry
         </button>
       </header>
 
       {/* Toolbar Section */}
-      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm px-6 py-4 flex flex-wrap gap-4 items-center flex-shrink-0">
-        <div className="relative flex-1 min-w-[300px]">
+      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm px-4 sm:px-6 py-4 flex flex-col sm:flex-row gap-3 sm:gap-4 items-stretch sm:items-center flex-shrink-0">
+        <div className="relative flex-1 min-w-0">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
           <input
             className="w-full h-12 pl-12 pr-4 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-indigo-500 text-gray-700"
@@ -122,7 +122,7 @@ export default function ScheduledCalls() {
 
         <button
           onClick={fetchCalls}
-          className="h-12 w-12 flex items-center justify-center rounded-xl border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors"
+          className="h-12 w-full sm:w-12 flex items-center justify-center rounded-xl border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors"
         >
           <RefreshCw size={20} className={loading ? 'animate-spin' : ''} />
         </button>

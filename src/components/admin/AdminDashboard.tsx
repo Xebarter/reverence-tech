@@ -10,7 +10,7 @@ export default function AdminDashboard() {
     testimonials: 0,
     products: 0,
     deposits: 0,
-    orders: 0
+    orders: 0,
   });
 
   const [loading, setLoading] = useState(true);
@@ -54,7 +54,7 @@ export default function AdminDashboard() {
         testimonials: 0,
         products: productsCount || 0,
         deposits: depositsCount || 0,
-        orders: ordersCount || 0
+        orders: ordersCount || 0,
       });
     } catch (error) {
       console.error('Error fetching stats:', error);

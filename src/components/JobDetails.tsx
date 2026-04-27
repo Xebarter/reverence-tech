@@ -1,12 +1,13 @@
  'use client';
 
-import { useState, useEffect } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { MapPin, Clock, Banknote, ArrowLeft, CheckCircle2, Briefcase, Info, Sparkles } from 'lucide-react';
 import { motion } from 'framer-motion';
 import SEO from './SEO';
 import JobApplicationForm from './JobApplicationForm';
 import { supabase } from '../lib/supabase';
+import { useUser } from '../UserContext';
 
 interface Job {
   id: string;
@@ -25,6 +26,8 @@ export default function JobDetails() {
   const params = useParams<{ id: string }>();
   const id = params?.id;
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const { user, loading: authLoading } = useUser();
   const [job, setJob] = useState<Job | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -35,6 +38,14 @@ export default function JobDetails() {
     // Scroll to top when component mounts
     window.scrollTo(0, 0);
   }, [id]);
+
+  useEffect(() => {
+    const shouldOpen = searchParams?.get('apply') === '1';
+    if (!shouldOpen) return;
+    if (authLoading) return;
+    if (!user) return;
+    setIsApplicationFormOpen(true);
+  }, [searchParams, authLoading, user]);
 
   const fetchJobDetails = async (jobId: string) => {
     try {
@@ -203,7 +214,15 @@ export default function JobDetails() {
                 </div>
 
                 <button
-                  onClick={() => setIsApplicationFormOpen(true)}
+                  onClick={() => {
+                    if (authLoading) return;
+                    if (!user) {
+                      const redirect = `/job/${job.id}?apply=1`;
+                      router.push(`/auth?redirect=${encodeURIComponent(redirect)}`);
+                      return;
+                    }
+                    setIsApplicationFormOpen(true);
+                  }}
                   className="w-full py-4 bg-yellow-400 hover:bg-[#1C3D5A] hover:text-white text-[#1C3D5A] rounded-2xl font-black text-lg transition-all transform hover:scale-[1.02] shadow-lg shadow-yellow-400/20"
                 >
                   Apply for this Role
